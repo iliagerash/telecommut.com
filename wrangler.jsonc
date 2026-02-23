@@ -1,36 +1,41 @@
 {
-  "main": "dist/_worker.js/index.js",
-  "name": "telecommut.com",
-  "compatibility_date": "2026-02-23",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "global_fetch_strictly_public"
-  ],
-  "assets": {
-    "binding": "ASSETS",
-    "directory": "./dist"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "telecommut-db",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
-      "migrations_dir": "drizzle"
-    }
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "SESSION",
-      "id": "REPLACE_WITH_KV_NAMESPACE_ID"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "R2_BUCKET",
-      "bucket_name": "telecommut-assets"
-    }
-  ],
-  "observability": {
-    "enabled": true
-  }
+	"main": "dist/_worker.js/index.js",
+	"name": "telecommut",
+	"compatibility_date": "2026-02-23",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "telecommut-db",
+			"database_id": "0072456d-10fd-4da5-b396-657df6b9d131",
+			"migrations_dir": "drizzle"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "SESSION",
+			"id": "a343a289266d462b9ec9b08f35083636"
+		},
+		{
+			"binding": "SESSION_PREVIEW",
+			"preview_id": "65f2c31e17294871aea4b11ddbbd0853",
+			"id": "45ba3de28da14a58b1f05b8028a2f130"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "R2_BUCKET",
+			"bucket_name": "telecommut-assets"
+		}
+	],
+	"observability": {
+		"enabled": true
+	}
 }

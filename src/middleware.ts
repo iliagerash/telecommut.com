@@ -6,10 +6,7 @@ import { logError, logInfo } from "@/services/observability/logger";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const start = Date.now();
-  const requestId =
-    context.request.headers.get("x-request-id") ??
-    context.request.headers.get("cf-ray") ??
-    randomUUID();
+  const requestId = randomUUID();
 
   context.locals.requestId = requestId;
 
