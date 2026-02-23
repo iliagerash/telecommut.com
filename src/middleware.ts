@@ -50,7 +50,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
           requiredRoles: allowedRoles,
         });
 
-        return new Response("Forbidden", { status: 403 });
+        return context.redirect("/403", 302);
       }
     }
 
