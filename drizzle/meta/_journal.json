@@ -8,6 +8,13 @@
       "when": 1771869689708,
       "tag": "0000_outgoing_devos",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771872022103,
+      "tag": "0001_smooth_emma_frost",
+      "breakpoints": true
     }
   ]
 }
