@@ -11,6 +11,10 @@
     "baseUrl": ".",
     "jsx": "react-jsx",
     "jsxImportSource": "react",
+    "types": [
+      "node",
+      "@cloudflare/workers-types"
+    ],
     "paths": {
       "@/*": [
         "src/*"

@@ -1,43 +1,50 @@
-# Astro Starter Kit: Minimal
+# telecommut.com
 
-```sh
-npm create astro@latest -- --template minimal
+Greenfield migration target for `telecommut.old`.
+
+Stack:
+- Astro + React islands
+- TailwindCSS + shadcn/ui
+- Cloudflare Workers runtime
+- Drizzle ORM
+- D1 (production) + SQLite (local dev/tests)
+
+## Quick Start
+
+```bash
+npm install
+cp .env.example .env
+npm run db:migrate:sqlite
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Database Workflow
 
-## 🚀 Project Structure
+- Generate SQL migration files from schema changes:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run db:generate
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+- Apply migrations to local SQLite (`.local/telecommut.db`):
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```bash
+npm run db:migrate:sqlite
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+- Apply migrations to D1 local simulator:
 
-## 🧞 Commands
+```bash
+npm run db:migrate:d1:local
+```
 
-All commands are run from the root of the project, from a terminal:
+- Apply migrations to remote D1:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+```bash
+npm run db:migrate:d1:remote
+```
 
-## 👀 Want to learn more?
+## Config Notes
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- `wrangler.jsonc` contains placeholder IDs for `D1`, `KV`, and `R2`; replace them before deploy.
+- `.env.example` defines the baseline contract for DB, auth, Mailgun, and cron job security.
