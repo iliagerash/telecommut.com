@@ -49,3 +49,52 @@ export function resetPasswordTemplate(payload: AuthTemplatePayload): MailTemplat
     ].join(""),
   };
 }
+
+export type ContactTemplatePayload = {
+  senderName: string;
+  senderEmail: string;
+  message: string;
+};
+
+export function contactTemplate(payload: ContactTemplatePayload): MailTemplate {
+  return {
+    subject: `Contact request from ${payload.senderName}`,
+    text: [
+      `Name: ${payload.senderName}`,
+      `Email: ${payload.senderEmail}`,
+      ``,
+      payload.message,
+    ].join("\n"),
+    html: [
+      `<p><strong>Name:</strong> ${payload.senderName}</p>`,
+      `<p><strong>Email:</strong> ${payload.senderEmail}</p>`,
+      `<p>${payload.message.replaceAll("\n", "<br />")}</p>`,
+    ].join(""),
+  };
+}
+
+export type ApplyTemplatePayload = {
+  senderName: string;
+  senderEmail: string;
+  jobId: string;
+  message: string;
+};
+
+export function applyTemplate(payload: ApplyTemplatePayload): MailTemplate {
+  return {
+    subject: `Job application for #${payload.jobId} from ${payload.senderName}`,
+    text: [
+      `Name: ${payload.senderName}`,
+      `Email: ${payload.senderEmail}`,
+      `Job ID: ${payload.jobId}`,
+      ``,
+      payload.message,
+    ].join("\n"),
+    html: [
+      `<p><strong>Name:</strong> ${payload.senderName}</p>`,
+      `<p><strong>Email:</strong> ${payload.senderEmail}</p>`,
+      `<p><strong>Job ID:</strong> ${payload.jobId}</p>`,
+      `<p>${payload.message.replaceAll("\n", "<br />")}</p>`,
+    ].join(""),
+  };
+}

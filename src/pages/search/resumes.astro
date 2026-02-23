@@ -1,6 +1,7 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { buildPaginationState } from "@/lib/pagination";
+import SearchFilters from "@/components/search/SearchFilters";
 
 export const prerender = false;
 
@@ -25,6 +26,7 @@ function buildPageHref(page: number): string {
   <p class="mt-3 text-muted-foreground">
     URL-state scaffold is active. Query: <code>{query || "(none)"}</code>. Page: <code>{pagination.page}</code>.
   </p>
+  <SearchFilters client:load basePath="/search/resumes" initialQuery={query} />
   <p class="mt-2 text-muted-foreground">Server-backed data query lands next in W3-2.</p>
   <nav class="mt-6 flex gap-4 text-sm">
     {

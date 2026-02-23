@@ -12,6 +12,7 @@ export type SendMailInput = {
   subject: string;
   text: string;
   html?: string;
+  replyTo?: string;
 };
 
 function requiredEnv(name: string): string {
@@ -58,6 +59,9 @@ export async function sendMailgunMessage(input: SendMailInput): Promise<void> {
   formData.set("text", input.text);
   if (input.html) {
     formData.set("html", input.html);
+  }
+  if (input.replyTo) {
+    formData.set("h:Reply-To", input.replyTo);
   }
 
   const encodedKey = btoa(`api:${config.apiKey}`);
