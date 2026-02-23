@@ -1,0 +1,27 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Telecommut public route scaffold." } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <title>{title} | Telecommut</title>
+  </head>
+  <body>
+    <main class="mx-auto min-h-screen max-w-4xl p-8">
+      <header class="mb-8 border-b pb-4">
+        <a href="/" class="text-sm text-muted-foreground hover:underline">Telecommut</a>
+      </header>
+      <slot />
+    </main>
+  </body>
+</html>
