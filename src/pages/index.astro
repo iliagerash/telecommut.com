@@ -1,33 +1,31 @@
 ---
-import "../styles/global.css";
 import Counter from "@/components/health/Counter";
+import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Telecommut</title>
-  </head>
-  <body>
-    <main class="mx-auto min-h-screen max-w-3xl p-8">
-      <h1 class="text-3xl font-semibold tracking-tight">telecommut.com</h1>
-      <p class="mt-2 text-muted-foreground">Wave 3 public route scaffold is active.</p>
-      <ul class="mt-4 list-disc pl-6 text-sm text-muted-foreground">
-        <li><a class="underline" href="/help">/help</a></li>
-        <li><a class="underline" href="/privacy-policy">/privacy-policy</a></li>
-        <li><a class="underline" href="/terms-and-conditions">/terms-and-conditions</a></li>
-        <li><a class="underline" href="/resources">/resources</a></li>
-        <li><a class="underline" href="/contact">/contact</a></li>
-        <li><a class="underline" href="/search/jobs">/search/jobs</a></li>
-        <li><a class="underline" href="/search/resumes">/search/resumes</a></li>
-      </ul>
-      <section class="mt-6">
-        <Counter client:load />
-      </section>
-    </main>
-  </body>
-</html>
+<PublicLayout
+  title="Home"
+  description="Telecommut migration scaffold."
+  canonicalPath="/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Telecommut",
+    url: "/",
+  }}
+>
+  <h1 class="text-3xl font-semibold tracking-tight">telecommut.com</h1>
+  <p class="mt-2 text-muted-foreground">Wave 3 public route scaffold is active.</p>
+  <ul class="mt-4 list-disc pl-6 text-sm text-muted-foreground">
+    <li><a class="underline" href="/help">/help</a></li>
+    <li><a class="underline" href="/privacy-policy">/privacy-policy</a></li>
+    <li><a class="underline" href="/terms-and-conditions">/terms-and-conditions</a></li>
+    <li><a class="underline" href="/resources">/resources</a></li>
+    <li><a class="underline" href="/contact">/contact</a></li>
+    <li><a class="underline" href="/search/jobs">/search/jobs</a></li>
+    <li><a class="underline" href="/search/resumes">/search/resumes</a></li>
+  </ul>
+  <section class="mt-6">
+    <Counter client:load />
+  </section>
+</PublicLayout>

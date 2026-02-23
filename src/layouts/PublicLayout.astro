@@ -1,19 +1,46 @@
 ---
 import "../styles/global.css";
+import { serializeJsonLd, toAbsoluteUrl } from "@/lib/seo";
 
 interface Props {
   title: string;
   description?: string;
+  canonicalPath?: string;
+  robots?: string;
+  prevPath?: string;
+  nextPath?: string;
+  jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const { title, description = "Telecommut public route scaffold." } = Astro.props;
+const {
+  title,
+  description = "Telecommut public route scaffold.",
+  canonicalPath = `${Astro.url.pathname}${Astro.url.search}`,
+  robots = "index,follow",
+  prevPath,
+  nextPath,
+  jsonLd,
+} = Astro.props;
+
+const canonicalHref = toAbsoluteUrl(canonicalPath);
+const prevHref = prevPath ? toAbsoluteUrl(prevPath) : null;
+const nextHref = nextPath ? toAbsoluteUrl(nextPath) : null;
+const jsonLdString = serializeJsonLd(jsonLd);
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonicalHref} />
+    {prevHref ? <link rel="prev" href={prevHref} /> : null}
+    {nextHref ? <link rel="next" href={nextHref} /> : null}
+    {jsonLdString ? <script is:inline type="application/ld+json" set:html={jsonLdString} /> : null}
     <title>{title} | Telecommut</title>
   </head>
   <body>

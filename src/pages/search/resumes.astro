@@ -10,6 +10,7 @@ const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 20);
 
 const prevPage = pagination.page > 1 ? pagination.page - 1 : null;
 const nextPage = pagination.page + 1;
+const currentPath = `${Astro.url.pathname}${Astro.url.search}`;
 
 function buildPageHref(page: number): string {
   const url = new URL("/search/resumes", Astro.url);
@@ -21,7 +22,19 @@ function buildPageHref(page: number): string {
 }
 ---
 
-<PublicLayout title="Resume Search" description="Browse and search resumes.">
+<PublicLayout
+  title="Resume Search"
+  description="Browse and search resumes."
+  canonicalPath={currentPath}
+  prevPath={prevPage ? buildPageHref(prevPage) : undefined}
+  nextPath={buildPageHref(nextPage)}
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Resume Search",
+    url: currentPath,
+  }}
+>
   <h1 class="text-3xl font-semibold tracking-tight">Resume Search</h1>
   <p class="mt-3 text-muted-foreground">
     URL-state scaffold is active. Query: <code>{query || "(none)"}</code>. Page: <code>{pagination.page}</code>.
