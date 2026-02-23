@@ -3,19 +3,16 @@ import { randomUUID } from "node:crypto";
 import { defineMiddleware } from "astro:middleware";
 
 import { auth } from "@/auth";
+import { getAllowedRolesForPath, hasRoleAccess, resolveUserRole } from "@/auth/authorization";
 import { logError, logInfo } from "@/services/observability/logger";
 
-const protectedPrefixes = ["/app", "/dashboard", "/admin"];
-
-async function hasActiveSession(request: Request): Promise<boolean> {
+async function getSession(request: Request) {
   try {
-    const session = await auth.api.getSession({
+    return await auth.api.getSession({
       headers: request.headers,
     });
-
-    return Boolean(session?.session?.id);
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -26,17 +23,28 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = requestId;
 
   try {
-    const isProtected = protectedPrefixes.some((prefix) =>
-      context.url.pathname.startsWith(prefix),
-    );
-
-    if (isProtected) {
-      const isAuthed = await hasActiveSession(context.request);
-      if (!isAuthed) {
+    const allowedRoles = getAllowedRolesForPath(context.url.pathname);
+    if (allowedRoles) {
+      const session = await getSession(context.request);
+      if (!session?.session?.id) {
         const redirectUrl = new URL("/login", context.url);
         redirectUrl.searchParams.set("next", context.url.pathname);
 
         return context.redirect(redirectUrl.toString(), 302);
+      }
+
+      const userRecord = session.user as Record<string, unknown>;
+      const role = resolveUserRole(userRecord.role ?? userRecord.type);
+
+      if (!hasRoleAccess(context.url.pathname, role)) {
+        logInfo("request.forbidden", {
+          requestId,
+          path: context.url.pathname,
+          role,
+          requiredRoles: allowedRoles,
+        });
+
+        return new Response("Forbidden", { status: 403 });
       }
     }
 
