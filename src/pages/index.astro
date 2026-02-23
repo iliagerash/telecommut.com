@@ -1,17 +1,24 @@
 ---
-
+import "../styles/global.css";
+import Counter from "@/components/health/Counter";
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Telecommut</title>
+  </head>
+  <body>
+    <main class="mx-auto min-h-screen max-w-3xl p-8">
+      <h1 class="text-3xl font-semibold tracking-tight">telecommut.com</h1>
+      <p class="mt-2 text-muted-foreground">Wave 1 scaffold is active.</p>
+      <section class="mt-6">
+        <Counter client:load />
+      </section>
+    </main>
+  </body>
 </html>
