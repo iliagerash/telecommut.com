@@ -48,3 +48,4 @@ npm run db:migrate:d1:remote
 
 - `wrangler.jsonc` contains placeholder IDs for `D1`, `KV`, and `R2`; replace them before deploy.
 - `.env.example` defines the baseline contract for DB, auth, Mailgun, and cron job security.
+- Migrated user access strategy is documented in `docs/migrated-user-strategy.md`.

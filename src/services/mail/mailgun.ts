@@ -4,6 +4,7 @@ type MailgunConfig = {
   apiKey: string;
   domain: string;
   from: string;
+  region: "us" | "eu";
 };
 
 export type SendMailInput = {
@@ -22,17 +23,33 @@ function requiredEnv(name: string): string {
   return value;
 }
 
+function parseMailgunRegion(): "us" | "eu" {
+  const rawRegion = import.meta.env.MAILGUN_REGION;
+  if (!rawRegion || rawRegion.trim() === "") {
+    return "us";
+  }
+
+  const region = rawRegion.trim().toLowerCase();
+  if (region === "us" || region === "eu") {
+    return region;
+  }
+
+  throw new Error("Invalid MAILGUN_REGION. Use 'us' or 'eu'.");
+}
+
 function getConfig(): MailgunConfig {
   return {
     apiKey: requiredEnv("MAILGUN_API_KEY"),
     domain: requiredEnv("MAILGUN_DOMAIN"),
     from: requiredEnv("MAILGUN_FROM"),
+    region: parseMailgunRegion(),
   };
 }
 
 export async function sendMailgunMessage(input: SendMailInput): Promise<void> {
   const config = getConfig();
-  const endpoint = `https://api.mailgun.net/v3/${config.domain}/messages`;
+  const apiHost = config.region === "eu" ? "api.eu.mailgun.net" : "api.mailgun.net";
+  const endpoint = `https://${apiHost}/v3/${config.domain}/messages`;
 
   const formData = new URLSearchParams();
   formData.set("from", config.from);
