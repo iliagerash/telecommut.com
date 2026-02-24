@@ -34,3 +34,8 @@ Last updated: February 24, 2026.
   - `public/brand/og-default.svg`
   - `public/favicon.svg`
 - Pending: PNG export variants and final accessibility + social metadata validation (W6-5).
+
+## Validation Commands
+
+- `npm run qa:wave6-baseline`: validates required brand assets, OG baseline image dimensions, and skip-link/meta wiring in layouts.
+- `npm run ci:check`: includes Wave 6 baseline checks in CI.

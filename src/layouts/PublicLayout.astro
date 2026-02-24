@@ -53,6 +53,12 @@ const socialImageHref = toAbsoluteUrl("/brand/og-default.svg");
     <title>{title} | Telecommut</title>
   </head>
   <body>
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+    >
+      Skip to main content
+    </a>
     <main class="bg-brand-grid mx-auto min-h-screen p-6 md:p-10">
       <header class="glass-panel mx-auto mb-8 flex w-full max-w-5xl items-center justify-between rounded-2xl border px-5 py-4 shadow-sm">
         <a href="/" class="flex items-center gap-2 text-sm font-semibold tracking-[0.14em] text-foreground uppercase">
@@ -63,7 +69,7 @@ const socialImageHref = toAbsoluteUrl("/brand/og-default.svg");
           Remote-first jobs
         </span>
       </header>
-      <section class="mx-auto w-full max-w-5xl">
+      <section id="main-content" class="mx-auto w-full max-w-5xl">
         <slot />
       </section>
     </main>
