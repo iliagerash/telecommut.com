@@ -77,6 +77,7 @@ function collectAstroPages(dir) {
 
 const publicLayoutPath = path.resolve("src/layouts/PublicLayout.astro");
 const adminLayoutPath = path.resolve("src/layouts/admin/AdminLayout.astro");
+const globalStylesPath = path.resolve("src/styles/global.css");
 const indexPagePath = path.resolve("src/pages/index.astro");
 const jobsSearchPagePath = path.resolve("src/pages/search/jobs.astro");
 const resumesSearchPagePath = path.resolve("src/pages/search/resumes.astro");
@@ -116,6 +117,19 @@ requireContains(loginPagePath, /robots="noindex,nofollow"/, "login noindex robot
 requireContains(loginPagePath, /socialImagePath=\{socialImages\.home\}/, "login social image mapping");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/button"/, "search uses shared button primitive");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/input"/, "search uses shared input primitive");
+requireContains(globalStylesPath, /@import "shadcn\/tailwind\.css";/, "shadcn theme import");
+requireContains(globalStylesPath, /@theme inline \{/, "tailwind inline theme block");
+requireContains(globalStylesPath, /--color-primary: var\(--primary\);/, "theme token mapping: primary");
+requireContains(globalStylesPath, /--color-accent: var\(--accent\);/, "theme token mapping: accent");
+requireContains(globalStylesPath, /--color-brand-surface: var\(--brand-surface\);/, "theme token mapping: brand surface");
+requireContains(globalStylesPath, /--brand-surface:/, "brand surface token definition");
+requireContains(globalStylesPath, /--brand-surface-2:/, "brand surface 2 token definition");
+requireContains(globalStylesPath, /--brand-highlight:/, "brand highlight token definition");
+requireContains(globalStylesPath, /\.bg-brand-grid \{/, "brand grid utility");
+requireContains(globalStylesPath, /\.bg-admin-grid \{/, "admin grid utility");
+requireContains(globalStylesPath, /\.glass-panel \{/, "glass panel utility");
+requireContains(globalStylesPath, /font-family: "IBM Plex Sans"/, "body font stack");
+requireContains(globalStylesPath, /font-family: "Sora"/, "heading font stack");
 
 for (const filePath of collectAstroPages(path.resolve("src/pages"))) {
   const content = fs.readFileSync(filePath, "utf8");
