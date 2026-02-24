@@ -1,6 +1,6 @@
 # Schema Normalization Plan (Post-Parity / Wave 5)
 
-Status: In progress. Phase C cutover started on February 24, 2026 by switching app reads to `users.role` only.
+Status: Completed on February 24, 2026. `users.type` has been removed from app schema and databases.
 
 ## Goals
 
@@ -64,20 +64,13 @@ Proposed mapping:
 
 ### Phase C: Cutover
 
-- Switch all reads to `role` only.
-- Keep writing both for one release cycle.
+- Switched all reads to `role` only.
+- Completed verification window with CI guards.
 
 ### Phase D: Cleanup
 
-- Stop writing `type`. Status: in progress. Runtime adapter now exposes role-only write payload (`buildUserRoleWrite`) and CI blocks new `users.type` writes.
-- Drop `type` in a later migration after signoff.
-
-Planned destructive migration shape (post-stability):
-1. Create `users_next` without `type`.
-2. Copy all rows from `users` into `users_next`.
-3. Swap tables (`users` -> `users_legacy`, `users_next` -> `users`).
-4. Recreate indexes and constraints.
-5. Keep `users_legacy` for rollback window, then drop.
+- Stopped writing `type`. Runtime adapter exposes role-only write payload (`buildUserRoleWrite`) and CI blocks new `users.type` writes.
+- Dropped `type` via migration `0003_flat_shen.sql` on local and remote D1.
 
 ## QA Gates
 
@@ -91,8 +84,7 @@ Planned destructive migration shape (post-stability):
 - During dual mode, rollback by restoring app reads to `type` fallback.
 - Keep legacy column unchanged until final cleanup.
 
-## Open Questions
+## Final Notes
 
-- Should `user` map to `candidate` or be preserved as separate role?
-- Do we need an explicit `moderator` role before cleanup?
-- Should `company` remain distinct for reporting?
+- Canonical role domain is now `admin | candidate | employer`.
+- Legacy aliases (`user`, `company`) are treated as import-time compatibility values only.

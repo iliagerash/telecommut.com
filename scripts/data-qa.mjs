@@ -32,8 +32,13 @@ function scalar(sql) {
 }
 
 const hasUsersRoleColumn = hasColumn("users", "role");
-const userRoleExpr = hasUsersRoleColumn ? "COALESCE(role, type)" : "type";
-const ownerRoleExpr = hasUsersRoleColumn ? "COALESCE(u.role, u.type)" : "u.type";
+const hasUsersTypeColumn = hasColumn("users", "type");
+const userRoleExpr = hasUsersRoleColumn
+  ? (hasUsersTypeColumn ? "COALESCE(role, type)" : "role")
+  : "type";
+const ownerRoleExpr = hasUsersRoleColumn
+  ? (hasUsersTypeColumn ? "COALESCE(u.role, u.type)" : "u.role")
+  : "u.type";
 
 const report = {
   dbPath: resolvedPath,
@@ -75,7 +80,7 @@ const report = {
   usersWithUnknownRole: scalar(`
     SELECT COUNT(*) AS c
     FROM users
-    WHERE LOWER(type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
+    WHERE LOWER(${userRoleExpr}) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
   `),
   usersWithNullNormalizedRole: hasUsersRoleColumn
     ? scalar("SELECT COUNT(*) AS c FROM users WHERE role IS NULL")
@@ -87,7 +92,7 @@ const report = {
       WHERE LOWER(role) NOT IN ('admin', 'candidate', 'employer')
     `)
     : 0,
-  usersWithRoleTypeMismatch: hasUsersRoleColumn
+  usersWithRoleTypeMismatch: hasUsersRoleColumn && hasUsersTypeColumn
     ? scalar(`
       SELECT COUNT(*) AS c
       FROM users
