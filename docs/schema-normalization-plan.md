@@ -1,6 +1,6 @@
 # Schema Normalization Plan (Post-Parity / Wave 5)
 
-Status: Draft for review and cross-team signoff.
+Status: In progress. Phase C cutover started on February 24, 2026 by switching app reads to `users.role` only.
 
 ## Goals
 

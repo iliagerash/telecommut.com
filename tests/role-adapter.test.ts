@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  resolveAccessRoleFromRoleColumn,
   buildCompatibleUserRoleWrite,
   resolveAccessRoleFromRecord,
   resolveNormalizedUserRole,
+  resolveNormalizedUserRoleFromRoleColumn,
   resolveNormalizedUserRoleFromRecord,
   toLegacyTypeFromNormalizedRole,
 } from "../src/services/users/role-adapter";
@@ -28,6 +30,13 @@ describe("role adapter", () => {
     expect(resolveAccessRoleFromRecord({ role: "candidate" })).toBe("user");
     expect(resolveAccessRoleFromRecord({ type: "company" })).toBe("user");
     expect(resolveAccessRoleFromRecord({ role: "unknown" })).toBeNull();
+  });
+
+  it("supports role-column-only reads for cutover", () => {
+    expect(resolveNormalizedUserRoleFromRoleColumn({ role: "candidate", type: "admin" })).toBe("candidate");
+    expect(resolveNormalizedUserRoleFromRoleColumn({ type: "company" })).toBeNull();
+    expect(resolveAccessRoleFromRoleColumn({ role: "admin", type: "candidate" })).toBe("admin");
+    expect(resolveAccessRoleFromRoleColumn({ type: "company" })).toBeNull();
   });
 
   it("builds dual-write payloads", () => {

@@ -39,13 +39,26 @@ export function resolveNormalizedUserRole(input: unknown): NormalizedUserRole | 
   return mapLegacyRoleAlias(normalizeRoleValue(input));
 }
 
+export function resolveNormalizedUserRoleFromRoleColumn(record: RoleRecord | null | undefined): NormalizedUserRole | null {
+  return mapLegacyRoleAlias(normalizeRoleValue(record?.role));
+}
+
 export function resolveNormalizedUserRoleFromRecord(record: RoleRecord | null | undefined): NormalizedUserRole | null {
-  const role = mapLegacyRoleAlias(normalizeRoleValue(record?.role));
+  const role = resolveNormalizedUserRoleFromRoleColumn(record);
   if (role) {
     return role;
   }
 
   return mapLegacyRoleAlias(normalizeRoleValue(record?.type));
+}
+
+export function resolveAccessRoleFromRoleColumn(record: RoleRecord | null | undefined): AppAccessRole | null {
+  const normalizedRole = resolveNormalizedUserRoleFromRoleColumn(record);
+  if (!normalizedRole) {
+    return null;
+  }
+
+  return normalizedRole === "admin" ? "admin" : "user";
 }
 
 export function resolveAccessRoleFromRecord(record: RoleRecord | null | undefined): AppAccessRole | null {

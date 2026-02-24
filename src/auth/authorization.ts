@@ -1,4 +1,4 @@
-import { resolveAccessRoleFromRecord, resolveNormalizedUserRole, type AppAccessRole } from "@/services/users/role-adapter";
+import { resolveAccessRoleFromRoleColumn, resolveNormalizedUserRole, type AppAccessRole } from "@/services/users/role-adapter";
 
 export type AppRole = AppAccessRole;
 
@@ -42,7 +42,7 @@ export function resolveUserRole(value: unknown): AppRole | null {
 }
 
 export function resolveUserRoleFromRecord(record: { role?: unknown; type?: unknown } | null | undefined): AppRole | null {
-  return resolveAccessRoleFromRecord(record);
+  return resolveAccessRoleFromRoleColumn(record);
 }
 
 export function hasRoleAccess(pathname: string, role: AppRole | null): boolean {

@@ -23,10 +23,10 @@ describe("authorization policy", () => {
     expect(resolveUserRole("unknown")).toBeNull();
   });
 
-  it("resolves role from dual-read record precedence", () => {
+  it("resolves role from role column only during cutover", () => {
     expect(resolveUserRoleFromRecord({ role: "employer", type: "admin" })).toBe("user");
     expect(resolveUserRoleFromRecord({ role: "admin", type: "candidate" })).toBe("admin");
-    expect(resolveUserRoleFromRecord({ type: "company" })).toBe("user");
+    expect(resolveUserRoleFromRecord({ type: "company" })).toBeNull();
     expect(resolveUserRoleFromRecord({ role: "unknown", type: "unknown" })).toBeNull();
   });
 

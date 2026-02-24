@@ -6,7 +6,7 @@ import { getRequestDb } from "@/db/request";
 import { users } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
-import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
+import { resolveNormalizedUserRoleFromRoleColumn } from "@/services/users/role-adapter";
 
 export const prerender = false;
 
@@ -31,7 +31,7 @@ const hasNext = rowsRaw.length > pagination.pageSize;
 const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
   id: row.id ?? "-",
   email: row.email ?? "-",
-  role: resolveNormalizedUserRoleFromRecord(row) ?? "-",
+  role: resolveNormalizedUserRoleFromRoleColumn(row) ?? "-",
   updatedAt: row.updatedAt ?? "-",
 }));
 
