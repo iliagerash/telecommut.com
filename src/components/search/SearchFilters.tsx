@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 type SearchFiltersProps = {
   basePath: "/search/jobs" | "/search/resumes";
   initialQuery: string;
@@ -7,6 +10,7 @@ type SearchFiltersProps = {
 
 export default function SearchFilters({ basePath, initialQuery }: SearchFiltersProps) {
   const [query, setQuery] = useState(initialQuery);
+  const inputId = basePath === "/search/jobs" ? "job-search-query" : "resume-search-query";
 
   function onSubmit(event: { preventDefault(): void }) {
     event.preventDefault();
@@ -22,20 +26,20 @@ export default function SearchFilters({ basePath, initialQuery }: SearchFiltersP
 
   return (
     <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={onSubmit}>
-      <input
-        aria-label="Search query"
-        className="w-full rounded-xl border bg-card px-4 py-2.5 text-sm shadow-sm"
+      <label htmlFor={inputId} className="sr-only">
+        Search query
+      </label>
+      <Input
+        id={inputId}
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Try: React, Product, Europe..."
+        className="h-10 w-full rounded-xl bg-card px-4 py-2.5 shadow-sm"
       />
-      <button
-        className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90"
-        type="submit"
-      >
+      <Button type="submit" size="lg" className="rounded-xl px-5 shadow-sm">
         Apply Filters
-      </button>
+      </Button>
     </form>
   );
 }

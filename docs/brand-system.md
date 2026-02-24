@@ -41,6 +41,9 @@ Last updated: February 24, 2026.
   - `public/brand/og-jobs.png`
   - `public/brand/og-resumes.png`
   - `public/brand/og-contact.png`
+  - `public/brand/og-help.png`
+  - `public/brand/og-resources.png`
+  - `public/brand/og-legal.png`
   - `public/favicon.png`
 - Pending: fully custom artwork per OG variant and final accessibility/social manual verification (W6-5).
 
@@ -48,3 +51,7 @@ Last updated: February 24, 2026.
 
 - `npm run qa:wave6-baseline`: validates required brand assets, OG baseline image dimensions, and skip-link/meta wiring in layouts.
 - `npm run ci:check`: includes Wave 6 baseline checks in CI.
+
+Wave 6 baseline guard also verifies:
+- Admin navigation includes active-state semantics (`aria-current="page"`) and mobile overflow behavior.
+- Search filters are built from shared shadcn primitives (`Input`, `Button`) instead of ad-hoc controls.
