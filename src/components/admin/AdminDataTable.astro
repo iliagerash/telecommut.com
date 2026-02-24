@@ -15,26 +15,41 @@ interface Props {
 const { title, columns, rows, prevHref, nextHref } = Astro.props;
 ---
 
-<section>
-  <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
-  <div class="mt-4 overflow-x-auto rounded-md border">
+<section class="glass-panel rounded-2xl border p-4 shadow-sm md:p-5">
+  <div class="flex items-center justify-between gap-3">
+    <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
+    <span class="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
+      {rows.length} rows
+    </span>
+  </div>
+
+  <div class="mt-4 overflow-x-auto rounded-xl border bg-card">
     <table class="min-w-full text-sm">
       <thead class="bg-muted/40">
         <tr>
-          {columns.map((column) => <th class="px-3 py-2 text-left font-medium">{column.label}</th>)}
+          {columns.map((column) => <th class="px-4 py-3 text-left font-medium whitespace-nowrap">{column.label}</th>)}
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr class="border-t">
-            {columns.map((column) => <td class="px-3 py-2">{String(row[column.key] ?? "-")}</td>)}
+          <tr class="border-t hover:bg-muted/30">
+            {columns.map((column) => <td class="px-4 py-3 align-top whitespace-nowrap">{String(row[column.key] ?? "-")}</td>)}
           </tr>
         ))}
       </tbody>
     </table>
   </div>
-  <nav class="mt-4 flex gap-4 text-sm">
-    {prevHref ? <a class="underline" href={prevHref}>Previous</a> : <span>Previous</span>}
-    {nextHref ? <a class="underline" href={nextHref}>Next</a> : <span>Next</span>}
+
+  <nav class="mt-4 flex items-center gap-3 text-sm">
+    {
+      prevHref
+        ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={prevHref}>Previous</a>
+        : <span class="rounded-full border px-4 py-2 text-muted-foreground">Previous</span>
+    }
+    {
+      nextHref
+        ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={nextHref}>Next</a>
+        : <span class="rounded-full border px-4 py-2 text-muted-foreground">Next</span>
+    }
   </nav>
 </section>

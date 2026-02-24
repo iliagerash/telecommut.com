@@ -25,19 +25,29 @@ const newUsers7d = allUsers.filter((user) => {
 ---
 
 <AdminLayout title="Dashboard" description="Admin dashboard scaffold.">
+  <section class="mb-5">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Operations Snapshot</p>
+    <h2 class="mt-2 text-3xl font-semibold tracking-tight">Admin Dashboard</h2>
+    <p class="mt-2 text-sm text-muted-foreground">
+      Live counts sourced from the database with role-protected access controls.
+    </p>
+  </section>
+
   <section class="grid gap-4 md:grid-cols-3">
-    <article class="rounded-md border p-4">
-      <h2 class="text-sm font-medium text-muted-foreground">Open Jobs</h2>
-      <p class="mt-2 text-2xl font-semibold">{openJobs}</p>
+    <article class="glass-panel rounded-2xl border p-5 shadow-sm">
+      <h3 class="text-sm font-medium text-muted-foreground">Open Jobs</h3>
+      <p class="mt-2 text-3xl font-semibold">{openJobs}</p>
     </article>
-    <article class="rounded-md border p-4">
-      <h2 class="text-sm font-medium text-muted-foreground">Active Resumes</h2>
-      <p class="mt-2 text-2xl font-semibold">{activeResumes}</p>
+    <article class="glass-panel rounded-2xl border p-5 shadow-sm">
+      <h3 class="text-sm font-medium text-muted-foreground">Active Resumes</h3>
+      <p class="mt-2 text-3xl font-semibold">{activeResumes}</p>
     </article>
-    <article class="rounded-md border p-4">
-      <h2 class="text-sm font-medium text-muted-foreground">New Users (7d)</h2>
-      <p class="mt-2 text-2xl font-semibold">{newUsers7d}</p>
+    <article class="glass-panel rounded-2xl border p-5 shadow-sm">
+      <h3 class="text-sm font-medium text-muted-foreground">New Users (7d)</h3>
+      <p class="mt-2 text-3xl font-semibold">{newUsers7d}</p>
     </article>
   </section>
-  <p class="mt-6 text-sm text-muted-foreground">Dashboard metrics are now sourced from DB counts.</p>
+  <p class="mt-6 text-sm text-muted-foreground">
+    Dashboard modules for jobs, resumes, users, SEO, and traffic share the same paginated table system.
+  </p>
 </AdminLayout>
