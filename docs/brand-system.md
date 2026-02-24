@@ -37,8 +37,12 @@ Last updated: February 24, 2026.
   - `public/brand/logo-mark.png`
   - `public/brand/logo-mono.png`
   - `public/brand/og-default.png`
+  - `public/brand/og-home.png`
+  - `public/brand/og-jobs.png`
+  - `public/brand/og-resumes.png`
+  - `public/brand/og-contact.png`
   - `public/favicon.png`
-- Pending: route-specific social image variants and final accessibility/social manual verification (W6-5).
+- Pending: fully custom artwork per OG variant and final accessibility/social manual verification (W6-5).
 
 ## Validation Commands
 
