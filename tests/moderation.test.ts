@@ -26,8 +26,8 @@ describe("moderation helpers", () => {
     expect(approve.status).toBe(1);
     expect(approve.patch.status).toBe(1);
     expect(ban.status).toBe(0);
-    expect(typeof ban.patch.deletedAt).toBe("string");
+    expect("deletedAt" in ban.patch).toBe(false);
     expect(restore.status).toBe(1);
-    expect(restore.patch.deletedAt).toBeNull();
+    expect("deletedAt" in restore.patch).toBe(false);
   });
 });

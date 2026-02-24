@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 
 import {
+  applyModerationAction,
   buildModerationDecision,
   parseEntityId,
   parseModerationAction,
@@ -43,12 +44,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   const decision = buildModerationDecision(action);
+  const runtimeEnv = (locals as { runtime?: { env?: AppRuntime } }).runtime?.env;
+  const applyResult = await applyModerationAction("jobs", entityId, action, {
+    d1: runtimeEnv?.DB,
+    client: runtimeEnv?.DB ? "d1" : "sqlite",
+  });
+
+  if (!applyResult.found) {
+    return new Response(JSON.stringify({ error: "Job not found" }), {
+      status: 404,
+      headers: { "content-type": "application/json" },
+    });
+  }
 
   logInfo("admin.moderation.jobs", {
     requestId: locals.requestId,
     jobId: entityId,
     action,
     patch: decision.patch,
+    beforeStatus: applyResult.beforeStatus,
+    afterStatus: applyResult.afterStatus,
   });
 
   return new Response(
@@ -57,7 +72,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       jobId: entityId,
       action,
       decision,
-      note: "DB mutation wiring pending in W4-2 follow-up.",
+      result: applyResult,
     }),
     {
       status: 202,

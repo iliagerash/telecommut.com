@@ -1,10 +1,15 @@
+import { eq } from "drizzle-orm";
+
+import { getDb } from "@/db/runtime";
+import { jobs, resumes } from "@/db/schema";
+
 export type ModerationEntity = "jobs" | "resumes";
 export type ModerationAction = "approve" | "ban" | "restore";
 
 export type ModerationDecision = {
   status: number;
   message: string;
-  patch: Record<string, string | number | null>;
+  patch: Record<string, string | number>;
 };
 
 export function buildModerationDecision(action: ModerationAction): ModerationDecision {
@@ -15,7 +20,6 @@ export function buildModerationDecision(action: ModerationAction): ModerationDec
         message: "approved",
         patch: {
           status: 1,
-          deletedAt: null,
         },
       };
     case "ban":
@@ -24,7 +28,6 @@ export function buildModerationDecision(action: ModerationAction): ModerationDec
         message: "banned",
         patch: {
           status: 0,
-          deletedAt: new Date().toISOString(),
         },
       };
     case "restore":
@@ -33,7 +36,6 @@ export function buildModerationDecision(action: ModerationAction): ModerationDec
         message: "restored",
         patch: {
           status: 1,
-          deletedAt: null,
         },
       };
   }
@@ -54,4 +56,92 @@ export function parseEntityId(value: unknown): number | null {
   }
 
   return parsed;
+}
+
+export type ApplyModerationOptions = {
+  d1?: D1Database;
+  client?: "sqlite" | "d1";
+};
+
+export type ApplyModerationResult = {
+  found: boolean;
+  beforeStatus: number | null;
+  afterStatus: number | null;
+  updatedAt: string | null;
+};
+
+export async function applyModerationAction(
+  entity: ModerationEntity,
+  entityId: number,
+  action: ModerationAction,
+  options: ApplyModerationOptions = {},
+): Promise<ApplyModerationResult> {
+  const db = getDb({
+    d1: options.d1,
+    client: options.client,
+  });
+  const decision = buildModerationDecision(action);
+  const now = new Date().toISOString();
+
+  if (entity === "jobs") {
+    const existing = await db
+      .select()
+      .from(jobs)
+      .where(eq(jobs.id, entityId))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return {
+        found: false,
+        beforeStatus: null,
+        afterStatus: null,
+        updatedAt: null,
+      };
+    }
+
+    await db
+      .update(jobs)
+      .set({
+        status: decision.status,
+        updatedAt: now,
+      })
+      .where(eq(jobs.id, entityId));
+
+    return {
+      found: true,
+      beforeStatus: existing[0]?.status ?? null,
+      afterStatus: decision.status,
+      updatedAt: now,
+    };
+  }
+
+  const existing = await db
+    .select()
+    .from(resumes)
+    .where(eq(resumes.id, entityId))
+    .limit(1);
+
+  if (existing.length === 0) {
+    return {
+      found: false,
+      beforeStatus: null,
+      afterStatus: null,
+      updatedAt: null,
+    };
+  }
+
+  await db
+    .update(resumes)
+    .set({
+      status: decision.status,
+      updatedAt: now,
+    })
+    .where(eq(resumes.id, entityId));
+
+  return {
+    found: true,
+    beforeStatus: existing[0]?.status ?? null,
+    afterStatus: decision.status,
+    updatedAt: now,
+  };
 }
