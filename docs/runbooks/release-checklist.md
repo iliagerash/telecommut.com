@@ -13,6 +13,8 @@
 
 1. `npx wrangler deploy`
 2. Validate bindings in deploy output (`DB`, `R2_BUCKET`, `SESSION`).
+3. `npm run qa:cutover-config`
+4. Execute DNS/route switch steps from `docs/runbooks/wave7-dns-cutover.md`.
 
 ## Post-Deploy Smoke
 
