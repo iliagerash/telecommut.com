@@ -24,6 +24,16 @@ const idempotentRequiredCommands = new Set<JobCommand>([
   "process_dedupe",
 ]);
 
+const schedulableCommands = new Set<JobCommand>([
+  "daily",
+  "weekly",
+  "analyze",
+  "seo",
+  "cloudflare",
+  "process_dedupe",
+  "sitemap_ping",
+]);
+
 export function parseJobCommand(value: unknown): JobCommand | null {
   if (typeof value !== "string") {
     return null;
@@ -36,4 +46,12 @@ export function parseJobCommand(value: unknown): JobCommand | null {
 
 export function requiresIdempotencyKey(command: JobCommand): boolean {
   return idempotentRequiredCommands.has(command);
+}
+
+export function isSchedulableCommand(command: JobCommand): boolean {
+  return schedulableCommands.has(command);
+}
+
+export function isManualOnlyCommand(command: JobCommand): boolean {
+  return !isSchedulableCommand(command);
 }
