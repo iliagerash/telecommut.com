@@ -77,6 +77,7 @@ function collectAstroPages(dir) {
 
 const publicLayoutPath = path.resolve("src/layouts/PublicLayout.astro");
 const adminLayoutPath = path.resolve("src/layouts/admin/AdminLayout.astro");
+const appLayoutPath = path.resolve("src/layouts/app/AppLayout.astro");
 const globalStylesPath = path.resolve("src/styles/global.css");
 const indexPagePath = path.resolve("src/pages/index.astro");
 const jobsSearchPagePath = path.resolve("src/pages/search/jobs.astro");
@@ -89,6 +90,7 @@ const termsPagePath = path.resolve("src/pages/terms-and-conditions.astro");
 const resumeDetailPagePath = path.resolve("src/pages/resumes/[id].astro");
 const jobDetailPagePath = path.resolve("src/pages/jobs/[id].ts");
 const loginPagePath = path.resolve("src/pages/login.astro");
+const appDashboardPath = path.resolve("src/pages/app/dashboard.astro");
 const searchFiltersPath = path.resolve("src/components/search/SearchFilters.tsx");
 
 requireContains(publicLayoutPath, /property="og:image"/, "OpenGraph image meta");
@@ -100,6 +102,10 @@ requireContains(adminLayoutPath, /Skip to main content/, "admin skip link");
 requireContains(adminLayoutPath, /id="admin-main-content"/, "admin main content anchor");
 requireContains(adminLayoutPath, /aria-current=\{isActive \? "page" : undefined\}/, "admin active nav semantics");
 requireContains(adminLayoutPath, /overflow-x-auto/, "admin responsive nav overflow");
+requireContains(appLayoutPath, /Skip to main content/, "app skip link");
+requireContains(appLayoutPath, /id="app-main-content"/, "app main content anchor");
+requireContains(appLayoutPath, /aria-current=\{isActive \? "page" : undefined\}/, "app active nav semantics");
+requireContains(appLayoutPath, /overflow-x-auto/, "app responsive nav overflow");
 requireContains(indexPagePath, /socialImagePath=\{socialImages\.home\}/, "home social image mapping");
 requireContains(jobsSearchPagePath, /socialImagePath=\{socialImages\.jobs\}/, "jobs social image mapping");
 requireContains(resumesSearchPagePath, /socialImagePath=\{socialImages\.resumes\}/, "resumes social image mapping");
@@ -115,6 +121,7 @@ requireContains(jobDetailPagePath, /socialImages\.jobs/, "job detail social imag
 requireContains(loginPagePath, /<PublicLayout/, "login uses shared public layout");
 requireContains(loginPagePath, /robots="noindex,nofollow"/, "login noindex robots");
 requireContains(loginPagePath, /socialImagePath=\{socialImages\.home\}/, "login social image mapping");
+requireContains(appDashboardPath, /<AppLayout/, "app dashboard uses app layout");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/button"/, "search uses shared button primitive");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/input"/, "search uses shared input primitive");
 requireContains(globalStylesPath, /@import "shadcn\/tailwind\.css";/, "shadcn theme import");
