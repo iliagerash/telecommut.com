@@ -36,9 +36,9 @@ export const users = sqliteTable(
     pmLastFour: text("pm_last_four"),
     trialEndsAt: text("trial_ends_at"),
   },
-  (table) => ({
-    emailUnique: uniqueIndex("users_email_unique").on(table.email),
-  }),
+  (table) => [
+    uniqueIndex("users_email_unique").on(table.email),
+  ],
 );
 
 export const categories = sqliteTable("categories", {
@@ -134,9 +134,9 @@ export const passwordResets = sqliteTable(
     token: text("token").notNull(),
     createdAt: text("created_at"),
   },
-  (table) => ({
-    emailIdx: index("password_resets_email_index").on(table.email),
-  }),
+  (table) => [
+    index("password_resets_email_index").on(table.email),
+  ],
 );
 
 export const sessions = sqliteTable("sessions", {
@@ -215,9 +215,9 @@ export const directTraffic = sqliteTable(
     cloudflareBlocks: integer("cloudflare_blocks").notNull().default(0),
     cloudflareChallenges: integer("cloudflare_challenges").notNull().default(0),
   },
-  (table) => ({
-    trafficDateUnique: uniqueIndex("direct_traffic_traffic_date_unique").on(table.trafficDate),
-  }),
+  (table) => [
+    uniqueIndex("direct_traffic_traffic_date_unique").on(table.trafficDate),
+  ],
 );
 
 export const subscriptions = sqliteTable(
@@ -235,9 +235,9 @@ export const subscriptions = sqliteTable(
     createdAt: text("created_at"),
     updatedAt: text("updated_at"),
   },
-  (table) => ({
-    stripeIdUnique: uniqueIndex("subscriptions_stripe_id_unique").on(table.stripeId),
-  }),
+  (table) => [
+    uniqueIndex("subscriptions_stripe_id_unique").on(table.stripeId),
+  ],
 );
 
 export const subscriptionItems = sqliteTable(
@@ -252,9 +252,9 @@ export const subscriptionItems = sqliteTable(
     createdAt: text("created_at"),
     updatedAt: text("updated_at"),
   },
-  (table) => ({
-    stripeIdUnique: uniqueIndex("subscription_items_stripe_id_unique").on(table.stripeId),
-  }),
+  (table) => [
+    uniqueIndex("subscription_items_stripe_id_unique").on(table.stripeId),
+  ],
 );
 
 export const failedJobs = sqliteTable("failed_jobs", {

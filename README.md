@@ -44,8 +44,15 @@ npm run db:migrate:d1:local
 npm run db:migrate:d1:remote
 ```
 
+- Run local data QA checks against SQLite:
+
+```bash
+npm run qa:data
+```
+
 ## Config Notes
 
 - `wrangler.jsonc` contains placeholder IDs for `D1`, `KV`, and `R2`; replace them before deploy.
 - `.env.example` defines the baseline contract for DB, auth, Mailgun, and cron job security.
 - Migrated user access strategy is documented in `docs/migrated-user-strategy.md`.
+- Deploy/rollback runbook is documented in `docs/runbooks/deploy-and-rollback.md`.

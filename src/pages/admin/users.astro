@@ -1,0 +1,30 @@
+---
+import AdminDataTable from "@/components/admin/AdminDataTable.astro";
+import { buildPaginationState } from "@/lib/pagination";
+import AdminLayout from "@/layouts/admin/AdminLayout.astro";
+
+export const prerender = false;
+
+const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
+
+const columns = [
+  { key: "id", label: "ID" },
+  { key: "email", label: "Email" },
+  { key: "role", label: "Role" },
+  { key: "updatedAt", label: "Updated" },
+];
+
+const rows = Array.from({ length: 5 }).map((_, index) => ({
+  id: `${pagination.offset + index + 1}`,
+  email: "user@example.com",
+  role: "user",
+  updatedAt: "-",
+}));
+
+const prevHref = pagination.page > 1 ? `/admin/users?page=${pagination.page - 1}` : undefined;
+const nextHref = `/admin/users?page=${pagination.page + 1}`;
+---
+
+<AdminLayout title="Users" description="Admin users table scaffold.">
+  <AdminDataTable title="Users" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+</AdminLayout>

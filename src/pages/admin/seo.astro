@@ -1,0 +1,30 @@
+---
+import AdminDataTable from "@/components/admin/AdminDataTable.astro";
+import { buildPaginationState } from "@/lib/pagination";
+import AdminLayout from "@/layouts/admin/AdminLayout.astro";
+
+export const prerender = false;
+
+const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
+
+const columns = [
+  { key: "id", label: "ID" },
+  { key: "path", label: "Path" },
+  { key: "status", label: "Status" },
+  { key: "updatedAt", label: "Updated" },
+];
+
+const rows = Array.from({ length: 5 }).map((_, index) => ({
+  id: `${pagination.offset + index + 1}`,
+  path: "/sample-path",
+  status: "pending",
+  updatedAt: "-",
+}));
+
+const prevHref = pagination.page > 1 ? `/admin/seo?page=${pagination.page - 1}` : undefined;
+const nextHref = `/admin/seo?page=${pagination.page + 1}`;
+---
+
+<AdminLayout title="SEO" description="Admin SEO module scaffold.">
+  <AdminDataTable title="SEO Pages" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+</AdminLayout>

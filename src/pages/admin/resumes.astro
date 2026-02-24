@@ -1,0 +1,30 @@
+---
+import AdminDataTable from "@/components/admin/AdminDataTable.astro";
+import { buildPaginationState } from "@/lib/pagination";
+import AdminLayout from "@/layouts/admin/AdminLayout.astro";
+
+export const prerender = false;
+
+const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
+
+const columns = [
+  { key: "id", label: "ID" },
+  { key: "position", label: "Position" },
+  { key: "visibility", label: "Visibility" },
+  { key: "updatedAt", label: "Updated" },
+];
+
+const rows = Array.from({ length: 5 }).map((_, index) => ({
+  id: `${pagination.offset + index + 1}`,
+  position: "Sample Resume",
+  visibility: "private",
+  updatedAt: "-",
+}));
+
+const prevHref = pagination.page > 1 ? `/admin/resumes?page=${pagination.page - 1}` : undefined;
+const nextHref = `/admin/resumes?page=${pagination.page + 1}`;
+---
+
+<AdminLayout title="Resumes" description="Admin resumes table scaffold.">
+  <AdminDataTable title="Resumes" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+</AdminLayout>

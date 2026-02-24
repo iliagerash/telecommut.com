@@ -1,0 +1,23 @@
+---
+import AdminLayout from "@/layouts/admin/AdminLayout.astro";
+
+export const prerender = false;
+---
+
+<AdminLayout title="Dashboard" description="Admin dashboard scaffold.">
+  <section class="grid gap-4 md:grid-cols-3">
+    <article class="rounded-md border p-4">
+      <h2 class="text-sm font-medium text-muted-foreground">Open Jobs</h2>
+      <p class="mt-2 text-2xl font-semibold">-</p>
+    </article>
+    <article class="rounded-md border p-4">
+      <h2 class="text-sm font-medium text-muted-foreground">Active Resumes</h2>
+      <p class="mt-2 text-2xl font-semibold">-</p>
+    </article>
+    <article class="rounded-md border p-4">
+      <h2 class="text-sm font-medium text-muted-foreground">New Users (7d)</h2>
+      <p class="mt-2 text-2xl font-semibold">-</p>
+    </article>
+  </section>
+  <p class="mt-6 text-sm text-muted-foreground">Real metrics wiring lands in W4-2/W4-3 after query services are added.</p>
+</AdminLayout>
