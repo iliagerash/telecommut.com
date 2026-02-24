@@ -5,7 +5,7 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 
 <PublicLayout
   title="Home"
-  description="Telecommut migration scaffold."
+  description="Remote work marketplace for distributed teams and high-signal candidates."
   canonicalPath="/"
   jsonLd={{
     "@context": "https://schema.org",
@@ -14,18 +14,40 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
     url: "/",
   }}
 >
-  <h1 class="text-3xl font-semibold tracking-tight">telecommut.com</h1>
-  <p class="mt-2 text-muted-foreground">Wave 3 public route scaffold is active.</p>
-  <ul class="mt-4 list-disc pl-6 text-sm text-muted-foreground">
-    <li><a class="underline" href="/help">/help</a></li>
-    <li><a class="underline" href="/privacy-policy">/privacy-policy</a></li>
-    <li><a class="underline" href="/terms-and-conditions">/terms-and-conditions</a></li>
-    <li><a class="underline" href="/resources">/resources</a></li>
-    <li><a class="underline" href="/contact">/contact</a></li>
-    <li><a class="underline" href="/search/jobs">/search/jobs</a></li>
-    <li><a class="underline" href="/search/resumes">/search/resumes</a></li>
-  </ul>
-  <section class="mt-6">
+  <section class="glass-panel rounded-3xl border p-7 shadow-sm md:p-10">
+    <p class="text-sm font-semibold tracking-[0.16em] text-muted-foreground uppercase">Wave 6 foundation</p>
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight md:text-5xl">Build your distributed team, without noise.</h1>
+    <p class="mt-4 max-w-2xl text-muted-foreground">
+      Telecommut is being redesigned as a focused marketplace for remote-first hiring with faster filtering,
+      cleaner applications, and transparent moderation flows.
+    </p>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/search/jobs">
+        Browse Jobs
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/search/resumes">
+        Browse Resumes
+      </a>
+    </div>
+  </section>
+
+  <section class="mt-6 grid gap-4 md:grid-cols-3">
+    <a class="glass-panel rounded-2xl border p-4 hover:bg-card/80" href="/contact">
+      <h2 class="text-lg font-semibold">Contact</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Talk to the team about partnerships and support.</p>
+    </a>
+    <a class="glass-panel rounded-2xl border p-4 hover:bg-card/80" href="/resources">
+      <h2 class="text-lg font-semibold">Resources</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Guides and editorial content for remote hiring.</p>
+    </a>
+    <a class="glass-panel rounded-2xl border p-4 hover:bg-card/80" href="/help">
+      <h2 class="text-lg font-semibold">Help Center</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Policy docs, troubleshooting, and FAQs.</p>
+    </a>
+  </section>
+
+  <section class="glass-panel mt-6 rounded-2xl border p-4">
+    <p class="mb-3 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Reactive island smoke test</p>
     <Counter client:load />
   </section>
 </PublicLayout>
