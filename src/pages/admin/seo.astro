@@ -39,5 +39,12 @@ const nextHref = hasNext ? `/admin/seo?page=${pagination.page + 1}` : undefined;
 ---
 
 <AdminLayout title="SEO" description="Admin SEO module scaffold.">
+  <section class="mb-5">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Search Operations</p>
+    <h2 class="mt-2 text-3xl font-semibold tracking-tight">SEO Pages</h2>
+    <p class="mt-2 text-sm text-muted-foreground">
+      Monitor page coverage state and submission recency for indexing workflows.
+    </p>
+  </section>
   <AdminDataTable title="SEO Pages" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
 </AdminLayout>
