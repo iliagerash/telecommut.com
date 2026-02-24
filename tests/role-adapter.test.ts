@@ -2,12 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   resolveAccessRoleFromRoleColumn,
-  buildCompatibleUserRoleWrite,
+  buildUserRoleWrite,
   resolveAccessRoleFromRecord,
   resolveNormalizedUserRole,
   resolveNormalizedUserRoleFromRoleColumn,
   resolveNormalizedUserRoleFromRecord,
-  toLegacyTypeFromNormalizedRole,
 } from "../src/services/users/role-adapter";
 
 describe("role adapter", () => {
@@ -39,12 +38,9 @@ describe("role adapter", () => {
     expect(resolveAccessRoleFromRoleColumn({ type: "company" })).toBeNull();
   });
 
-  it("builds dual-write payloads", () => {
-    expect(toLegacyTypeFromNormalizedRole("admin")).toBe("admin");
-    expect(toLegacyTypeFromNormalizedRole("candidate")).toBe("candidate");
-    expect(toLegacyTypeFromNormalizedRole("employer")).toBe("employer");
-    expect(buildCompatibleUserRoleWrite("user")).toEqual({ role: "candidate", type: "candidate" });
-    expect(buildCompatibleUserRoleWrite("company")).toEqual({ role: "employer", type: "employer" });
-    expect(buildCompatibleUserRoleWrite("invalid")).toBeNull();
+  it("builds role-only write payloads", () => {
+    expect(buildUserRoleWrite("user")).toEqual({ role: "candidate" });
+    expect(buildUserRoleWrite("company")).toEqual({ role: "employer" });
+    expect(buildUserRoleWrite("invalid")).toBeNull();
   });
 });

@@ -70,19 +70,7 @@ export function resolveAccessRoleFromRecord(record: RoleRecord | null | undefine
   return normalizedRole === "admin" ? "admin" : "user";
 }
 
-export function toLegacyTypeFromNormalizedRole(role: NormalizedUserRole): "admin" | "candidate" | "employer" {
-  if (role === "admin") {
-    return "admin";
-  }
-
-  if (role === "candidate") {
-    return "candidate";
-  }
-
-  return "employer";
-}
-
-export function buildCompatibleUserRoleWrite(input: unknown): { role: NormalizedUserRole; type: "admin" | "candidate" | "employer" } | null {
+export function buildUserRoleWrite(input: unknown): { role: NormalizedUserRole } | null {
   const normalizedRole = resolveNormalizedUserRole(input);
   if (!normalizedRole) {
     return null;
@@ -90,6 +78,5 @@ export function buildCompatibleUserRoleWrite(input: unknown): { role: Normalized
 
   return {
     role: normalizedRole,
-    type: toLegacyTypeFromNormalizedRole(normalizedRole),
   };
 }

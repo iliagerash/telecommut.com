@@ -69,8 +69,15 @@ Proposed mapping:
 
 ### Phase D: Cleanup
 
-- Stop writing `type`.
+- Stop writing `type`. Status: in progress. Runtime adapter now exposes role-only write payload (`buildUserRoleWrite`) and CI blocks new `users.type` writes.
 - Drop `type` in a later migration after signoff.
+
+Planned destructive migration shape (post-stability):
+1. Create `users_next` without `type`.
+2. Copy all rows from `users` into `users_next`.
+3. Swap tables (`users` -> `users_legacy`, `users_next` -> `users`).
+4. Recreate indexes and constraints.
+5. Keep `users_legacy` for rollback window, then drop.
 
 ## QA Gates
 
