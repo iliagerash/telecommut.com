@@ -1,5 +1,9 @@
 ---
+import { desc } from "drizzle-orm";
+
 import AdminDataTable from "@/components/admin/AdminDataTable.astro";
+import { getRequestDb } from "@/db/request";
+import { users } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
 
@@ -7,6 +11,7 @@ export const prerender = false;
 
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
 
+const db = getRequestDb(Astro.locals);
 const columns = [
   { key: "id", label: "ID" },
   { key: "email", label: "Email" },
@@ -14,15 +19,23 @@ const columns = [
   { key: "updatedAt", label: "Updated" },
 ];
 
-const rows = Array.from({ length: 5 }).map((_, index) => ({
-  id: `${pagination.offset + index + 1}`,
-  email: "user@example.com",
-  role: "user",
-  updatedAt: "-",
+const rowsRaw = await db
+  .select()
+  .from(users)
+  .orderBy(desc(users.id))
+  .limit(pagination.pageSize + 1)
+  .offset(pagination.offset);
+
+const hasNext = rowsRaw.length > pagination.pageSize;
+const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
+  id: row.id ?? "-",
+  email: row.email ?? "-",
+  role: row.type ?? "-",
+  updatedAt: row.updatedAt ?? "-",
 }));
 
 const prevHref = pagination.page > 1 ? `/admin/users?page=${pagination.page - 1}` : undefined;
-const nextHref = `/admin/users?page=${pagination.page + 1}`;
+const nextHref = hasNext ? `/admin/users?page=${pagination.page + 1}` : undefined;
 ---
 
 <AdminLayout title="Users" description="Admin users table scaffold.">

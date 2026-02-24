@@ -1,5 +1,9 @@
 ---
+import { desc } from "drizzle-orm";
+
 import AdminDataTable from "@/components/admin/AdminDataTable.astro";
+import { getRequestDb } from "@/db/request";
+import { directTraffic } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
 
@@ -7,6 +11,7 @@ export const prerender = false;
 
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
 
+const db = getRequestDb(Astro.locals);
 const columns = [
   { key: "id", label: "ID" },
   { key: "path", label: "Path" },
@@ -14,15 +19,23 @@ const columns = [
   { key: "updatedAt", label: "Updated" },
 ];
 
-const rows = Array.from({ length: 5 }).map((_, index) => ({
-  id: `${pagination.offset + index + 1}`,
-  path: "/sample-path",
-  hits: 0,
-  updatedAt: "-",
+const rowsRaw = await db
+  .select()
+  .from(directTraffic)
+  .orderBy(desc(directTraffic.id))
+  .limit(pagination.pageSize + 1)
+  .offset(pagination.offset);
+
+const hasNext = rowsRaw.length > pagination.pageSize;
+const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
+  id: row.id ?? "-",
+  path: row.trafficDate ?? "-",
+  hits: row.totalNginxRequests ?? 0,
+  updatedAt: row.trafficDate ?? "-",
 }));
 
 const prevHref = pagination.page > 1 ? `/admin/traffic?page=${pagination.page - 1}` : undefined;
-const nextHref = `/admin/traffic?page=${pagination.page + 1}`;
+const nextHref = hasNext ? `/admin/traffic?page=${pagination.page + 1}` : undefined;
 ---
 
 <AdminLayout title="Traffic" description="Admin traffic module scaffold.">

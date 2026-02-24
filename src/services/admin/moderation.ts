@@ -61,6 +61,7 @@ export function parseEntityId(value: unknown): number | null {
 export type ApplyModerationOptions = {
   d1?: D1Database;
   client?: "sqlite" | "d1";
+  db?: ReturnType<typeof getDb>;
 };
 
 export type ApplyModerationResult = {
@@ -76,7 +77,7 @@ export async function applyModerationAction(
   action: ModerationAction,
   options: ApplyModerationOptions = {},
 ): Promise<ApplyModerationResult> {
-  const db = getDb({
+  const db = options.db ?? getDb({
     d1: options.d1,
     client: options.client,
   });

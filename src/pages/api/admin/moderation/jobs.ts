@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 
+import { getRequestDb } from "@/db/request";
 import {
   applyModerationAction,
   buildModerationDecision,
@@ -44,10 +45,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   const decision = buildModerationDecision(action);
+  const runtimeDb = getRequestDb(locals);
   const runtimeEnv = (locals as { runtime?: { env?: AppRuntime } }).runtime?.env;
   const applyResult = await applyModerationAction("jobs", entityId, action, {
     d1: runtimeEnv?.DB,
     client: runtimeEnv?.DB ? "d1" : "sqlite",
+    db: runtimeDb,
   });
 
   if (!applyResult.found) {
