@@ -14,11 +14,12 @@
 
 ## Post-Deploy Smoke
 
-1. Public: `/`, `/search/jobs`, `/jobs/1`
-2. Auth: `/api/auth/get-session`
-3. Admin: `/admin/dashboard`
-4. API: `/api/contact` (expect 400 for empty payload), moderation endpoint auth guard (`401` without token)
-5. Run Wave 6 manual checks from `docs/runbooks/wave6-accessibility-social-checklist.md`.
+1. `SMOKE_BASE_URL=https://telecommut.iliagerash.workers.dev npm run qa:cutover-smoke`
+2. Public: `/`, `/search/jobs`, `/jobs/1`
+3. Auth: `/api/auth/get-session`
+4. Admin: `/admin/dashboard`
+5. API: `/api/contact` (expect 400 for empty payload), moderation endpoint auth guard (`401` without token)
+6. Run Wave 6 manual checks from `docs/runbooks/wave6-accessibility-social-checklist.md`.
 
 ## Sign-off
 
