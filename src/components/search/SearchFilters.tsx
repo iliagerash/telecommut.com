@@ -21,16 +21,20 @@ export default function SearchFilters({ basePath, initialQuery }: SearchFiltersP
   }
 
   return (
-    <form className="mt-4 flex gap-2" onSubmit={onSubmit}>
+    <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={onSubmit}>
       <input
-        className="w-full rounded-md border px-3 py-2 text-sm"
+        aria-label="Search query"
+        className="w-full rounded-xl border bg-card px-4 py-2.5 text-sm shadow-sm"
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search..."
+        placeholder="Try: React, Product, Europe..."
       />
-      <button className="rounded-md border px-3 py-2 text-sm" type="submit">
-        Search
+      <button
+        className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90"
+        type="submit"
+      >
+        Apply Filters
       </button>
     </form>
   );

@@ -3,6 +3,23 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Contact" description="Contact Telecommut.">
-  <h1 class="text-3xl font-semibold tracking-tight">Contact</h1>
-  <p class="mt-3 text-muted-foreground">Contact endpoint scaffold is active at <code>/api/contact</code> with anti-spam/rate-limit guards.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Get in touch</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Contact Telecommut</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">
+      For hiring partnerships, account support, or policy questions, use the API-backed contact flow.
+      Endpoint protection includes honeypot and rate-limit controls.
+    </p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="mailto:support@telecommut.com">
+        Email Support
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/help">
+        Open Help Center
+      </a>
+    </div>
+    <p class="mt-4 text-sm text-muted-foreground">
+      API route: <code>/api/contact</code>
+    </p>
+  </section>
 </PublicLayout>
