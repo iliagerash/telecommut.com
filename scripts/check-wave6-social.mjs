@@ -17,18 +17,44 @@ function requireMatch(html, regex, label, path) {
   }
 }
 
+function getMetaContentByAttr(html, attr, value) {
+  const pattern = new RegExp(
+    `<meta[^>]*${attr}=["']${value}["'][^>]*content=["']([^"']+)["'][^>]*>|<meta[^>]*content=["']([^"']+)["'][^>]*${attr}=["']${value}["'][^>]*>`,
+    "i",
+  );
+  const match = html.match(pattern);
+  return match?.[1] ?? match?.[2] ?? null;
+}
+
+function requireMetaPath(content, expectedPath, label, pagePath) {
+  if (!content) {
+    throw new Error(`[wave6-social] ${pagePath}: missing ${label}`);
+  }
+
+  let actualPath = content;
+  try {
+    actualPath = new URL(content).pathname;
+  } catch {
+    // keep relative path as-is
+  }
+
+  if (actualPath !== expectedPath) {
+    throw new Error(`[wave6-social] ${pagePath}: ${label} expected ${expectedPath}, got ${content}`);
+  }
+}
+
 async function checkRoute({ path, og }) {
-  const response = await fetch(`${BASE_URL}${path}`, { method: "GET", redirect: "manual" });
+  const response = await fetch(`${BASE_URL}${path}`, { method: "GET", redirect: "follow" });
   if (response.status !== 200) {
     throw new Error(`[wave6-social] ${path}: expected 200, got ${response.status}`);
   }
 
   const html = await response.text();
-  const escapedOg = og.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const ogImage = getMetaContentByAttr(html, "property", "og:image");
+  const twitterImage = getMetaContentByAttr(html, "name", "twitter:image");
 
-  requireMatch(html, /property="og:image"/, "og:image meta", path);
-  requireMatch(html, new RegExp(`property="og:image"[^>]+${escapedOg}`), `og:image=${og}`, path);
-  requireMatch(html, /name="twitter:image"/, "twitter:image meta", path);
+  requireMetaPath(ogImage, og, "og:image", path);
+  requireMetaPath(twitterImage, og, "twitter:image", path);
   requireMatch(html, /name="twitter:card" content="summary_large_image"/, "twitter card", path);
   requireMatch(html, /href="#main-content"/, "skip link", path);
 
