@@ -17,39 +17,58 @@ import { socialImages } from "@/lib/social-images";
   }}
 >
   <section class="glass-panel rounded-3xl border p-7 shadow-sm md:p-10">
-    <p class="text-sm font-semibold tracking-[0.16em] text-muted-foreground uppercase">Wave 6 foundation</p>
-    <h1 class="mt-4 text-4xl font-semibold tracking-tight md:text-5xl">Build your distributed team, without noise.</h1>
+    <p class="text-sm font-semibold tracking-[0.16em] text-muted-foreground uppercase">Remote hiring, tuned for signal</p>
+    <h1 class="mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
+      Build distributed teams with faster matching and cleaner applications.
+    </h1>
     <p class="mt-4 max-w-2xl text-muted-foreground">
-      Telecommut is being redesigned as a focused marketplace for remote-first hiring with faster filtering,
-      cleaner applications, and transparent moderation flows.
+      Telecommut helps remote-first companies move from search to shortlist with structured listings, verified profiles,
+      and moderation-first workflows.
     </p>
-    <div class="mt-6 flex flex-wrap gap-3">
-      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/search/jobs">
-        Browse Jobs
+    <div class="mt-7 flex flex-wrap gap-3">
+      <a class="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/search/jobs">
+        Find Remote Jobs
       </a>
-      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/search/resumes">
-        Browse Resumes
+      <a class="rounded-full border px-5 py-2.5 text-sm font-semibold hover:bg-secondary" href="/search/resumes">
+        Search Candidates
+      </a>
+      <a class="rounded-full border px-5 py-2.5 text-sm font-semibold hover:bg-secondary" href="/contact">
+        Talk to Sales
       </a>
     </div>
   </section>
 
   <section class="mt-6 grid gap-4 md:grid-cols-3">
-    <a class="glass-panel rounded-2xl border p-4 hover:bg-card/80" href="/contact">
-      <h2 class="text-lg font-semibold">Contact</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Talk to the team about partnerships and support.</p>
-    </a>
-    <a class="glass-panel rounded-2xl border p-4 hover:bg-card/80" href="/resources">
-      <h2 class="text-lg font-semibold">Resources</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Guides and editorial content for remote hiring.</p>
-    </a>
-    <a class="glass-panel rounded-2xl border p-4 hover:bg-card/80" href="/help">
-      <h2 class="text-lg font-semibold">Help Center</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Policy docs, troubleshooting, and FAQs.</p>
-    </a>
+    <article class="glass-panel rounded-2xl border p-5">
+      <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">For employers</p>
+      <h2 class="mt-3 text-xl font-semibold">Publish clear remote roles</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Post once, keep application quality high, and route qualified candidates faster.</p>
+    </article>
+    <article class="glass-panel rounded-2xl border p-5">
+      <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">For candidates</p>
+      <h2 class="mt-3 text-xl font-semibold">Show verified experience</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Build a focused resume profile and appear in searches that match your target stack.</p>
+    </article>
+    <article class="glass-panel rounded-2xl border p-5">
+      <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">For operations</p>
+      <h2 class="mt-3 text-xl font-semibold">Run predictable moderation</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Use policy-backed workflows to keep the marketplace trusted and response times short.</p>
+    </article>
   </section>
 
-  <section class="glass-panel mt-6 rounded-2xl border p-4">
-    <p class="mb-3 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Reactive island smoke test</p>
-    <Counter client:load />
+  <section class="mt-6 grid gap-4 lg:grid-cols-2">
+    <div class="glass-panel rounded-2xl border p-5">
+      <h2 class="text-lg font-semibold">Explore</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/resources">Resources</a>
+        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/help">Help Center</a>
+        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/privacy-policy">Privacy Policy</a>
+        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/terms-and-conditions">Terms</a>
+      </div>
+    </div>
+    <div class="glass-panel rounded-2xl border p-5">
+      <p class="mb-3 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Reactive island smoke test</p>
+      <Counter client:load />
+    </div>
   </section>
 </PublicLayout>
