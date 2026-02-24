@@ -50,6 +50,7 @@ Last updated: February 24, 2026.
 ## Validation Commands
 
 - `npm run qa:wave6-baseline`: validates required brand assets, OG baseline image dimensions, and skip-link/meta wiring in layouts.
+- `WAVE6_BASE_URL=http://127.0.0.1:8787 npm run qa:wave6-social`: validates route-level OG/Twitter image mappings + skip-link presence across public pages.
 - `npm run ci:check`: includes Wave 6 baseline checks in CI.
 
 Wave 6 baseline guard also verifies:

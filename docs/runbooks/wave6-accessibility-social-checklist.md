@@ -6,6 +6,7 @@ Run this checklist for staging and production before marking W6-5 done.
 
 1. `npm run ci:check`
 2. `npm run qa:wave6-baseline`
+3. `WAVE6_BASE_URL=<target-base-url> npm run qa:wave6-social`
 
 ## Keyboard + Focus
 
@@ -25,7 +26,9 @@ Run this checklist for staging and production before marking W6-5 done.
 
 ## Social Preview Mapping
 
-1. Verify page-level OG image tags with `curl`:
+1. Verify page-level OG image tags:
+   - Preferred: `WAVE6_BASE_URL=<target-base-url> npm run qa:wave6-social`
+   - Fallback/manual: `curl` + inspect `<meta property="og:image">`
    - `/` -> `og-home.png`
    - `/search/jobs` -> `og-jobs.png`
    - `/search/resumes` -> `og-resumes.png`
