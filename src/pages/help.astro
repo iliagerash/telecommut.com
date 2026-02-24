@@ -3,6 +3,31 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Help" description="Help center and support guidance.">
-  <h1 class="text-3xl font-semibold tracking-tight">Help</h1>
-  <p class="mt-3 text-muted-foreground">Public help content scaffolded for Wave 3 parity.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Support</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Help Center</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">
+      Find answers about account access, moderation rules, and posting workflows.
+      This page will host the full searchable knowledge base.
+    </p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/contact">
+        Contact Support
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/resources">
+        Browse Resources
+      </a>
+    </div>
+  </section>
+
+  <section class="mt-4 grid gap-3 md:grid-cols-2">
+    <article class="glass-panel rounded-2xl border p-4">
+      <h2 class="text-lg font-semibold">Account Access</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Reset links, session behavior, and trusted callback URL policy.</p>
+    </article>
+    <article class="glass-panel rounded-2xl border p-4">
+      <h2 class="text-lg font-semibold">Platform Rules</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Moderation outcomes and appeal flow for jobs and resumes.</p>
+    </article>
+  </section>
 </PublicLayout>

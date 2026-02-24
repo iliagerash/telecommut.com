@@ -3,6 +3,23 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Terms and Conditions" description="Terms and conditions.">
-  <h1 class="text-3xl font-semibold tracking-tight">Terms and Conditions</h1>
-  <p class="mt-3 text-muted-foreground">Legal content placeholder for migration parity.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Legal</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Terms and Conditions</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">
+      Service terms are being migrated into the new contract structure for employers and candidates.
+      Final legal copy will be published before production cutover.
+    </p>
+  </section>
+
+  <section class="mt-4 grid gap-3 md:grid-cols-2">
+    <article class="glass-panel rounded-2xl border p-4">
+      <h2 class="text-lg font-semibold">Platform Use</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Rules for posting, applications, and account responsibility.</p>
+    </article>
+    <article class="glass-panel rounded-2xl border p-4">
+      <h2 class="text-lg font-semibold">Billing & Compliance</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Subscription handling, refunds, and abuse policy enforcement.</p>
+    </article>
+  </section>
 </PublicLayout>
