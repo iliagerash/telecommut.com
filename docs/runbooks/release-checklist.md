@@ -18,6 +18,7 @@
 2. Auth: `/api/auth/get-session`
 3. Admin: `/admin/dashboard`
 4. API: `/api/contact` (expect 400 for empty payload), moderation endpoint auth guard (`401` without token)
+5. Run Wave 6 manual checks from `docs/runbooks/wave6-accessibility-social-checklist.md`.
 
 ## Sign-off
 

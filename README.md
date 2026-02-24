@@ -59,4 +59,5 @@ npm run qa:data
 - Data QA checklist is documented in `docs/runbooks/data-qa-checklist.md`.
 - Release checklist is documented in `docs/runbooks/release-checklist.md`.
 - Incident response runbook is documented in `docs/runbooks/incident-response.md`.
+- Wave 6 accessibility/social checklist is documented in `docs/runbooks/wave6-accessibility-social-checklist.md`.
 - Post-parity schema normalization draft is documented in `docs/schema-normalization-plan.md`.

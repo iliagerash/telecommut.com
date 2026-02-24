@@ -55,3 +55,4 @@ Last updated: February 24, 2026.
 Wave 6 baseline guard also verifies:
 - Admin navigation includes active-state semantics (`aria-current="page"`) and mobile overflow behavior.
 - Search filters are built from shared shadcn primitives (`Input`, `Button`) instead of ad-hoc controls.
+- Resume detail route uses explicit social preview mapping (`/brand/og-resumes.png`).

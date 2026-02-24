@@ -6,7 +6,7 @@ export const prerender = false;
 const { id } = Astro.params;
 ---
 
-<PublicLayout title={`Resume ${id ?? ""}`} description="Resume detail page.">
+<PublicLayout title={`Resume ${id ?? ""}`} description="Resume detail page." socialImagePath="/brand/og-resumes.png">
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
     <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Candidate Profile</p>
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Resume Detail</h1>

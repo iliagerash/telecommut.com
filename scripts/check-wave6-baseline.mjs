@@ -43,6 +43,7 @@ const helpPagePath = path.resolve("src/pages/help.astro");
 const resourcesPagePath = path.resolve("src/pages/resources.astro");
 const privacyPagePath = path.resolve("src/pages/privacy-policy.astro");
 const termsPagePath = path.resolve("src/pages/terms-and-conditions.astro");
+const resumeDetailPagePath = path.resolve("src/pages/resumes/[id].astro");
 const searchFiltersPath = path.resolve("src/components/search/SearchFilters.tsx");
 
 requireContains(publicLayoutPath, /property="og:image"/, "OpenGraph image meta");
@@ -62,6 +63,7 @@ requireContains(helpPagePath, /socialImagePath="\/brand\/og-help\.png"/, "help s
 requireContains(resourcesPagePath, /socialImagePath="\/brand\/og-resources\.png"/, "resources social image mapping");
 requireContains(privacyPagePath, /socialImagePath="\/brand\/og-legal\.png"/, "privacy social image mapping");
 requireContains(termsPagePath, /socialImagePath="\/brand\/og-legal\.png"/, "terms social image mapping");
+requireContains(resumeDetailPagePath, /socialImagePath="\/brand\/og-resumes\.png"/, "resume detail social image mapping");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/button"/, "search uses shared button primitive");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/input"/, "search uses shared input primitive");
 
