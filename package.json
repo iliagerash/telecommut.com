@@ -16,6 +16,7 @@
     "qa:wave6-baseline": "node scripts/check-wave6-baseline.mjs",
     "qa:wave6-social": "node scripts/check-wave6-social.mjs",
     "qa:delta-report": "node scripts/verify-delta-report.mjs",
+    "qa:delta-summary": "node scripts/summarize-delta-report.mjs",
     "qa:cutover-smoke": "node scripts/cutover-smoke.mjs",
     "qa:data": "node scripts/data-qa.mjs",
     "ci:check": "npm run typecheck && npm run lint && npm run test && npm run db:check && npm run qa:role-cutover && npm run qa:no-legacy-type-writes && npm run qa:wave6-baseline",

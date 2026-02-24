@@ -26,6 +26,7 @@ Run from `telecommut.com`:
 
 ```bash
 npm run qa:delta-report -- /tmp/telecommut-final-delta-report.json
+npm run qa:delta-summary -- /tmp/telecommut-final-delta-report.json > /tmp/telecommut-final-delta-summary.md
 ```
 
 This fails if:
@@ -46,6 +47,7 @@ Then sample-check object keys from D1 rows and confirm they exist in R2.
 
 - `/tmp/telecommut-final-delta-report.json`
 - Output from `npm run qa:delta-report -- ...`
+- `/tmp/telecommut-final-delta-summary.md`
 - `/tmp/telecommut-final-images-report.json` (if images-only run executed)
 - 3-5 sampled D1 rows with image keys + matching R2 object existence proof
 
