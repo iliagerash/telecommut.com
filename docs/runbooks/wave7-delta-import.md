@@ -31,7 +31,11 @@ npm run qa:delta-summary -- /tmp/telecommut-final-delta-report.json > /tmp/telec
 
 This fails if:
 - any table has `errors > 0`
-- any non-empty table has `checksums_match !== true` (non-dry-run reports)
+- source/upsert/target row parity is broken for non-empty tables
+
+Checksums:
+- default mode: checksum mismatches are warnings if hard integrity gates pass
+- strict mode: set `DELTA_STRICT_CHECKSUM=true` to fail on any checksum mismatch
 
 ## 3) Images Delta (R2)
 
