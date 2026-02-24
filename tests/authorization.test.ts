@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAllowedRolesForPath,
   hasRoleAccess,
+  resolveUserRoleFromRecord,
   resolveUserRole,
 } from "../src/auth/authorization";
 
@@ -20,6 +21,13 @@ describe("authorization policy", () => {
     expect(resolveUserRole("employer")).toBe("user");
     expect(resolveUserRole("company")).toBe("user");
     expect(resolveUserRole("unknown")).toBeNull();
+  });
+
+  it("resolves role from dual-read record precedence", () => {
+    expect(resolveUserRoleFromRecord({ role: "employer", type: "admin" })).toBe("user");
+    expect(resolveUserRoleFromRecord({ role: "admin", type: "candidate" })).toBe("admin");
+    expect(resolveUserRoleFromRecord({ type: "company" })).toBe("user");
+    expect(resolveUserRoleFromRecord({ role: "unknown", type: "unknown" })).toBeNull();
   });
 
   it("enforces block-by-default behavior on protected areas", () => {

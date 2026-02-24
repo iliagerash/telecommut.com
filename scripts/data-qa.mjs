@@ -20,11 +20,20 @@ if (!existsSync(resolvedPath)) {
 
 const db = new Database(resolvedPath, { readonly: true });
 
+function hasColumn(table, column) {
+  const rows = db.prepare(`PRAGMA table_info(${table});`).all();
+  return rows.some((row) => String(row.name) === column);
+}
+
 function scalar(sql) {
   const row = db.prepare(sql).get();
   const value = row ? Object.values(row)[0] : 0;
   return Number(value ?? 0);
 }
+
+const hasUsersRoleColumn = hasColumn("users", "role");
+const userRoleExpr = hasUsersRoleColumn ? "COALESCE(role, type)" : "type";
+const ownerRoleExpr = hasUsersRoleColumn ? "COALESCE(u.role, u.type)" : "u.type";
 
 const report = {
   dbPath: resolvedPath,
@@ -61,24 +70,47 @@ const report = {
   adminUsers: scalar(`
     SELECT COUNT(*) AS c
     FROM users
-    WHERE LOWER(type) = 'admin'
+    WHERE LOWER(${userRoleExpr}) = 'admin'
   `),
   usersWithUnknownRole: scalar(`
     SELECT COUNT(*) AS c
     FROM users
     WHERE LOWER(type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
   `),
+  usersWithNullNormalizedRole: hasUsersRoleColumn
+    ? scalar("SELECT COUNT(*) AS c FROM users WHERE role IS NULL")
+    : 0,
+  usersWithUnknownNormalizedRole: hasUsersRoleColumn
+    ? scalar(`
+      SELECT COUNT(*) AS c
+      FROM users
+      WHERE LOWER(role) NOT IN ('admin', 'candidate', 'employer')
+    `)
+    : 0,
+  usersWithRoleTypeMismatch: hasUsersRoleColumn
+    ? scalar(`
+      SELECT COUNT(*) AS c
+      FROM users
+      WHERE role IS NOT NULL
+        AND (
+          (LOWER(role) = 'admin' AND LOWER(type) <> 'admin')
+          OR (LOWER(role) = 'candidate' AND LOWER(type) NOT IN ('candidate', 'user'))
+          OR (LOWER(role) = 'employer' AND LOWER(type) NOT IN ('employer', 'company'))
+          OR (LOWER(role) NOT IN ('admin', 'candidate', 'employer'))
+        )
+    `)
+    : 0,
   jobsWithUnknownOwnerRole: scalar(`
     SELECT COUNT(*) AS c
     FROM jobs j
     JOIN users u ON u.id = j.user_id
-    WHERE LOWER(u.type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
+    WHERE LOWER(${ownerRoleExpr}) NOT IN ('admin', 'candidate', 'employer', 'user', 'company')
   `),
   resumesWithUnknownOwnerRole: scalar(`
     SELECT COUNT(*) AS c
     FROM resumes r
     JOIN users u ON u.id = r.user_id
-    WHERE LOWER(u.type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
+    WHERE LOWER(${ownerRoleExpr}) NOT IN ('admin', 'candidate', 'employer', 'user', 'company')
   `),
   jobsWithUnexpectedStatus: scalar(`
     SELECT COUNT(*) AS c
@@ -102,6 +134,9 @@ if (
   || report.jobsWithMissingCategory > 0
   || report.duplicateUserEmails > 0
   || report.usersWithUnknownRole > 0
+  || report.usersWithNullNormalizedRole > 0
+  || report.usersWithUnknownNormalizedRole > 0
+  || report.usersWithRoleTypeMismatch > 0
   || report.jobsWithUnknownOwnerRole > 0
   || report.resumesWithUnknownOwnerRole > 0
   || report.jobsWithUnexpectedStatus > 0

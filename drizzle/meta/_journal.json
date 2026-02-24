@@ -15,6 +15,13 @@
       "when": 1771872022103,
       "tag": "0001_smooth_emma_frost",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771896459229,
+      "tag": "0002_outstanding_ultimates",
+      "breakpoints": true
     }
   ]
 }

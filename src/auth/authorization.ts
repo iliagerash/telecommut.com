@@ -1,4 +1,6 @@
-export type AppRole = "admin" | "user";
+import { resolveAccessRoleFromRecord, resolveNormalizedUserRole, type AppAccessRole } from "@/services/users/role-adapter";
+
+export type AppRole = AppAccessRole;
 
 type RolePolicy = {
   pathPrefix: string;
@@ -31,25 +33,16 @@ export function getAllowedRolesForPath(pathname: string): AppRole[] | null {
 }
 
 export function resolveUserRole(value: unknown): AppRole | null {
-  if (typeof value !== "string") {
+  const normalized = resolveNormalizedUserRole(value);
+  if (!normalized) {
     return null;
   }
 
-  const normalized = value.trim().toLowerCase();
-  if (normalized === "admin") {
-    return "admin";
-  }
+  return normalized === "admin" ? "admin" : "user";
+}
 
-  if (
-    normalized === "user"
-    || normalized === "candidate"
-    || normalized === "employer"
-    || normalized === "company"
-  ) {
-    return "user";
-  }
-
-  return null;
+export function resolveUserRoleFromRecord(record: { role?: unknown; type?: unknown } | null | undefined): AppRole | null {
+  return resolveAccessRoleFromRecord(record);
 }
 
 export function hasRoleAccess(pathname: string, role: AppRole | null): boolean {

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { defineMiddleware } from "astro:middleware";
 
 import { auth } from "@/auth";
-import { getAllowedRolesForPath, hasRoleAccess, resolveUserRole } from "@/auth/authorization";
+import { getAllowedRolesForPath, hasRoleAccess, resolveUserRoleFromRecord } from "@/auth/authorization";
 import { findLegacyRedirect } from "@/routing/legacy-redirects";
 import { logError, logInfo } from "@/services/observability/logger";
 
@@ -40,7 +40,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       }
 
       const userRecord = session.user as Record<string, unknown>;
-      const role = resolveUserRole(userRecord.role ?? userRecord.type);
+      const role = resolveUserRoleFromRecord(userRecord);
 
       if (!hasRoleAccess(context.url.pathname, role)) {
         logInfo("request.forbidden", {

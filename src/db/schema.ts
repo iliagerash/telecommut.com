@@ -18,6 +18,7 @@ export const users = sqliteTable(
     password: text("password").notNull(),
     rememberToken: text("remember_token"),
     type: text("type").notNull(),
+    role: text("role"),
     candidateName: text("candidate_name").notNull().default(""),
     candidatePhone: text("candidate_phone").notNull().default(""),
     candidatePhoto: text("candidate_photo").notNull().default(""),
