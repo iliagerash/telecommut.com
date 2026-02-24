@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { getDb } from "@/db/runtime";
-import { jobs, resumes } from "@/db/schema";
+import { jobRemovals, jobs, resumes } from "@/db/schema";
 
 export type ModerationEntity = "jobs" | "resumes";
 export type ModerationAction = "approve" | "ban" | "restore";
@@ -69,7 +69,23 @@ export type ApplyModerationResult = {
   beforeStatus: number | null;
   afterStatus: number | null;
   updatedAt: string | null;
+  sideEffects: string[];
 };
+
+export function computeModerationSideEffects(
+  entity: ModerationEntity,
+  action: ModerationAction,
+): string[] {
+  if (entity === "jobs" && action === "ban") {
+    return ["job_removals.insert"];
+  }
+
+  if (entity === "jobs" && action === "restore") {
+    return ["job_removals.resolve"];
+  }
+
+  return [];
+}
 
 export async function applyModerationAction(
   entity: ModerationEntity,
@@ -97,6 +113,7 @@ export async function applyModerationAction(
         beforeStatus: null,
         afterStatus: null,
         updatedAt: null,
+        sideEffects: [],
       };
     }
 
@@ -108,11 +125,36 @@ export async function applyModerationAction(
       })
       .where(eq(jobs.id, entityId));
 
+    const sideEffects = computeModerationSideEffects("jobs", action);
+
+    if (action === "ban") {
+      await db.insert(jobRemovals).values({
+        categoryId: existing[0]?.categoryId ?? 0,
+        position: existing[0]?.position ?? "",
+        expiredAt: now,
+        indexed: 0,
+      });
+    }
+
+    if (action === "restore") {
+      await db
+        .update(jobRemovals)
+        .set({ indexed: 1 })
+        .where(
+          and(
+            eq(jobRemovals.categoryId, existing[0]?.categoryId ?? 0),
+            eq(jobRemovals.position, existing[0]?.position ?? ""),
+            eq(jobRemovals.indexed, 0),
+          ),
+        );
+    }
+
     return {
       found: true,
       beforeStatus: existing[0]?.status ?? null,
       afterStatus: decision.status,
       updatedAt: now,
+      sideEffects,
     };
   }
 
@@ -128,6 +170,7 @@ export async function applyModerationAction(
       beforeStatus: null,
       afterStatus: null,
       updatedAt: null,
+      sideEffects: [],
     };
   }
 
@@ -144,5 +187,6 @@ export async function applyModerationAction(
     beforeStatus: existing[0]?.status ?? null,
     afterStatus: decision.status,
     updatedAt: now,
+    sideEffects: computeModerationSideEffects("resumes", action),
   };
 }

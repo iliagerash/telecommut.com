@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildModerationDecision,
+  computeModerationSideEffects,
   parseEntityId,
   parseModerationAction,
 } from "../src/services/admin/moderation";
@@ -29,5 +30,12 @@ describe("moderation helpers", () => {
     expect("deletedAt" in ban.patch).toBe(false);
     expect(restore.status).toBe(1);
     expect("deletedAt" in restore.patch).toBe(false);
+  });
+
+  it("declares expected side effects by entity/action", () => {
+    expect(computeModerationSideEffects("jobs", "ban")).toEqual(["job_removals.insert"]);
+    expect(computeModerationSideEffects("jobs", "restore")).toEqual(["job_removals.resolve"]);
+    expect(computeModerationSideEffects("jobs", "approve")).toEqual([]);
+    expect(computeModerationSideEffects("resumes", "ban")).toEqual([]);
   });
 });
