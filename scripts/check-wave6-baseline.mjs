@@ -33,6 +33,25 @@ function requireSvgSize(filePath, expectedWidth, expectedHeight) {
   }
 }
 
+function collectAstroPages(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectAstroPages(entryPath));
+      continue;
+    }
+
+    if (entry.isFile() && entryPath.endsWith(".astro")) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}
+
 const publicLayoutPath = path.resolve("src/layouts/PublicLayout.astro");
 const adminLayoutPath = path.resolve("src/layouts/admin/AdminLayout.astro");
 const indexPagePath = path.resolve("src/pages/index.astro");
@@ -44,6 +63,8 @@ const resourcesPagePath = path.resolve("src/pages/resources.astro");
 const privacyPagePath = path.resolve("src/pages/privacy-policy.astro");
 const termsPagePath = path.resolve("src/pages/terms-and-conditions.astro");
 const resumeDetailPagePath = path.resolve("src/pages/resumes/[id].astro");
+const jobDetailPagePath = path.resolve("src/pages/jobs/[id].ts");
+const loginPagePath = path.resolve("src/pages/login.astro");
 const searchFiltersPath = path.resolve("src/components/search/SearchFilters.tsx");
 
 requireContains(publicLayoutPath, /property="og:image"/, "OpenGraph image meta");
@@ -55,17 +76,41 @@ requireContains(adminLayoutPath, /Skip to main content/, "admin skip link");
 requireContains(adminLayoutPath, /id="admin-main-content"/, "admin main content anchor");
 requireContains(adminLayoutPath, /aria-current=\{isActive \? "page" : undefined\}/, "admin active nav semantics");
 requireContains(adminLayoutPath, /overflow-x-auto/, "admin responsive nav overflow");
-requireContains(indexPagePath, /socialImagePath="\/brand\/og-home\.png"/, "home social image mapping");
-requireContains(jobsSearchPagePath, /socialImagePath="\/brand\/og-jobs\.png"/, "jobs social image mapping");
-requireContains(resumesSearchPagePath, /socialImagePath="\/brand\/og-resumes\.png"/, "resumes social image mapping");
-requireContains(contactPagePath, /socialImagePath="\/brand\/og-contact\.png"/, "contact social image mapping");
-requireContains(helpPagePath, /socialImagePath="\/brand\/og-help\.png"/, "help social image mapping");
-requireContains(resourcesPagePath, /socialImagePath="\/brand\/og-resources\.png"/, "resources social image mapping");
-requireContains(privacyPagePath, /socialImagePath="\/brand\/og-legal\.png"/, "privacy social image mapping");
-requireContains(termsPagePath, /socialImagePath="\/brand\/og-legal\.png"/, "terms social image mapping");
-requireContains(resumeDetailPagePath, /socialImagePath="\/brand\/og-resumes\.png"/, "resume detail social image mapping");
+requireContains(indexPagePath, /socialImagePath=\{socialImages\.home\}/, "home social image mapping");
+requireContains(jobsSearchPagePath, /socialImagePath=\{socialImages\.jobs\}/, "jobs social image mapping");
+requireContains(resumesSearchPagePath, /socialImagePath=\{socialImages\.resumes\}/, "resumes social image mapping");
+requireContains(contactPagePath, /socialImagePath=\{socialImages\.contact\}/, "contact social image mapping");
+requireContains(helpPagePath, /socialImagePath=\{socialImages\.help\}/, "help social image mapping");
+requireContains(resourcesPagePath, /socialImagePath=\{socialImages\.resources\}/, "resources social image mapping");
+requireContains(privacyPagePath, /socialImagePath=\{socialImages\.legal\}/, "privacy social image mapping");
+requireContains(termsPagePath, /socialImagePath=\{socialImages\.legal\}/, "terms social image mapping");
+requireContains(resumeDetailPagePath, /socialImagePath=\{socialImages\.resumes\}/, "resume detail social image mapping");
+requireContains(jobDetailPagePath, /og:image/, "job detail og image tag");
+requireContains(jobDetailPagePath, /twitter:image/, "job detail twitter image tag");
+requireContains(jobDetailPagePath, /socialImages\.jobs/, "job detail social image mapping");
+requireContains(loginPagePath, /<PublicLayout/, "login uses shared public layout");
+requireContains(loginPagePath, /robots="noindex,nofollow"/, "login noindex robots");
+requireContains(loginPagePath, /socialImagePath=\{socialImages\.home\}/, "login social image mapping");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/button"/, "search uses shared button primitive");
 requireContains(searchFiltersPath, /from "@\/components\/ui\/input"/, "search uses shared input primitive");
+
+for (const filePath of collectAstroPages(path.resolve("src/pages"))) {
+  const content = fs.readFileSync(filePath, "utf8");
+  if (!content.includes("<PublicLayout")) {
+    continue;
+  }
+
+  const isNoindex = /robots="noindex,nofollow"/.test(content);
+  if (isNoindex) {
+    continue;
+  }
+
+  if (!/socialImagePath=/.test(content)) {
+    throw new Error(
+      `Indexable PublicLayout route missing explicit socialImagePath: ${path.relative(process.cwd(), filePath)}`,
+    );
+  }
+}
 
 requireFile(path.resolve("public/brand/logo-primary.svg"));
 requireFile(path.resolve("public/brand/logo-mark.svg"));

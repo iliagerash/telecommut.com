@@ -1,8 +1,9 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
+import { socialImages } from "@/lib/social-images";
 ---
 
-<PublicLayout title="Resources" description="Learning and resources." socialImagePath="/brand/og-resources.png">
+<PublicLayout title="Resources" description="Learning and resources." socialImagePath={socialImages.resources}>
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
     <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Knowledge Base</p>
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Resources</h1>

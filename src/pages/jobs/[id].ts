@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 
 import { evaluateJobHttpSemantics, type JobState } from "@/services/crawler/http-semantics";
+import { toAbsoluteUrl } from "@/lib/seo";
+import { socialImages } from "@/lib/social-images";
 
 export const prerender = false;
 
@@ -25,24 +27,56 @@ function parseUpdatedAt(value: string | null): Date {
   return parsed;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function renderHtml(input: { id: string; status: number; state: JobState }): string {
   const title = input.status === 410 ? "Job No Longer Available" : `Job ${input.id}`;
   const subtitle = input.status === 410
     ? "This job was removed or expired."
     : `Job detail scaffold for id ${input.id}.`;
+  const escapedTitle = escapeHtml(title);
+  const escapedSubtitle = escapeHtml(subtitle);
+  const escapedState = escapeHtml(input.state);
+  const escapedId = escapeHtml(input.id);
+  const canonicalHref = toAbsoluteUrl(`/jobs/${encodeURIComponent(input.id)}`);
+  const socialImageHref = toAbsoluteUrl(socialImages.jobs);
+  const robots = input.status === 410 ? "noindex,nofollow" : "index,follow";
+  const escapedCanonicalHref = escapeHtml(canonicalHref);
+  const escapedSocialImageHref = escapeHtml(socialImageHref);
+  const escapedRobots = escapeHtml(robots);
 
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>${title} | Telecommut</title>
+    <meta name="description" content="${escapedSubtitle}" />
+    <meta name="robots" content="${escapedRobots}" />
+    <link rel="canonical" href="${escapedCanonicalHref}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="${escapedTitle} | Telecommut" />
+    <meta property="og:description" content="${escapedSubtitle}" />
+    <meta property="og:image" content="${escapedSocialImageHref}" />
+    <meta property="og:image:type" content="image/png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapedTitle} | Telecommut" />
+    <meta name="twitter:description" content="${escapedSubtitle}" />
+    <meta name="twitter:image" content="${escapedSocialImageHref}" />
+    <title>${escapedTitle} | Telecommut</title>
   </head>
   <body>
     <main style="max-width: 720px; margin: 0 auto; padding: 2rem; font-family: sans-serif;">
-      <h1>${title}</h1>
-      <p>${subtitle}</p>
-      <p>State: <code>${input.state}</code></p>
+      <h1>${escapedTitle}</h1>
+      <p>${escapedSubtitle}</p>
+      <p>State: <code>${escapedState}</code></p>
+      <p>Job id: <code>${escapedId}</code></p>
       <p><a href="/search/jobs">Back to jobs</a></p>
     </main>
   </body>

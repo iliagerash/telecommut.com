@@ -1,13 +1,14 @@
 ---
 import Counter from "@/components/health/Counter";
 import PublicLayout from "@/layouts/PublicLayout.astro";
+import { socialImages } from "@/lib/social-images";
 ---
 
 <PublicLayout
   title="Home"
   description="Remote work marketplace for distributed teams and high-signal candidates."
   canonicalPath="/"
-  socialImagePath="/brand/og-home.png"
+  socialImagePath={socialImages.home}
   jsonLd={{
     "@context": "https://schema.org",
     "@type": "WebSite",

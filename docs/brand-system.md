@@ -56,3 +56,6 @@ Wave 6 baseline guard also verifies:
 - Admin navigation includes active-state semantics (`aria-current="page"`) and mobile overflow behavior.
 - Search filters are built from shared shadcn primitives (`Input`, `Button`) instead of ad-hoc controls.
 - Resume detail route uses explicit social preview mapping (`/brand/og-resumes.png`).
+- All indexable `PublicLayout` routes declare explicit `socialImagePath`.
+- Dynamic job detail renderer (`/jobs/[id]`) includes OG/Twitter metadata with explicit jobs social image mapping.
+- Social image paths are centralized in `src/lib/social-images.ts` and consumed by public routes.
