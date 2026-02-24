@@ -14,6 +14,29 @@ function requireFile(filePath) {
   }
 }
 
+function requirePng(filePath, expectedWidth, expectedHeight) {
+  requireFile(filePath);
+
+  const buffer = fs.readFileSync(filePath);
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(signature)) {
+    throw new Error(`Invalid PNG signature in ${path.relative(process.cwd(), filePath)}`);
+  }
+
+  const ihdr = buffer.toString("ascii", 12, 16);
+  if (ihdr !== "IHDR") {
+    throw new Error(`Missing IHDR chunk in ${path.relative(process.cwd(), filePath)}`);
+  }
+
+  const width = buffer.readUInt32BE(16);
+  const height = buffer.readUInt32BE(20);
+  if (width !== expectedWidth || height !== expectedHeight) {
+    throw new Error(
+      `Unexpected PNG size in ${path.relative(process.cwd(), filePath)}: ${width}x${height} (expected ${expectedWidth}x${expectedHeight})`,
+    );
+  }
+}
+
 function requireSvgSize(filePath, expectedWidth, expectedHeight) {
   const content = fs.readFileSync(filePath, "utf8");
   const widthMatch = content.match(/width="(\d+)"/i);
@@ -116,20 +139,20 @@ requireFile(path.resolve("public/brand/logo-primary.svg"));
 requireFile(path.resolve("public/brand/logo-mark.svg"));
 requireFile(path.resolve("public/brand/logo-mono.svg"));
 requireFile(path.resolve("public/favicon.svg"));
-requireFile(path.resolve("public/brand/logo-primary.png"));
-requireFile(path.resolve("public/brand/logo-mark.png"));
-requireFile(path.resolve("public/brand/logo-mono.png"));
-requireFile(path.resolve("public/favicon.png"));
+requirePng(path.resolve("public/brand/logo-primary.png"), 840, 840);
+requirePng(path.resolve("public/brand/logo-mark.png"), 256, 256);
+requirePng(path.resolve("public/brand/logo-mono.png"), 840, 840);
+requirePng(path.resolve("public/favicon.png"), 256, 256);
 const ogDefaultPath = path.resolve("public/brand/og-default.svg");
 requireFile(ogDefaultPath);
 requireSvgSize(ogDefaultPath, 1200, 630);
-requireFile(path.resolve("public/brand/og-default.png"));
-requireFile(path.resolve("public/brand/og-home.png"));
-requireFile(path.resolve("public/brand/og-jobs.png"));
-requireFile(path.resolve("public/brand/og-resumes.png"));
-requireFile(path.resolve("public/brand/og-contact.png"));
-requireFile(path.resolve("public/brand/og-help.png"));
-requireFile(path.resolve("public/brand/og-resources.png"));
-requireFile(path.resolve("public/brand/og-legal.png"));
+requirePng(path.resolve("public/brand/og-default.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-home.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-jobs.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-resumes.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-contact.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-help.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-resources.png"), 1200, 1200);
+requirePng(path.resolve("public/brand/og-legal.png"), 1200, 1200);
 
 console.log("wave 6 baseline check passed");
