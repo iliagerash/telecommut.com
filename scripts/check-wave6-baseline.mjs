@@ -47,8 +47,13 @@ requireFile(path.resolve("public/brand/logo-primary.svg"));
 requireFile(path.resolve("public/brand/logo-mark.svg"));
 requireFile(path.resolve("public/brand/logo-mono.svg"));
 requireFile(path.resolve("public/favicon.svg"));
+requireFile(path.resolve("public/brand/logo-primary.png"));
+requireFile(path.resolve("public/brand/logo-mark.png"));
+requireFile(path.resolve("public/brand/logo-mono.png"));
+requireFile(path.resolve("public/favicon.png"));
 const ogDefaultPath = path.resolve("public/brand/og-default.svg");
 requireFile(ogDefaultPath);
 requireSvgSize(ogDefaultPath, 1200, 630);
+requireFile(path.resolve("public/brand/og-default.png"));
 
 console.log("wave 6 baseline check passed");

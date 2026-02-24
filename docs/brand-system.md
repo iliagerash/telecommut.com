@@ -33,7 +33,12 @@ Last updated: February 24, 2026.
   - `public/brand/logo-mono.svg`
   - `public/brand/og-default.svg`
   - `public/favicon.svg`
-- Pending: PNG export variants and final accessibility + social metadata validation (W6-5).
+  - `public/brand/logo-primary.png`
+  - `public/brand/logo-mark.png`
+  - `public/brand/logo-mono.png`
+  - `public/brand/og-default.png`
+  - `public/favicon.png`
+- Pending: route-specific social image variants and final accessibility/social manual verification (W6-5).
 
 ## Validation Commands
 

@@ -9,6 +9,7 @@ interface Props {
   robots?: string;
   prevPath?: string;
   nextPath?: string;
+  socialImagePath?: string;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -19,6 +20,7 @@ const {
   robots = "index,follow",
   prevPath,
   nextPath,
+  socialImagePath = "/brand/og-default.png",
   jsonLd,
 } = Astro.props;
 
@@ -26,14 +28,16 @@ const canonicalHref = toAbsoluteUrl(canonicalPath);
 const prevHref = prevPath ? toAbsoluteUrl(prevPath) : null;
 const nextHref = nextPath ? toAbsoluteUrl(nextPath) : null;
 const jsonLdString = serializeJsonLd(jsonLd);
-const socialImageHref = toAbsoluteUrl("/brand/og-default.svg");
+const socialImageHref = toAbsoluteUrl(socialImagePath);
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/brand/logo-mark.png" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
@@ -42,6 +46,7 @@ const socialImageHref = toAbsoluteUrl("/brand/og-default.svg");
     <meta property="og:title" content={`${title} | Telecommut`} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={socialImageHref} />
+    <meta property="og:image:type" content="image/png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={`${title} | Telecommut`} />
     <meta name="twitter:description" content={description} />
