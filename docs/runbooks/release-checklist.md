@@ -6,6 +6,7 @@
 2. `npm run qa:data`
 3. `npm run build`
 4. Confirm required env vars are present in target environment.
+5. Execute freeze/announcement prep from `docs/runbooks/wave7-cutover-freeze.md`.
 
 ## Deploy
 
