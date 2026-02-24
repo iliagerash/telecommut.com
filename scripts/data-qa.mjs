@@ -58,6 +58,38 @@ const report = {
       HAVING COUNT(*) > 1
     )
   `),
+  adminUsers: scalar(`
+    SELECT COUNT(*) AS c
+    FROM users
+    WHERE LOWER(type) = 'admin'
+  `),
+  usersWithUnknownRole: scalar(`
+    SELECT COUNT(*) AS c
+    FROM users
+    WHERE LOWER(type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
+  `),
+  jobsWithUnknownOwnerRole: scalar(`
+    SELECT COUNT(*) AS c
+    FROM jobs j
+    JOIN users u ON u.id = j.user_id
+    WHERE LOWER(u.type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
+  `),
+  resumesWithUnknownOwnerRole: scalar(`
+    SELECT COUNT(*) AS c
+    FROM resumes r
+    JOIN users u ON u.id = r.user_id
+    WHERE LOWER(u.type) NOT IN ('admin', 'user', 'candidate', 'employer', 'company')
+  `),
+  jobsWithUnexpectedStatus: scalar(`
+    SELECT COUNT(*) AS c
+    FROM jobs
+    WHERE status NOT IN (0, 1)
+  `),
+  resumesWithUnexpectedStatus: scalar(`
+    SELECT COUNT(*) AS c
+    FROM resumes
+    WHERE status NOT IN (0, 1)
+  `),
 };
 
 db.close();
@@ -69,6 +101,11 @@ if (
   || report.orphanResumesByUser > 0
   || report.jobsWithMissingCategory > 0
   || report.duplicateUserEmails > 0
+  || report.usersWithUnknownRole > 0
+  || report.jobsWithUnknownOwnerRole > 0
+  || report.resumesWithUnknownOwnerRole > 0
+  || report.jobsWithUnexpectedStatus > 0
+  || report.resumesWithUnexpectedStatus > 0
 ) {
   process.exit(2);
 }
