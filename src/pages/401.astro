@@ -3,6 +3,17 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Unauthorized" robots="noindex,nofollow" description="Unauthorized request.">
-  <h1 class="text-3xl font-semibold tracking-tight">401 - Unauthorized</h1>
-  <p class="mt-3 text-muted-foreground">You need to sign in before accessing this resource.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Auth Required</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">401 - Unauthorized</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">You need to sign in before accessing this resource.</p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/login">
+        Sign In
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/">
+        Back Home
+      </a>
+    </div>
+  </section>
 </PublicLayout>

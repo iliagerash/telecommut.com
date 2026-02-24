@@ -3,6 +3,17 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Not Found" robots="noindex,nofollow" description="Page not found.">
-  <h1 class="text-3xl font-semibold tracking-tight">404 - Not Found</h1>
-  <p class="mt-3 text-muted-foreground">The page you requested does not exist.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Missing Route</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">404 - Not Found</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">The page you requested does not exist.</p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/">
+        Go Home
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/search/jobs">
+        Browse Jobs
+      </a>
+    </div>
+  </section>
 </PublicLayout>

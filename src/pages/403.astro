@@ -3,6 +3,19 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Forbidden" robots="noindex,nofollow" description="Forbidden request.">
-  <h1 class="text-3xl font-semibold tracking-tight">403 - Forbidden</h1>
-  <p class="mt-3 text-muted-foreground">Your current role does not have permission to access this route.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Permission Denied</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">403 - Forbidden</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">
+      Your current role does not have permission to access this route.
+    </p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/admin/dashboard">
+        Try Dashboard
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/">
+        Back Home
+      </a>
+    </div>
+  </section>
 </PublicLayout>

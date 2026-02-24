@@ -3,6 +3,17 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 ---
 
 <PublicLayout title="Service Unavailable" robots="noindex,nofollow" description="Service unavailable.">
-  <h1 class="text-3xl font-semibold tracking-tight">503 - Service Unavailable</h1>
-  <p class="mt-3 text-muted-foreground">Temporary maintenance mode. Please check back later.</p>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Maintenance Window</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">503 - Service Unavailable</h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">Temporary maintenance mode. Please check back later.</p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/help">
+        See Help Center
+      </a>
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/">
+        Back Home
+      </a>
+    </div>
+  </section>
 </PublicLayout>
