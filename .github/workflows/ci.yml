@@ -36,7 +36,6 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      LOCAL_SQLITE_PATH: ./db/ci-build.db
 
     steps:
       - name: Checkout
@@ -50,13 +49,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Prepare local DB for build
-        run: |
-          mkdir -p ./db
-          rm -f "$LOCAL_SQLITE_PATH"
-          touch "$LOCAL_SQLITE_PATH"
-          npm run db:migrate:local
 
       - name: Build
         run: npm run build
