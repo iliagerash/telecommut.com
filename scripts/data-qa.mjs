@@ -5,7 +5,7 @@ import "dotenv/config";
 import Database from "better-sqlite3";
 
 const dbClient = process.env.DB_CLIENT ?? "sqlite";
-const sqlitePath = process.env.LOCAL_SQLITE_PATH ?? ".local/telecommut.db";
+const sqlitePath = process.env.LOCAL_SQLITE_PATH ?? "telecommut.db";
 const resolvedPath = path.resolve(process.cwd(), sqlitePath);
 
 if (dbClient !== "sqlite") {

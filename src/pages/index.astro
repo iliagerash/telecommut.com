@@ -10,6 +10,7 @@ import AdMiddle from "@/components/ads/AdMiddle.astro";
 import AdTop from "@/components/ads/AdTop.astro";
 import { Badge } from "@/components/ui/badge";
 import HomeSearchForm from "@/components/home/HomeSearchForm";
+import CategoryIcon from "@/components/home/CategoryIcon";
 
 export const prerender = false;
 
@@ -57,13 +58,22 @@ const recentJobs = recentJobRows.map((row) => ({
 const categoryRows = categoryTableRows.map((row) => ({
   id: row.id,
   title: row.title,
+  slug: row.slug,
+  icon: row.icon,
+  description: row.description,
   jobsCount: categoryCountById.get(row.id) ?? 0,
 }));
 
 const categoryOptions = categoryRows.map((row) => ({
   id: row.id,
   title: row.title,
+  slug: row.slug,
 }));
+
+function categoryPathSegment(input: { slug: string | null }): string | null {
+  const value = input.slug?.trim();
+  return value ? encodeURIComponent(value) : null;
+}
 
 const activeJobsCount = activeJobRows.length;
 const countryGroupNameById = new Map(countryGroupRows.map((row) => [String(row.id), row.name]));
@@ -189,13 +199,13 @@ const homepageJsonLd = {
   jsonLd={homepageJsonLd}
 >
   <div class="space-y-8">
-    <section class="glass-panel rounded-3xl border p-7 shadow-sm md:p-10">
+    <section class="glass-panel relative z-50 overflow-visible rounded-3xl border p-7 shadow-sm md:p-10">
       <h1 class="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">Find your new remote job</h1>
       <p class="mt-3 max-w-3xl text-sm text-muted-foreground md:text-base">{seoIntro}</p>
       <HomeSearchForm client:load initialQuery={query} initialCategory={category} categoryOptions={categoryOptions} />
     </section>
 
-    <section class="recent-jobs">
+    <section class="recent-jobs relative z-10">
       <header class="section-header mb-5">
         <h2 class="mt-0 text-center text-3xl font-semibold tracking-tight">Recent Remote Jobs</h2>
       </header>
@@ -275,12 +285,27 @@ const homepageJsonLd = {
       <h2 class="mb-5 text-center text-3xl font-semibold tracking-tight">Categories</h2>
       <div class="category-grid mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {
-          categoryRows.map((row) => (
-            <a class="glass-panel rounded-2xl border p-4 transition-colors hover:bg-card/80" href={`/search/jobs?category=${row.id}`}>
-              <h3 class="text-base font-semibold">{row.title}</h3>
-              <p class="mt-1 text-sm text-muted-foreground">{row.jobsCount} jobs</p>
-            </a>
-          ))
+          categoryRows.map((row) => {
+            const segment = categoryPathSegment(row);
+            const content = (
+              <div class="flex items-start gap-3">
+                <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+                  <CategoryIcon name={row.icon} className="size-4" />
+                </span>
+                <div>
+                  <h3 class="text-base font-semibold">{row.title}</h3>
+                  <p class="mt-1 text-sm text-muted-foreground">{row.jobsCount} jobs</p>
+                </div>
+              </div>
+            );
+            return segment ? (
+              <a class="glass-panel rounded-2xl border p-4 transition-colors hover:bg-card/80" href={`/category/${segment}`}>
+                {content}
+              </a>
+            ) : (
+              <div class="glass-panel rounded-2xl border p-4">{content}</div>
+            );
+          })
         }
       </div>
     </section>

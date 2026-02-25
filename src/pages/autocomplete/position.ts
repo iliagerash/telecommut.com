@@ -1,4 +1,4 @@
-import { and, asc, eq, like } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { APIRoute } from "astro";
 
 import { getRequestDb } from "@/db/request";
@@ -25,6 +25,7 @@ function normalizeSuggestion(input: unknown): string | null {
 
 export const GET: APIRoute = async ({ url, locals }) => {
   const term = (url.searchParams.get("term") ?? "").trim();
+  const loweredTerm = term.toLowerCase();
   const type = (url.searchParams.get("type") ?? "jobs").toLowerCase();
 
   if (term.length < 3) {
@@ -40,13 +41,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
       ? await db
           .select()
           .from(resumes)
-          .where(and(eq(resumes.status, 1), like(resumes.position, `${term}%`)))
+          .where(and(eq(resumes.status, 1), sql`lower(${resumes.position}) like ${`%${loweredTerm}%`}`))
           .orderBy(asc(resumes.position))
           .limit(30)
       : await db
           .select()
           .from(jobs)
-          .where(and(eq(jobs.status, 1), like(jobs.position, `${term}%`)))
+          .where(and(eq(jobs.status, 1), sql`lower(${jobs.position}) like ${`%${loweredTerm}%`}`))
           .orderBy(asc(jobs.position))
           .limit(30);
 

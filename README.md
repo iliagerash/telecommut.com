@@ -26,7 +26,7 @@ npm run dev
 npm run db:generate
 ```
 
-- Apply migrations to local SQLite (`.local/telecommut.db`):
+- Apply migrations to local SQLite (`LOCAL_SQLITE_PATH`, default `telecommut.db`):
 
 ```bash
 npm run db:migrate:sqlite

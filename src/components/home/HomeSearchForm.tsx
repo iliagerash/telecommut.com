@@ -1,15 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentProps } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 type CategoryOption = {
   id: number;
   title: string;
+  slug?: string | null;
 };
 
 type HomeSearchFormProps = {
@@ -39,7 +34,7 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
     const current = ++requestSeq.current;
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/autocomplete/position?term=${encodeURIComponent(trimmedQuery)}`);
+        const response = await fetch(`/autocomplete/position?term=${encodeURIComponent(trimmedQuery)}&type=jobs`);
         if (!response.ok) {
           return;
         }
@@ -65,99 +60,100 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
   const submitSearch: NonNullable<ComponentProps<"form">["onSubmit"]> = (event) => {
     event.preventDefault();
 
-    const url = new URL("/search/jobs", window.location.origin);
+    if (!trimmedQuery && category) {
+      const selected = categoryOptions.find((row) => String(row.id) === category);
+      const categorySegment = selected?.slug?.trim();
+      if (categorySegment) {
+        window.location.href = `/category/${encodeURIComponent(categorySegment)}`;
+        return;
+      }
+    }
+
+    const url = new URL("/jobs", window.location.origin);
     if (trimmedQuery) {
-      url.searchParams.set("q", trimmedQuery);
+      url.searchParams.set("position", trimmedQuery);
     }
     if (category) {
-      url.searchParams.set("category", category);
+      url.searchParams.set("category_id", category);
     }
     window.location.href = `${url.pathname}${url.search}`;
   };
 
   return (
-    <form className="mt-6 grid gap-3 md:grid-cols-[1fr_220px_auto]" onSubmit={submitSearch}>
-      <Popover
-        open={open}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            setOpen(false);
-            return;
-          }
+    <form className="relative z-40 mt-6 grid gap-3 md:grid-cols-[1fr_220px_auto]" onSubmit={submitSearch}>
+      <div className="relative">
+        <label className="sr-only" htmlFor="position">
+          Search position
+        </label>
+        <input
+          id="position"
+          name="position"
+          value={query}
+          placeholder="Position, skill, or company"
+          aria-label="Search position"
+          autoComplete="off"
+          className="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          onChange={(event) => setQuery(event.target.value)}
+          onFocus={() => {
+            if (trimmedQuery.length >= 3 && suggestions.length > 0) {
+              setOpen(true);
+            }
+          }}
+          onBlur={() => {
+            window.setTimeout(() => setOpen(false), 120);
+          }}
+        />
+        {open ? (
+          <ul className="absolute z-[200] mt-1 max-h-72 w-full overflow-auto rounded-xl border bg-popover p-1 shadow-md">
+            {isLoading ? <li className="px-3 py-2 text-sm text-muted-foreground">Loading suggestions...</li> : null}
+            {!isLoading && suggestions.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-muted-foreground">No matches found.</li>
+            ) : null}
+            {suggestions.map((item) => (
+              <li key={item}>
+                <button
+                  type="button"
+                  className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
+                  onClick={() => {
+                    setQuery(item);
+                    setOpen(false);
+                  }}
+                >
+                  {item}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
 
-          if (trimmedQuery.length >= 3 && suggestions.length > 0) {
-            setOpen(true);
-          }
-        }}
-      >
-        <PopoverTrigger asChild>
-          <div>
-            <Input
-              id="position"
-              name="q"
-              value={query}
-              placeholder="Position, skill, or company"
-              aria-label="Search position"
-              autoComplete="off"
-              className="h-11 rounded-xl bg-background px-3 text-sm"
-              onChange={(event) => setQuery(event.target.value)}
-              onFocus={() => {
-                if (trimmedQuery.length >= 3 && suggestions.length > 0) {
-                  setOpen(true);
-                }
-              }}
-            />
-          </div>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          sideOffset={4}
-          className="w-[var(--radix-popover-trigger-width)] p-0"
-          onOpenAutoFocus={(event) => event.preventDefault()}
+      <div className="relative">
+        <label className="sr-only" htmlFor="category_id">
+          Category
+        </label>
+        <select
+          id="category_id"
+          name="category_id"
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+          className="h-11 w-full appearance-none rounded-xl border bg-background px-3 pr-9 text-sm"
         >
-          <Command>
-            <CommandList>
-              {isLoading ? <CommandEmpty>Loading suggestions...</CommandEmpty> : null}
-              {!isLoading && suggestions.length === 0 ? <CommandEmpty>No matches found.</CommandEmpty> : null}
-              <CommandGroup>
-                {suggestions.map((item) => (
-                  <CommandItem
-                    key={item}
-                    value={item}
-                    className="cursor-pointer"
-                    onSelect={(value) => {
-                      setQuery(value);
-                      setOpen(false);
-                    }}
-                  >
-                    {item}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      <Select value={category || "__all__"} onValueChange={(value) => setCategory(value === "__all__" ? "" : value)}>
-        <SelectTrigger className="!h-11 w-full rounded-xl border bg-background px-3 py-0 text-sm shadow-none">
-          <SelectValue placeholder="All Categories" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__all__" className="cursor-pointer">
-            All Categories
-          </SelectItem>
+          <option value="">All Categories</option>
           {categoryOptions.map((row) => (
-            <SelectItem key={row.id} value={String(row.id)} className="cursor-pointer">
+            <option key={row.id} value={String(row.id)}>
               {row.title}
-            </SelectItem>
+            </option>
           ))}
-        </SelectContent>
-      </Select>
+        </select>
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-foreground">▾</span>
+      </div>
 
-      <Button type="submit" className="h-11 rounded-xl px-5 text-sm font-semibold">
+      <button
+        type="submit"
+        className="h-11 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+      >
         Find Jobs
-      </Button>
+      </button>
     </form>
   );
 }

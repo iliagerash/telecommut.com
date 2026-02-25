@@ -29,6 +29,20 @@
       "when": 1771896970694,
       "tag": "0003_flat_shen",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1771989491810,
+      "tag": "0004_wide_cerebro",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1771991376048,
+      "tag": "0005_wise_blob",
+      "breakpoints": true
     }
   ]
 }

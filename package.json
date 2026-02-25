@@ -23,6 +23,8 @@
     "ci:check": "npm run typecheck && npm run lint && npm run test && npm run db:check && npm run qa:role-cutover && npm run qa:no-legacy-type-writes && npm run qa:wave6-baseline",
     "db:generate": "drizzle-kit generate",
     "db:migrate:sqlite": "node scripts/migrate-sqlite.mjs",
+    "db:backfill:categories:local": "node scripts/backfill-category-metadata.mjs",
+    "db:backfill:categories:remote": "wrangler d1 execute telecommut-db --remote --file ./scripts/backfill-categories-remote.sql",
     "db:migrate:d1:local": "wrangler d1 migrations apply telecommut-db --local",
     "db:migrate:d1:remote": "wrangler d1 migrations apply telecommut-db --remote",
     "db:studio": "drizzle-kit studio"

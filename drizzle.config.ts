@@ -6,7 +6,7 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: process.env.LOCAL_SQLITE_PATH ?? ".local/telecommut.db",
+    url: process.env.LOCAL_SQLITE_PATH ?? "telecommut.db",
   },
   strict: true,
   verbose: true,

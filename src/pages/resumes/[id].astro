@@ -9,7 +9,6 @@ const { id } = Astro.params;
 
 <PublicLayout title={`Resume ${id ?? ""}`} description="Resume detail page." socialImagePath={socialImages.resumes}>
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
-    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Candidate Profile</p>
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Resume Detail</h1>
     <p class="mt-3 text-muted-foreground">Resume id: <code>{id}</code></p>
     <p class="mt-2 text-muted-foreground">Visibility and permission rules will be finalized in W3-2.</p>

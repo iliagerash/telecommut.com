@@ -44,6 +44,10 @@ export const users = sqliteTable(
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey(),
   title: text("title").notNull(),
+  slug: text("slug"),
+  description: text("description").notNull().default(""),
+  pageText: text("page_text").notNull().default(""),
+  metaTitle: text("meta_title").notNull().default(""),
   icon: text("icon").notNull().default("fa-check-circle"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
@@ -52,7 +56,9 @@ export const categories = sqliteTable("categories", {
   crawledAt: text("crawled_at"),
   bingCrawledAt: text("bing_crawled_at"),
   submittedAt: text("submitted_at"),
-});
+}, (table) => [
+  uniqueIndex("categories_slug_unique").on(table.slug),
+]);
 
 export const countries = sqliteTable("countries", {
   id: integer("id").primaryKey(),

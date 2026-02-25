@@ -8,7 +8,7 @@ export function createD1Client(d1: D1Database) {
   return drizzleD1(d1, { schema });
 }
 
-export function createSqliteClient(filePath = process.env.LOCAL_SQLITE_PATH ?? ".local/telecommut.db") {
+export function createSqliteClient(filePath = process.env.LOCAL_SQLITE_PATH ?? "telecommut.db") {
   const sqlite = new Database(filePath);
   return drizzleSqlite(sqlite, { schema });
 }

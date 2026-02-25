@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const sqlitePath = process.env.LOCAL_SQLITE_PATH ?? path.join(rootDir, ".local", "telecommut.db");
+const sqlitePath = process.env.LOCAL_SQLITE_PATH ?? path.join(rootDir, "telecommut.db");
 const migrationsDir = path.join(rootDir, "drizzle");
 
 fs.mkdirSync(path.dirname(sqlitePath), { recursive: true });
