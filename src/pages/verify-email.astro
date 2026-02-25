@@ -1,0 +1,122 @@
+---
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import { socialImages } from "@/lib/social-images";
+
+const token = Astro.url.searchParams.get("token");
+if (token) {
+  const callbackURL =
+    Astro.url.searchParams.get("callbackURL") ??
+    `${Astro.url.origin}/verify-email?status=verified`;
+  const target = new URL("/api/auth/verify-email", Astro.url.origin);
+  target.searchParams.set("token", token);
+  target.searchParams.set("callbackURL", callbackURL);
+  return Astro.redirect(target.toString(), 302);
+}
+
+const status = Astro.url.searchParams.get("status");
+const error = Astro.url.searchParams.get("error");
+const email = Astro.url.searchParams.get("email") ?? "";
+---
+
+<PublicLayout
+  title="Verify Email"
+  description="Verify your Telecommut account email address."
+  robots="noindex,nofollow"
+  socialImagePath={socialImages.home}
+>
+  <section class="glass-panel mx-auto w-full max-w-xl rounded-3xl border p-6 shadow-sm md:p-8">
+    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Authentication</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Verify your email</h1>
+    <p class="mt-3 text-muted-foreground">
+      Use the link from your inbox to verify your account. If the email is missing or expired, request a new one below.
+    </p>
+
+    {status === "verified" ? (
+      <div class="mt-5 rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3 text-sm text-emerald-900">
+        Email verified successfully. You can now sign in.
+      </div>
+    ) : null}
+
+    {error ? (
+      <div class="mt-5 rounded-xl border border-red-400/40 bg-red-500/10 p-3 text-sm text-red-900">
+        Verification failed: {error.replaceAll("_", " ")}.
+      </div>
+    ) : null}
+
+    <form id="resend-form" class="mt-6 space-y-3">
+      <div>
+        <label class="sr-only" for="verify-email-input">Email</label>
+        <input
+          id="verify-email-input"
+          name="email"
+          type="email"
+          required
+          value={email}
+          placeholder="Email *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="email"
+        />
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          id="resend-submit"
+          type="submit"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          Resend verification email
+        </button>
+        <p id="resend-status" class="text-sm text-muted-foreground" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <div class="mt-6 flex flex-wrap gap-3 text-sm">
+      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/login">
+        Back to login
+      </a>
+      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/help">
+        Need help
+      </a>
+    </div>
+  </section>
+
+  <script is:inline>
+    const form = document.getElementById("resend-form");
+    const statusEl = document.getElementById("resend-status");
+    const submit = document.getElementById("resend-submit");
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!statusEl || !submit || !(form instanceof HTMLFormElement)) return;
+
+      const formData = new FormData(form);
+      const email = String(formData.get("email") ?? "").trim();
+      if (!email) {
+        statusEl.textContent = "Email is required.";
+        return;
+      }
+
+      submit.setAttribute("disabled", "disabled");
+      statusEl.textContent = "Sending...";
+
+      try {
+        const callbackURL = `${window.location.origin}/verify-email?status=verified`;
+        const response = await fetch("/api/auth/send-verification-email", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, callbackURL }),
+        });
+        const json = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message = typeof json?.message === "string" ? json.message : "Unable to resend verification email.";
+          statusEl.textContent = message;
+          return;
+        }
+        statusEl.textContent = "Verification email sent. Check your inbox.";
+      } catch {
+        statusEl.textContent = "Unable to complete request. Please try again.";
+      } finally {
+        submit.removeAttribute("disabled");
+      }
+    });
+  </script>
+</PublicLayout>

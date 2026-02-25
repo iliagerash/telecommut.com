@@ -1,27 +1,203 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { socialImages } from "@/lib/social-images";
+
+const mode = Astro.url.searchParams.get("mode") === "register" ? "register" : "login";
 ---
 
 <PublicLayout
-  title="Login"
-  description="Sign in to Telecommut."
+  title={mode === "register" ? "Register" : "Login"}
+  description={mode === "register" ? "Create your Telecommut account." : "Sign in to Telecommut."}
   robots="noindex,nofollow"
   socialImagePath={socialImages.home}
 >
   <section class="glass-panel mx-auto w-full max-w-xl rounded-3xl border p-6 shadow-sm md:p-8">
     <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Authentication</p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Sign in</h1>
+    <h1 id="auth-title" class="mt-3 text-4xl font-semibold tracking-tight">
+      {mode === "register" ? "Create account" : "Sign in"}
+    </h1>
     <p class="mt-3 text-muted-foreground">
-      Better Auth endpoint scaffold is active at <code>/api/auth/*</code>. UI form wiring lands next.
+      {mode === "register"
+        ? "Register your account to publish jobs or resumes."
+        : "Sign in to manage your jobs, resumes, and account settings."}
     </p>
-    <div class="mt-5 flex flex-wrap gap-3">
-      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/">
+
+    <div class="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-secondary p-1">
+      <button
+        id="tab-login"
+        type="button"
+        data-mode="login"
+        class={`rounded-lg px-3 py-2 text-sm font-semibold ${mode === "login" ? "bg-background" : ""}`}
+      >
+        Sign in
+      </button>
+      <button
+        id="tab-register"
+        type="button"
+        data-mode="register"
+        class={`rounded-lg px-3 py-2 text-sm font-semibold ${mode === "register" ? "bg-background" : ""}`}
+      >
+        Register
+      </button>
+    </div>
+
+    <form id="auth-form" class="mt-4 space-y-3">
+      <div id="name-wrap" class={mode === "register" ? "" : "hidden"}>
+        <label class="sr-only" for="auth-name">Full name</label>
+        <input
+          id="auth-name"
+          name="name"
+          type="text"
+          placeholder="Full name *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="name"
+        />
+      </div>
+      <div>
+        <label class="sr-only" for="auth-email">Email</label>
+        <input
+          id="auth-email"
+          name="email"
+          type="email"
+          required
+          placeholder="Email *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="email"
+        />
+      </div>
+      <div>
+        <label class="sr-only" for="auth-password">Password</label>
+        <input
+          id="auth-password"
+          name="password"
+          type="password"
+          required
+          minlength="8"
+          placeholder="Password *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete={mode === "register" ? "new-password" : "current-password"}
+        />
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          id="auth-submit"
+          type="submit"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          {mode === "register" ? "Create account" : "Sign in"}
+        </button>
+        <p id="auth-status" class="text-sm text-muted-foreground" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <div class="mt-5 flex flex-wrap gap-3 text-sm">
+      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/verify-email">
+        Verify Email
+      </a>
+      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/">
         Return Home
       </a>
-      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/help">
+      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/help">
         Need Help
       </a>
     </div>
   </section>
+
+  <script is:inline>
+    const initialMode = new URL(window.location.href).searchParams.get("mode") === "register" ? "register" : "login";
+    let mode = initialMode;
+
+    const tabLogin = document.getElementById("tab-login");
+    const tabRegister = document.getElementById("tab-register");
+    const title = document.getElementById("auth-title");
+    const form = document.getElementById("auth-form");
+    const nameWrap = document.getElementById("name-wrap");
+    const nameInput = document.getElementById("auth-name");
+    const passwordInput = document.getElementById("auth-password");
+    const submit = document.getElementById("auth-submit");
+    const status = document.getElementById("auth-status");
+
+    function syncUi() {
+      if (!tabLogin || !tabRegister || !title || !nameWrap || !submit || !passwordInput) return;
+
+      tabLogin.classList.toggle("bg-background", mode === "login");
+      tabRegister.classList.toggle("bg-background", mode === "register");
+      title.textContent = mode === "register" ? "Create account" : "Sign in";
+      submit.textContent = mode === "register" ? "Create account" : "Sign in";
+
+      nameWrap.classList.toggle("hidden", mode !== "register");
+      if (mode === "register") {
+        nameInput?.setAttribute("required", "required");
+        passwordInput.setAttribute("autocomplete", "new-password");
+      } else {
+        nameInput?.removeAttribute("required");
+        passwordInput.setAttribute("autocomplete", "current-password");
+      }
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const url = new URL(window.location.href);
+      if (mode === "register") {
+        url.searchParams.set("mode", "register");
+      } else {
+        url.searchParams.delete("mode");
+      }
+      window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+      syncUi();
+    }
+
+    tabLogin?.addEventListener("click", () => setMode("login"));
+    tabRegister?.addEventListener("click", () => setMode("register"));
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!submit || !status) return;
+
+      const formData = new FormData(form);
+      const email = String(formData.get("email") ?? "").trim();
+      const password = String(formData.get("password") ?? "");
+      const name = String(formData.get("name") ?? "").trim();
+
+      submit.setAttribute("disabled", "disabled");
+      status.textContent = "Submitting...";
+
+      const endpoint = mode === "register" ? "/api/auth/sign-up/email" : "/api/auth/sign-in/email";
+      const verifyCallbackUrl = `${window.location.origin}/verify-email?status=verified`;
+      const payload = mode === "register"
+        ? { name, email, password, callbackURL: verifyCallbackUrl }
+        : { email, password, callbackURL: verifyCallbackUrl };
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const json = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          const message = typeof json?.message === "string" ? json.message : "Authentication failed";
+          status.textContent = message;
+          return;
+        }
+
+        if (mode === "register") {
+          status.textContent = "Account created. Check your email to verify your account.";
+          window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+          return;
+        }
+
+        status.textContent = "Signed in. Redirecting...";
+        window.location.href = "/app/dashboard";
+      } catch {
+        status.textContent = "Unable to complete request. Please try again.";
+      } finally {
+        submit.removeAttribute("disabled");
+      }
+    });
+
+    syncUi();
+  </script>
 </PublicLayout>

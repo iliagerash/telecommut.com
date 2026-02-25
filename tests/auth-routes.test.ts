@@ -34,6 +34,16 @@ async function createTestAuth() {
   return { auth: createAuth(), sendMailgunMessage };
 }
 
+function extractVerificationTokenFromMailMock(mockCall: unknown[]): string {
+  const payload = mockCall[0] as { text?: string; html?: string };
+  const source = payload.text ?? payload.html ?? "";
+  const match = source.match(/token=([^&\s]+)/);
+  if (!match?.[1]) {
+    throw new Error("Verification token not found in mocked mail payload");
+  }
+  return decodeURIComponent(match[1]);
+}
+
 describe("auth routes", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -106,5 +116,120 @@ describe("auth routes", () => {
     expect(typeof payload.token).toBe("string");
     expect(payload.token?.length).toBeGreaterThan(0);
     expect(sendMailgunMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("supports resend verification email endpoint", async () => {
+    vi.stubEnv("BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION", "true");
+    const { auth, sendMailgunMessage } = await createTestAuth();
+    const email = `resend-${Date.now()}@example.com`;
+
+    const signUpResponse = await auth.handler(
+      new Request("http://127.0.0.1:8787/api/auth/sign-up/email", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "http://127.0.0.1:8787",
+        },
+        body: JSON.stringify({
+          name: "Resend User",
+          email,
+          password: "StrongPass123!",
+          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+        }),
+      }),
+    );
+    expect(signUpResponse.status).toBe(200);
+
+    const resendResponse = await auth.handler(
+      new Request("http://127.0.0.1:8787/api/auth/send-verification-email", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "http://127.0.0.1:8787",
+        },
+        body: JSON.stringify({
+          email,
+          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+        }),
+      }),
+    );
+
+    expect(resendResponse.status).toBe(200);
+    expect(sendMailgunMessage).toHaveBeenCalledTimes(2);
+  });
+
+  it("requires verification before sign in and allows sign in after verify callback", async () => {
+    vi.stubEnv("BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION", "true");
+    const { auth, sendMailgunMessage } = await createTestAuth();
+    const email = `verify-${Date.now()}@example.com`;
+
+    const signUpResponse = await auth.handler(
+      new Request("http://127.0.0.1:8787/api/auth/sign-up/email", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "http://127.0.0.1:8787",
+        },
+        body: JSON.stringify({
+          name: "Verify User",
+          email,
+          password: "StrongPass123!",
+          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+        }),
+      }),
+    );
+    expect(signUpResponse.status).toBe(200);
+    expect(sendMailgunMessage).toHaveBeenCalledTimes(1);
+
+    const deniedSignInResponse = await auth.handler(
+      new Request("http://127.0.0.1:8787/api/auth/sign-in/email", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "http://127.0.0.1:8787",
+        },
+        body: JSON.stringify({
+          email,
+          password: "StrongPass123!",
+          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+        }),
+      }),
+    );
+    expect(deniedSignInResponse.status).toBe(403);
+
+    const firstMailCall = sendMailgunMessage.mock.calls[0];
+    const token = extractVerificationTokenFromMailMock(firstMailCall);
+    const verifyResponse = await auth.handler(
+      new Request(
+        `http://127.0.0.1:8787/api/auth/verify-email?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent("http://127.0.0.1:8787/verify-email?status=verified")}`,
+        {
+          method: "GET",
+          headers: {
+            origin: "http://127.0.0.1:8787",
+          },
+        },
+      ),
+    );
+    expect(verifyResponse.status).toBe(302);
+    expect(verifyResponse.headers.get("location")).toContain("/verify-email?status=verified");
+
+    const signInResponse = await auth.handler(
+      new Request("http://127.0.0.1:8787/api/auth/sign-in/email", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "http://127.0.0.1:8787",
+        },
+        body: JSON.stringify({
+          email,
+          password: "StrongPass123!",
+          callbackURL: "http://127.0.0.1:8787/app/dashboard",
+        }),
+      }),
+    );
+    const payload = (await signInResponse.json()) as { token?: string };
+    expect(signInResponse.status).toBe(200);
+    expect(typeof payload.token).toBe("string");
+    expect(payload.token?.length).toBeGreaterThan(0);
   });
 });
