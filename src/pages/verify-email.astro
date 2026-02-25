@@ -101,7 +101,7 @@ const email = Astro.url.searchParams.get("email") ?? "";
 
       clearInputError(emailInput);
       const formData = new FormData(form);
-      const email = String(formData.get("email") ?? "").trim();
+      const email = String(formData.get("email") ?? "").trim().toLowerCase();
       if (!email) {
         setInputError(emailInput);
         setStatus("Email is required.", "error");
@@ -115,6 +115,7 @@ const email = Astro.url.searchParams.get("email") ?? "";
         const callbackURL = `${window.location.origin}/app/profile`;
         const response = await fetch("/api/auth/send-verification-email", {
           method: "POST",
+          credentials: "omit",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ email, callbackURL }),
         });

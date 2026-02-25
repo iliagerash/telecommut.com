@@ -9,7 +9,8 @@ export function createD1Client(d1: D1Database) {
 }
 
 function requiredLocalSqlitePath() {
-  const value = process.env.LOCAL_SQLITE_PATH?.trim();
+  const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+  const value = (process.env.LOCAL_SQLITE_PATH ?? viteEnv?.LOCAL_SQLITE_PATH ?? "").trim();
   if (!value) {
     throw new Error("LOCAL_SQLITE_PATH is required for local SQLite client.");
   }

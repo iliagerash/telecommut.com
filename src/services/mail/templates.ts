@@ -10,27 +10,45 @@ export type MailTemplate = {
   html: string;
 };
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export function verifyEmailTemplate(payload: AuthTemplatePayload): MailTemplate {
+  const safeAppName = escapeHtml(payload.appName);
+  const safeActionUrl = escapeHtml(payload.actionUrl);
+
   return {
     subject: "Verify your email",
     text: [
       `Hi,`,
       ``,
       `Please verify your email address for ${payload.appName}.`,
-      `Open this link: ${payload.actionUrl}`,
+      `Open this link:`,
+      payload.actionUrl,
       ``,
       `If you did not request this, you can ignore this message.`,
     ].join("\n"),
     html: [
       `<p>Hi,</p>`,
-      `<p>Please verify your email address for <strong>${payload.appName}</strong>.</p>`,
-      `<p><a href="${payload.actionUrl}">Verify email</a></p>`,
+      `<p>Please verify your email address for <strong>${safeAppName}</strong>.</p>`,
+      `<p><a href="${safeActionUrl}" target="_blank" rel="noopener noreferrer">Verify email</a></p>`,
+      `<p>If the button does not work, copy and paste this URL into your browser:</p>`,
+      `<p><code>${safeActionUrl}</code></p>`,
       `<p>If you did not request this, you can ignore this message.</p>`,
     ].join(""),
   };
 }
 
 export function resetPasswordTemplate(payload: AuthTemplatePayload): MailTemplate {
+  const safeAppName = escapeHtml(payload.appName);
+  const safeActionUrl = escapeHtml(payload.actionUrl);
+
   return {
     subject: "Reset your password",
     text: [
@@ -43,8 +61,10 @@ export function resetPasswordTemplate(payload: AuthTemplatePayload): MailTemplat
     ].join("\n"),
     html: [
       `<p>Hi,</p>`,
-      `<p>Use this link to reset your <strong>${payload.appName}</strong> password:</p>`,
-      `<p><a href="${payload.actionUrl}">Reset password</a></p>`,
+      `<p>Use this link to reset your <strong>${safeAppName}</strong> password:</p>`,
+      `<p><a href="${safeActionUrl}" target="_blank" rel="noopener noreferrer">Reset password</a></p>`,
+      `<p>If the button does not work, copy and paste this URL into your browser:</p>`,
+      `<p><code>${safeActionUrl}</code></p>`,
       `<p>If you did not request this, you can ignore this message.</p>`,
     ].join(""),
   };

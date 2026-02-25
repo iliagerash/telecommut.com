@@ -52,7 +52,7 @@ export async function sendMailgunMessage(input: SendMailInput): Promise<void> {
   const apiHost = config.region === "eu" ? "api.eu.mailgun.net" : "api.mailgun.net";
   const endpoint = `https://${apiHost}/v3/${config.domain}/messages`;
 
-  const formData = new URLSearchParams();
+  const formData = new FormData();
   formData.set("from", config.from);
   formData.set("to", input.to);
   formData.set("subject", input.subject);
@@ -69,9 +69,8 @@ export async function sendMailgunMessage(input: SendMailInput): Promise<void> {
     method: "POST",
     headers: {
       Authorization: `Basic ${encodedKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: formData.toString(),
+    body: formData,
   });
 
   if (!response.ok) {
