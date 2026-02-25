@@ -37,7 +37,7 @@ export default function PublicMobileNav() {
           </SheetClose>
           <div className="my-2 h-px bg-primary-foreground/20"></div>
           <SheetClose asChild>
-            <a className="rounded-lg bg-background px-3 py-2 font-semibold text-foreground hover:opacity-90" href="/login">
+            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/login">
               Login
             </a>
           </SheetClose>

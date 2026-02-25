@@ -1,0 +1,190 @@
+---
+import AppLayout from "@/layouts/app/AppLayout.astro";
+import { auth } from "@/auth";
+
+export const prerender = false;
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session?.session?.id || !session.user) {
+  return Astro.redirect("/login?next=/app/profile", 302);
+}
+
+const user = session.user;
+---
+
+<AppLayout title="Profile" description="Manage your account details and password.">
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <h2 class="text-3xl font-semibold tracking-tight">My Profile</h2>
+    <p class="mt-2 text-sm text-muted-foreground">Update your account details and credentials.</p>
+
+    <div class="mt-6 grid gap-2 text-sm text-muted-foreground">
+      <p>Email: <span class="font-medium text-foreground">{user.email}</span></p>
+      <p>User ID: <span class="font-medium text-foreground">{user.id}</span></p>
+    </div>
+
+    <form id="profile-data-form" class="mt-6 space-y-3">
+      <h3 class="text-lg font-semibold">Account data</h3>
+      <div>
+        <label class="sr-only" for="profile-name">Display name</label>
+        <input
+          id="profile-name"
+          name="name"
+          type="text"
+          value={user.name ?? ""}
+          placeholder="Display name"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="name"
+        />
+      </div>
+      <div>
+        <label class="sr-only" for="profile-image">Avatar image URL</label>
+        <input
+          id="profile-image"
+          name="image"
+          type="url"
+          value={user.image ?? ""}
+          placeholder="Avatar image URL"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="url"
+        />
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          id="profile-data-submit"
+          type="submit"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          Update data
+        </button>
+        <p id="profile-data-status" class="text-sm text-muted-foreground" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <form id="profile-password-form" class="mt-8 space-y-3">
+      <h3 class="text-lg font-semibold">Change password</h3>
+      <div>
+        <label class="sr-only" for="current-password">Current password</label>
+        <input
+          id="current-password"
+          name="currentPassword"
+          type="password"
+          required
+          placeholder="Current password *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="current-password"
+        />
+      </div>
+      <div>
+        <label class="sr-only" for="new-password">New password</label>
+        <input
+          id="new-password"
+          name="newPassword"
+          type="password"
+          required
+          minlength="8"
+          placeholder="New password *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="new-password"
+        />
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          id="profile-password-submit"
+          type="submit"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          Update password
+        </button>
+        <p id="profile-password-status" class="text-sm text-muted-foreground" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </section>
+
+  <script is:inline>
+    const dataForm = document.getElementById("profile-data-form");
+    const dataSubmit = document.getElementById("profile-data-submit");
+    const dataStatus = document.getElementById("profile-data-status");
+
+    dataForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!dataSubmit || !dataStatus || !(dataForm instanceof HTMLFormElement)) return;
+
+      const formData = new FormData(dataForm);
+      const name = String(formData.get("name") ?? "").trim();
+      const image = String(formData.get("image") ?? "").trim();
+
+      dataSubmit.setAttribute("disabled", "disabled");
+      dataStatus.textContent = "Updating...";
+
+      try {
+        const response = await fetch("/api/auth/update-user", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            name: name || undefined,
+            image: image || null,
+          }),
+        });
+        const json = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message = typeof json?.message === "string" ? json.message : "Unable to update profile data.";
+          dataStatus.textContent = message;
+          return;
+        }
+        dataStatus.textContent = "Profile data updated.";
+      } catch {
+        dataStatus.textContent = "Unable to complete request. Please try again.";
+      } finally {
+        dataSubmit.removeAttribute("disabled");
+      }
+    });
+
+    const passwordForm = document.getElementById("profile-password-form");
+    const passwordSubmit = document.getElementById("profile-password-submit");
+    const passwordStatus = document.getElementById("profile-password-status");
+
+    passwordForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!passwordSubmit || !passwordStatus || !(passwordForm instanceof HTMLFormElement)) return;
+
+      const formData = new FormData(passwordForm);
+      const currentPassword = String(formData.get("currentPassword") ?? "");
+      const newPassword = String(formData.get("newPassword") ?? "");
+
+      if (newPassword.length < 8) {
+        passwordStatus.textContent = "Password must be at least 8 characters.";
+        return;
+      }
+
+      passwordSubmit.setAttribute("disabled", "disabled");
+      passwordStatus.textContent = "Updating password...";
+
+      try {
+        const response = await fetch("/api/auth/change-password", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+            revokeOtherSessions: false,
+          }),
+        });
+        const json = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message = typeof json?.message === "string" ? json.message : "Unable to update password.";
+          passwordStatus.textContent = message;
+          return;
+        }
+        passwordStatus.textContent = "Password updated.";
+        passwordForm.reset();
+      } catch {
+        passwordStatus.textContent = "Unable to complete request. Please try again.";
+      } finally {
+        passwordSubmit.removeAttribute("disabled");
+      }
+    });
+  </script>
+</AppLayout>

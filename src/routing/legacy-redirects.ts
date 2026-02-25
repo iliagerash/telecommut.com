@@ -8,6 +8,8 @@ const legacyRedirects: LegacyRedirect[] = [
   { from: "/home", to: "/", status: 308 },
   { from: "/privacy", to: "/privacy-policy", status: 308 },
   { from: "/terms", to: "/terms-and-conditions", status: 308 },
+  { from: "/profile", to: "/app/profile", status: 308 },
+  { from: "/register", to: "/login?mode=register", status: 308 },
   { from: "/job/search", to: "/search/jobs", status: 308 },
   { from: "/resume/search-result", to: "/resumes/search", status: 308 },
   { from: "/resume/index", to: "/resumes", status: 308 },

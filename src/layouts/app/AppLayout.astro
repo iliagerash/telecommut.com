@@ -11,6 +11,7 @@ const { title, description = "Member workspace scaffold." } = Astro.props;
 const canonicalHref = toAbsoluteUrl(`${Astro.url.pathname}${Astro.url.search}`);
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard" },
+  { href: "/app/profile", label: "Profile" },
   { href: "/search/jobs", label: "Jobs" },
   { href: "/resumes", label: "Candidates" },
   { href: "/contact", label: "Support" },
