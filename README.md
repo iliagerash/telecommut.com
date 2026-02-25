@@ -14,7 +14,7 @@ Astro + React app for Telecommut.
 ```bash
 npm install
 cp .env.example .env
-bash ./scripts/create-local-db.sh
+bash ./scripts/reset-local-db.sh
 npm run db:migrate:local
 npm run dev
 ```

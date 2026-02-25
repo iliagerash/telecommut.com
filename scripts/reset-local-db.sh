@@ -6,31 +6,43 @@ ENV_FILE="$ROOT_DIR/.env"
 
 echo "Resetting local DB state..."
 
-# Load LOCAL_SQLITE_PATH from .env if present.
-LOCAL_SQLITE_PATH=""
-if [[ -f "$ENV_FILE" ]]; then
-  while IFS= read -r line; do
-    line="${line#"${line%%[![:space:]]*}"}"
-    [[ -z "$line" || "${line:0:1}" == "#" ]] && continue
-    if [[ "$line" == LOCAL_SQLITE_PATH=* ]]; then
-      value="${line#LOCAL_SQLITE_PATH=}"
-      value="${value%\"}"
-      value="${value#\"}"
-      value="${value%\'}"
-      value="${value#\'}"
-      LOCAL_SQLITE_PATH="$value"
-      break
-    fi
-  done < "$ENV_FILE"
+# Load LOCAL_SQLITE_PATH from .env.
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing .env at $ENV_FILE"
+  exit 1
 fi
 
-if [[ -n "$LOCAL_SQLITE_PATH" ]]; then
-  if [[ -f "$LOCAL_SQLITE_PATH" ]]; then
-    rm -f "$LOCAL_SQLITE_PATH"
-    echo "Deleted LOCAL_SQLITE_PATH DB: $LOCAL_SQLITE_PATH"
-  else
-    echo "LOCAL_SQLITE_PATH not found (skip): $LOCAL_SQLITE_PATH"
+LOCAL_SQLITE_PATH=""
+while IFS= read -r line; do
+  line="${line#"${line%%[![:space:]]*}"}"
+  [[ -z "$line" || "${line:0:1}" == "#" ]] && continue
+  if [[ "$line" == LOCAL_SQLITE_PATH=* ]]; then
+    value="${line#LOCAL_SQLITE_PATH=}"
+    value="${value%\"}"
+    value="${value#\"}"
+    value="${value%\'}"
+    value="${value#\'}"
+    LOCAL_SQLITE_PATH="$value"
+    break
   fi
+done < "$ENV_FILE"
+
+if [[ -z "$LOCAL_SQLITE_PATH" ]]; then
+  echo "LOCAL_SQLITE_PATH is required in .env"
+  exit 1
+fi
+
+if [[ "$LOCAL_SQLITE_PATH" = /* ]]; then
+  DB_PATH="$LOCAL_SQLITE_PATH"
+else
+  DB_PATH="$ROOT_DIR/$LOCAL_SQLITE_PATH"
+fi
+
+if [[ -f "$DB_PATH" ]]; then
+  rm -f "$DB_PATH"
+  echo "Deleted LOCAL_SQLITE_PATH DB: $DB_PATH"
+else
+  echo "LOCAL_SQLITE_PATH not found (skip): $DB_PATH"
 fi
 
 DEFAULT_DB_PATH="$ROOT_DIR/db/telecommut.db"
@@ -45,9 +57,8 @@ if [[ -f "$ROOT_DIR/telecommut.db" ]]; then
   echo "Deleted legacy fallback DB: $ROOT_DIR/telecommut.db"
 fi
 
-if [[ -d "$ROOT_DIR/.wrangler/state/v3/d1" ]]; then
-  rm -rf "$ROOT_DIR/.wrangler/state/v3/d1"
-  echo "Deleted local Wrangler D1 state: $ROOT_DIR/.wrangler/state/v3/d1"
-fi
+mkdir -p "$(dirname "$DB_PATH")"
+touch "$DB_PATH"
+echo "Created local DB file: $DB_PATH"
 
 echo "Local DB reset complete."
