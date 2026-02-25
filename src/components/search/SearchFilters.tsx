@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type SearchFiltersProps = {
-  basePath: "/search/jobs" | "/search/resumes";
+  basePath: "/search/jobs" | "/resumes/search";
   initialQuery: string;
   initialCategory?: string;
   categories?: Array<{ id: number; title: string }>;

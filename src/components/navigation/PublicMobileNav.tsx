@@ -21,7 +21,7 @@ export default function PublicMobileNav() {
         </SheetHeader>
         <nav className="flex flex-col gap-1 px-4 pb-4 text-sm">
           <SheetClose asChild>
-            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/search/resumes">
+            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/resumes">
               Post a resume
             </a>
           </SheetClose>
@@ -31,7 +31,7 @@ export default function PublicMobileNav() {
             </a>
           </SheetClose>
           <SheetClose asChild>
-            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/search/resumes">
+            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/resumes">
               Candidates search
             </a>
           </SheetClose>
