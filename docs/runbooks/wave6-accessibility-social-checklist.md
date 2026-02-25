@@ -12,7 +12,7 @@ Run this checklist for staging and production before marking W6-5 done.
 
 1. Open `/`, press `Tab` once, verify skip link appears and moves focus to main content.
 2. Open `/admin/dashboard`, press `Tab` once, verify admin skip link appears and works.
-3. Tab through primary actions on `/search/jobs`, `/search/resumes`, `/contact`, `/help`, `/resources`.
+3. Tab through primary actions on `/search/jobs`, `/search/resumes`, `/contact`, `/help`.
 4. Confirm visible focus ring is present on links, buttons, and inputs.
 
 ## Responsive Layout
@@ -34,7 +34,6 @@ Run this checklist for staging and production before marking W6-5 done.
    - `/search/resumes` -> `og-resumes.png`
    - `/contact` -> `og-contact.png`
    - `/help` -> `og-help.png`
-   - `/resources` -> `og-resources.png`
    - `/privacy-policy` and `/terms-and-conditions` -> `og-legal.png`
 2. Confirm `twitter:card=summary_large_image` on public pages.
 3. Validate one representative URL in social debuggers:

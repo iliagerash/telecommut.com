@@ -84,7 +84,6 @@ const jobsSearchPagePath = path.resolve("src/pages/search/jobs.astro");
 const resumesSearchPagePath = path.resolve("src/pages/search/resumes.astro");
 const contactPagePath = path.resolve("src/pages/contact.astro");
 const helpPagePath = path.resolve("src/pages/help.astro");
-const resourcesPagePath = path.resolve("src/pages/resources.astro");
 const privacyPagePath = path.resolve("src/pages/privacy-policy.astro");
 const termsPagePath = path.resolve("src/pages/terms-and-conditions.astro");
 const resumeDetailPagePath = path.resolve("src/pages/resumes/[id].astro");
@@ -111,7 +110,6 @@ requireContains(jobsSearchPagePath, /socialImagePath=\{socialImages\.jobs\}/, "j
 requireContains(resumesSearchPagePath, /socialImagePath=\{socialImages\.resumes\}/, "resumes social image mapping");
 requireContains(contactPagePath, /socialImagePath=\{socialImages\.contact\}/, "contact social image mapping");
 requireContains(helpPagePath, /socialImagePath=\{socialImages\.help\}/, "help social image mapping");
-requireContains(resourcesPagePath, /socialImagePath=\{socialImages\.resources\}/, "resources social image mapping");
 requireContains(privacyPagePath, /socialImagePath=\{socialImages\.legal\}/, "privacy social image mapping");
 requireContains(termsPagePath, /socialImagePath=\{socialImages\.legal\}/, "terms social image mapping");
 requireContains(resumeDetailPagePath, /socialImagePath=\{socialImages\.resumes\}/, "resume detail social image mapping");
@@ -173,7 +171,6 @@ requirePng(path.resolve("public/brand/og-jobs.png"), 1200, 1200);
 requirePng(path.resolve("public/brand/og-resumes.png"), 1200, 1200);
 requirePng(path.resolve("public/brand/og-contact.png"), 1200, 1200);
 requirePng(path.resolve("public/brand/og-help.png"), 1200, 1200);
-requirePng(path.resolve("public/brand/og-resources.png"), 1200, 1200);
 requirePng(path.resolve("public/brand/og-legal.png"), 1200, 1200);
 
 console.log("wave 6 baseline check passed");

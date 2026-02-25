@@ -42,7 +42,6 @@ Last updated: February 24, 2026.
   - `public/brand/og-resumes.png`
   - `public/brand/og-contact.png`
   - `public/brand/og-help.png`
-  - `public/brand/og-resources.png`
   - `public/brand/og-legal.png`
   - `public/favicon.png`
 - Pending: fully custom artwork per OG variant and final accessibility/social manual verification (W6-5).

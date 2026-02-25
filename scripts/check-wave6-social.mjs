@@ -6,7 +6,6 @@ const routes = [
   { path: "/search/resumes", og: "/brand/og-resumes.png" },
   { path: "/contact", og: "/brand/og-contact.png" },
   { path: "/help", og: "/brand/og-help.png" },
-  { path: "/resources", og: "/brand/og-resources.png" },
   { path: "/privacy-policy", og: "/brand/og-legal.png" },
   { path: "/terms-and-conditions", og: "/brand/og-legal.png" },
 ];

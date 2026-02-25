@@ -59,6 +59,9 @@ describe("api smoke routes", () => {
 
   it("accepts valid contact requests", async () => {
     vi.stubEnv("CONTACT_INBOX", "support@example.com");
+    vi.stubEnv("MAILGUN_API_KEY", "test-key");
+    vi.stubEnv("MAILGUN_DOMAIN", "mg.example.com");
+    vi.stubEnv("MAILGUN_FROM", "Telecommut <noreply@example.com>");
     const { post, sendMailgunMessage } = await loadContactRoute();
 
     const response = await post(asApiContext({
