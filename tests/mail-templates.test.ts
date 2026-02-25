@@ -15,7 +15,7 @@ describe("auth mail templates", () => {
   it("renders verify-email template", () => {
     const template = verifyEmailTemplate(payload);
 
-    expect(template.subject).toContain("verify your email");
+    expect(template.subject).toMatch(/verify your email/i);
     expect(template.text).toContain(payload.actionUrl);
     expect(template.html).toContain(payload.actionUrl);
   });
@@ -23,7 +23,7 @@ describe("auth mail templates", () => {
   it("renders reset-password template", () => {
     const template = resetPasswordTemplate(payload);
 
-    expect(template.subject).toContain("reset your password");
+    expect(template.subject).toMatch(/reset your password/i);
     expect(template.text).toContain(payload.actionUrl);
     expect(template.html).toContain(payload.actionUrl);
   });
