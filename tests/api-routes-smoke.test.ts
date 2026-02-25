@@ -1,12 +1,12 @@
+import type { APIRoute } from "astro";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resetIdempotencyStore } from "../src/services/jobs/idempotency";
 import { resetRateLimitStore } from "../src/services/security/rate-limit";
 
-type RouteContext = {
-  request: Request;
-  locals?: Record<string, unknown>;
-};
+function asApiContext(value: unknown): Parameters<APIRoute>[0] {
+  return value as Parameters<APIRoute>[0];
+}
 
 async function loadContactRoute() {
   const sendMailgunMessage = vi.fn().mockResolvedValue(undefined);
@@ -61,7 +61,7 @@ describe("api smoke routes", () => {
     vi.stubEnv("CONTACT_INBOX", "support@example.com");
     const { post, sendMailgunMessage } = await loadContactRoute();
 
-    const response = await post({
+    const response = await post(asApiContext({
       request: new Request("http://127.0.0.1:8787/api/contact", {
         method: "POST",
         headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.5" },
@@ -72,7 +72,7 @@ describe("api smoke routes", () => {
           website: "",
         }),
       }),
-    } as RouteContext);
+    }));
 
     expect(response.status).toBe(202);
     expect(sendMailgunMessage).toHaveBeenCalledTimes(1);
@@ -82,7 +82,7 @@ describe("api smoke routes", () => {
     vi.stubEnv("APPLY_INBOX", "apply@example.com");
     const { post, sendMailgunMessage } = await loadApplyRoute();
 
-    const response = await post({
+    const response = await post(asApiContext({
       request: new Request("http://127.0.0.1:8787/api/apply", {
         method: "POST",
         headers: { "content-type": "application/json", "cf-connecting-ip": "198.51.100.9" },
@@ -94,7 +94,7 @@ describe("api smoke routes", () => {
           website: "",
         }),
       }),
-    } as RouteContext);
+    }));
 
     expect(response.status).toBe(202);
     expect(sendMailgunMessage).toHaveBeenCalledTimes(1);
@@ -104,14 +104,14 @@ describe("api smoke routes", () => {
     vi.stubEnv("CRON_SECRET", "secret");
     const { POST } = await import("../src/pages/api/jobs/cron");
 
-    const response = await POST({
+    const response = await POST(asApiContext({
       request: new Request("http://127.0.0.1:8787/api/jobs/cron", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ command: "daily" }),
       }),
       locals: { requestId: "req-test" },
-    } as RouteContext);
+    }));
 
     expect(response.status).toBe(401);
   });
@@ -120,7 +120,7 @@ describe("api smoke routes", () => {
     vi.stubEnv("CRON_SECRET", "secret");
     const { POST } = await import("../src/pages/api/jobs/cron");
 
-    const response = await POST({
+    const response = await POST(asApiContext({
       request: new Request("http://127.0.0.1:8787/api/jobs/cron", {
         method: "POST",
         headers: {
@@ -130,7 +130,7 @@ describe("api smoke routes", () => {
         body: JSON.stringify({ command: "daily", schedule: "0 2 * * *" }),
       }),
       locals: { requestId: "req-test" },
-    } as RouteContext);
+    }));
 
     expect(response.status).toBe(202);
   });
@@ -139,7 +139,7 @@ describe("api smoke routes", () => {
     vi.stubEnv("CRON_SECRET", "secret");
     const { POST } = await import("../src/pages/api/jobs/run");
 
-    const response = await POST({
+    const response = await POST(asApiContext({
       request: new Request("http://127.0.0.1:8787/api/jobs/run", {
         method: "POST",
         headers: {
@@ -149,7 +149,7 @@ describe("api smoke routes", () => {
         body: JSON.stringify({ command: "import" }),
       }),
       locals: { requestId: "req-test" },
-    } as RouteContext);
+    }));
 
     expect(response.status).toBe(400);
   });
@@ -157,7 +157,7 @@ describe("api smoke routes", () => {
   it("rejects duplicate manual run commands by idempotency key", async () => {
     vi.stubEnv("CRON_SECRET", "secret");
     const { POST } = await import("../src/pages/api/jobs/run");
-    const firstRequest = {
+    const firstRequest = asApiContext({
       request: new Request("http://127.0.0.1:8787/api/jobs/run", {
         method: "POST",
         headers: {
@@ -168,12 +168,12 @@ describe("api smoke routes", () => {
         body: JSON.stringify({ command: "submit" }),
       }),
       locals: { requestId: "req-test" },
-    } as RouteContext;
+    });
 
     const first = await POST(firstRequest);
     expect(first.status).toBe(202);
 
-    const duplicate = await POST({
+    const duplicate = await POST(asApiContext({
       request: new Request("http://127.0.0.1:8787/api/jobs/run", {
         method: "POST",
         headers: {
@@ -184,7 +184,7 @@ describe("api smoke routes", () => {
         body: JSON.stringify({ command: "submit" }),
       }),
       locals: { requestId: "req-test" },
-    } as RouteContext);
+    }));
 
     expect(duplicate.status).toBe(409);
   });

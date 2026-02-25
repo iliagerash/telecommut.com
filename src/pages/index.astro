@@ -1,74 +1,290 @@
 ---
-import Counter from "@/components/health/Counter";
+import { desc, eq } from "drizzle-orm";
+
+import { getRequestDb } from "@/db/request";
+import { categories, contracts, countries, countryGroups, jobs } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { socialImages } from "@/lib/social-images";
+import { toAbsoluteUrl } from "@/lib/seo";
+import { Badge } from "@/components/ui/badge";
+import HomeSearchForm from "@/components/home/HomeSearchForm";
+
+export const prerender = false;
+
+const db = getRequestDb(Astro.locals);
+
+const query = (Astro.url.searchParams.get("q") ?? "").trim();
+const category = (Astro.url.searchParams.get("category") ?? "").trim();
+
+const recentJobRows = await db
+  .select()
+  .from(jobs)
+  .leftJoin(categories, eq(jobs.categoryId, categories.id))
+  .leftJoin(countries, eq(jobs.countryId, countries.id))
+  .leftJoin(contracts, eq(jobs.contractCode, contracts.code))
+  .where(eq(jobs.status, 1))
+  .orderBy(desc(jobs.id))
+  .limit(12);
+
+const categoryTableRows = await db.select().from(categories).orderBy(categories.title);
+const activeJobRows = await db.select().from(jobs).where(eq(jobs.status, 1));
+const countryGroupRows = await db.select().from(countryGroups);
+
+const categoryCountById = new Map<number, number>();
+for (const row of activeJobRows) {
+  categoryCountById.set(row.categoryId, (categoryCountById.get(row.categoryId) ?? 0) + 1);
+}
+
+const recentJobs = recentJobRows.map((row) => ({
+  id: row.jobs.id,
+  position: row.jobs.position,
+  companyName: row.jobs.companyName,
+  salaryMin: row.jobs.salaryMin,
+  salaryMax: row.jobs.salaryMax,
+  currency: row.jobs.currency,
+  salaryPeriod: row.jobs.salaryPeriod,
+  description: row.jobs.description,
+  skills: row.jobs.skills,
+  updatedAt: row.jobs.updatedAt,
+  countryGroups: row.jobs.countryGroups,
+  categoryTitle: row.categories?.title ?? null,
+  countryName: row.countries?.name ?? null,
+  contractTitle: row.contracts?.title ?? null,
+}));
+
+const categoryRows = categoryTableRows.map((row) => ({
+  id: row.id,
+  title: row.title,
+  jobsCount: categoryCountById.get(row.id) ?? 0,
+}));
+
+const categoryOptions = categoryRows.map((row) => ({
+  id: row.id,
+  title: row.title,
+}));
+
+const activeJobsCount = activeJobRows.length;
+const countryGroupNameById = new Map(countryGroupRows.map((row) => [String(row.id), row.name]));
+
+function plainText(input: string | null): string {
+  if (!input) return "";
+  return input.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function excerpt(input: string | null, max = 360): string {
+  const text = plainText(input);
+  if (text.length <= max) return text;
+  return `${text.slice(0, max).trimEnd()}...`;
+}
+
+function formatSalary(min: number | null, max: number | null, currency: string | null, period: string | null): string {
+  const hasMin = (min ?? 0) > 0;
+  const hasMax = (max ?? 0) > 0;
+  if (!hasMin && !hasMax) return "Salary not specified";
+
+  const formatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  const parts = [];
+  if (hasMin) parts.push(formatter.format(min ?? 0));
+  if (hasMax) {
+    if (parts.length > 0) {
+      parts.push("-");
+    }
+    parts.push(formatter.format(max ?? 0));
+  }
+
+  const unit = currency && period ? ` ${currency} / ${period}` : "";
+  return `${parts.join(" ")}${unit}`;
+}
+
+function relativeDate(dateValue: string | null): string {
+  if (!dateValue) return "Recently";
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "Recently";
+
+  const deltaSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+  const abs = Math.abs(deltaSeconds);
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+  if (abs < 60) return rtf.format(Math.round(deltaSeconds), "second");
+  if (abs < 3600) return rtf.format(Math.round(deltaSeconds / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(deltaSeconds / 3600), "hour");
+  if (abs < 604800) return rtf.format(Math.round(deltaSeconds / 86400), "day");
+  return rtf.format(Math.round(deltaSeconds / 604800), "week");
+}
+
+function resolveHiringFrom(countryGroupsValue: string | null, countryName: string | null): string {
+  const normalized = (countryGroupsValue ?? "").trim();
+  if (!normalized || normalized === "0") {
+    return countryName?.trim() || "Worldwide";
+  }
+
+  const keys = normalized
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .filter((value) => value !== "0");
+
+  if (keys.length === 0) {
+    return countryName?.trim() || "Worldwide";
+  }
+
+  const labels = keys
+    .map((key) => countryGroupNameById.get(key))
+    .filter((value): value is string => Boolean(value));
+
+  if (labels.length === 0) {
+    return countryName?.trim() || "Worldwide";
+  }
+
+  return labels.join(", ");
+}
+
+const jobsCountLabel = new Intl.NumberFormat("en-US").format(activeJobsCount);
+const categoriesCountLabel = new Intl.NumberFormat("en-US").format(categoryRows.length);
+const homepageDescription = `Find verified remote jobs across engineering, design, product, support, and marketing. Search ${jobsCountLabel} active listings and apply directly on Telecommut.`;
+const seoIntro = `${jobsCountLabel} active remote jobs in ${categoriesCountLabel} categories. Fresh listings are added and moderated daily.`;
+const homepageJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "Telecommut",
+      url: toAbsoluteUrl("/"),
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${toAbsoluteUrl("/search/jobs")}?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "Organization",
+      name: "Telecommut",
+      url: toAbsoluteUrl("/"),
+      logo: toAbsoluteUrl("/brand/logo-mark.png"),
+    },
+    {
+      "@type": "WebPage",
+      name: "Remote Jobs Board",
+      url: toAbsoluteUrl("/"),
+      description: homepageDescription,
+      inLanguage: "en",
+      isPartOf: {
+        "@type": "WebSite",
+        name: "Telecommut",
+        url: toAbsoluteUrl("/"),
+      },
+    },
+  ],
+};
 ---
 
 <PublicLayout
-  title="Home"
-  description="Remote work marketplace for distributed teams and high-signal candidates."
+  title="Remote Jobs Board"
+  description={homepageDescription}
+  keywords="remote jobs, work from home jobs, remote software jobs, remote design jobs, distributed teams"
   canonicalPath="/"
   socialImagePath={socialImages.home}
-  jsonLd={{
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Telecommut",
-    url: "/",
-  }}
+  jsonLd={homepageJsonLd}
 >
-  <section class="glass-panel rounded-3xl border p-7 shadow-sm md:p-10">
-    <p class="text-sm font-semibold tracking-[0.16em] text-muted-foreground uppercase">Remote hiring, tuned for signal</p>
-    <h1 class="mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
-      Build distributed teams with faster matching and cleaner applications.
-    </h1>
-    <p class="mt-4 max-w-2xl text-muted-foreground">
-      Telecommut helps remote-first companies move from search to shortlist with structured listings, verified profiles,
-      and moderation-first workflows.
-    </p>
-    <div class="mt-7 flex flex-wrap gap-3">
-      <a class="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/search/jobs">
-        Find Remote Jobs
-      </a>
-      <a class="rounded-full border px-5 py-2.5 text-sm font-semibold hover:bg-secondary" href="/search/resumes">
-        Search Candidates
-      </a>
-      <a class="rounded-full border px-5 py-2.5 text-sm font-semibold hover:bg-secondary" href="/contact">
-        Talk to Sales
-      </a>
-    </div>
-  </section>
+  <div class="space-y-8">
+    <section class="glass-panel rounded-3xl border p-7 shadow-sm md:p-10">
+      <h1 class="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">Find your new remote job</h1>
+      <p class="mt-3 max-w-3xl text-sm text-muted-foreground md:text-base">{seoIntro}</p>
+      <HomeSearchForm client:load initialQuery={query} initialCategory={category} categoryOptions={categoryOptions} />
+    </section>
 
-  <section class="mt-6 grid gap-4 md:grid-cols-3">
-    <article class="glass-panel rounded-2xl border p-5">
-      <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">For employers</p>
-      <h2 class="mt-3 text-xl font-semibold">Publish clear remote roles</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Post once, keep application quality high, and route qualified candidates faster.</p>
-    </article>
-    <article class="glass-panel rounded-2xl border p-5">
-      <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">For candidates</p>
-      <h2 class="mt-3 text-xl font-semibold">Show verified experience</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Build a focused resume profile and appear in searches that match your target stack.</p>
-    </article>
-    <article class="glass-panel rounded-2xl border p-5">
-      <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">For operations</p>
-      <h2 class="mt-3 text-xl font-semibold">Run predictable moderation</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Use policy-backed workflows to keep the marketplace trusted and response times short.</p>
-    </article>
-  </section>
+    <section class="recent-jobs">
+      <header class="section-header mb-5">
+        <h2 class="mt-0 text-center text-3xl font-semibold tracking-tight">Recent Remote Jobs</h2>
+      </header>
+      <div class="space-y-4">
+        {
+          recentJobs.length === 0 ? (
+            <article class="glass-panel rounded-2xl border p-5">
+              <h3 class="text-xl font-semibold">No active jobs</h3>
+              <p class="mt-2 text-sm text-muted-foreground">No active listings were found in the current dataset.</p>
+            </article>
+          ) : (
+            recentJobs.map((job, index) => {
+              const skillList = job.skills
+                ? job.skills.split(",").map((skill) => skill.trim()).filter(Boolean).slice(0, 8)
+                : [];
+              const hasSalary = (job.salaryMin ?? 0) > 0 || (job.salaryMax ?? 0) > 0;
 
-  <section class="mt-6 grid gap-4 lg:grid-cols-2">
-    <div class="glass-panel rounded-2xl border p-5">
-      <h2 class="text-lg font-semibold">Explore</h2>
-      <div class="mt-4 grid gap-3 sm:grid-cols-2">
-        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/resources">Resources</a>
-        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/help">Help Center</a>
-        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/privacy-policy">Privacy Policy</a>
-        <a class="rounded-xl border bg-card/60 px-4 py-3 text-sm font-medium hover:bg-card/90" href="/terms-and-conditions">Terms</a>
+              return (
+                <div class="space-y-4">
+                  {
+                    index === 1 && recentJobs.length > 3 ? (
+                      <div class="rounded-2xl border border-dashed px-4 py-3 text-center text-xs text-muted-foreground" aria-hidden="true">
+                        Ad slot placeholder (`parts.ad-top`) intentionally disabled in new build.
+                      </div>
+                    ) : null
+                  }
+                  <article class="glass-panel rounded-2xl border p-5 shadow-sm">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <a class="text-2xl font-semibold tracking-tight hover:underline" href={`/jobs/${job.id}`}>
+                          {job.position}
+                        </a>
+                        <p class="mt-1 text-sm text-muted-foreground">{job.companyName || "Unknown company"}</p>
+                        {
+                          hasSalary ? (
+                            <Badge className="mt-2 bg-emerald-100 text-emerald-900 hover:bg-emerald-100">
+                              {formatSalary(job.salaryMin, job.salaryMax, job.currency, job.salaryPeriod)}
+                            </Badge>
+                          ) : null
+                        }
+                      </div>
+                    </div>
+                    <p class="mt-4 text-sm text-muted-foreground">{excerpt(job.description)}</p>
+                    {
+                      skillList.length > 0 ? (
+                        <div class="mt-4 flex flex-wrap gap-2">
+                          {skillList.map((skill) => <span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium">{skill}</span>)}
+                        </div>
+                      ) : null
+                    }
+                    <div class="mt-5 flex flex-wrap gap-2 text-xs">
+                      <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">
+                        {job.contractTitle || "Contract not specified"}
+                      </Badge>
+                      <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+                        Posted: {relativeDate(job.updatedAt)}
+                      </Badge>
+                      <Badge className="bg-slate-200 text-slate-900 hover:bg-slate-200">
+                        {job.categoryTitle || "Uncategorized"}
+                      </Badge>
+                      <Badge className="bg-teal-100 text-teal-900 hover:bg-teal-100">
+                        Hiring from: {resolveHiringFrom(job.countryGroups, job.countryName)}
+                      </Badge>
+                    </div>
+                  </article>
+                </div>
+              );
+            })
+          )
+        }
       </div>
-    </div>
-    <div class="glass-panel rounded-2xl border p-5">
-      <p class="mb-3 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Reactive island smoke test</p>
-      <Counter client:load />
-    </div>
-  </section>
+    </section>
+
+    <section class="ad-middle" aria-hidden="true">
+      <div class="rounded-2xl border border-dashed px-4 py-3 text-center text-xs text-muted-foreground">
+        Ad slot placeholder (`parts.ad-middle`) intentionally disabled in new build.
+      </div>
+    </section>
+
+    <section class="popular-categories mt-5">
+      <h2 class="mb-5 text-center text-3xl font-semibold tracking-tight">Categories</h2>
+      <div class="category-grid mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          categoryRows.map((row) => (
+            <a class="glass-panel rounded-2xl border p-4 transition-colors hover:bg-card/80" href={`/search/jobs?category=${row.id}`}>
+              <h3 class="text-base font-semibold">{row.title}</h3>
+              <p class="mt-1 text-sm text-muted-foreground">{row.jobsCount} jobs</p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </div>
 </PublicLayout>
