@@ -1,27 +1,33 @@
 ---
 import "../styles/global.css";
+import AdBottom from "@/components/ads/AdBottom.astro";
+import PublicMobileNav from "@/components/navigation/PublicMobileNav";
 import { serializeJsonLd, toAbsoluteUrl } from "@/lib/seo";
 
 interface Props {
   title: string;
   description?: string;
+  keywords?: string;
   canonicalPath?: string;
   robots?: string;
   prevPath?: string;
   nextPath?: string;
   socialImagePath?: string;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+  noAds?: boolean;
 }
 
 const {
   title,
   description = "Telecommut public route scaffold.",
+  keywords,
   canonicalPath = `${Astro.url.pathname}${Astro.url.search}`,
   robots = "index,follow",
   prevPath,
   nextPath,
   socialImagePath = "/brand/og-default.png",
   jsonLd,
+  noAds = false,
 } = Astro.props;
 
 const canonicalHref = toAbsoluteUrl(canonicalPath);
@@ -29,6 +35,9 @@ const prevHref = prevPath ? toAbsoluteUrl(prevPath) : null;
 const nextHref = nextPath ? toAbsoluteUrl(nextPath) : null;
 const jsonLdString = serializeJsonLd(jsonLd);
 const socialImageHref = toAbsoluteUrl(socialImagePath);
+const showAds = ["1", "true", "yes", "on"].includes(
+  String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
+);
 ---
 
 <html lang="en">
@@ -41,8 +50,12 @@ const socialImageHref = toAbsoluteUrl(socialImagePath);
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    {keywords ? <meta name="keywords" content={keywords} /> : null}
     <meta name="robots" content={robots} />
+    <meta name="bingbot" content={robots} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Telecommut" />
+    <meta property="og:url" content={canonicalHref} />
     <meta property="og:title" content={`${title} | Telecommut`} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={socialImageHref} />
@@ -55,6 +68,16 @@ const socialImageHref = toAbsoluteUrl(socialImagePath);
     {prevHref ? <link rel="prev" href={prevHref} /> : null}
     {nextHref ? <link rel="next" href={nextHref} /> : null}
     {jsonLdString ? <script is:inline type="application/ld+json" set:html={jsonLdString} /> : null}
+    {
+      showAds && !noAds ? (
+        <script
+          is:inline
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2736122797193888"
+          crossorigin="anonymous"
+        ></script>
+      ) : null
+    }
     <title>{title} | Telecommut</title>
   </head>
   <body>
@@ -64,19 +87,66 @@ const socialImageHref = toAbsoluteUrl(socialImagePath);
     >
       Skip to main content
     </a>
-    <main class="bg-brand-grid mx-auto min-h-screen p-6 md:p-10">
-      <header class="glass-panel mx-auto mb-8 flex w-full max-w-5xl items-center justify-between rounded-2xl border px-5 py-4 shadow-sm">
-        <a href="/" class="flex items-center gap-2 text-sm font-semibold tracking-[0.14em] text-foreground uppercase">
-          <img src="/brand/logo-mark.svg" alt="" width="22" height="22" loading="eager" />
-          Telecommut
-        </a>
-        <span class="rounded-full border bg-brand-highlight px-3 py-1 text-xs font-semibold text-brand-highlight-foreground">
-          Remote-first jobs
-        </span>
+    <div class="bg-brand-grid min-h-screen">
+      <header class="border-b bg-primary/95 text-primary-foreground shadow-sm">
+        <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-4">
+          <a href="/" class="flex items-center gap-3 text-sm font-semibold tracking-[0.14em] uppercase">
+            <img src="/brand/logo-mark.svg" alt="" width="26" height="26" loading="eager" />
+            Telecommut
+          </a>
+          <nav class="hidden flex-wrap gap-2 text-sm md:flex">
+            <a class="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/search/resumes">
+              Post a resume
+            </a>
+            <a class="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/search/jobs">
+              Post a job
+            </a>
+            <a class="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/search/resumes">
+              Candidates search
+            </a>
+          </nav>
+          <div class="ml-auto hidden items-center gap-2 text-sm md:flex">
+            <a class="rounded-full bg-background px-4 py-1.5 font-semibold text-foreground hover:opacity-90" href="/login">Login</a>
+            <a class="rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10" href="/login?mode=register">
+              Register
+            </a>
+          </div>
+          <div class="ml-auto md:hidden">
+            <PublicMobileNav client:load />
+          </div>
+        </div>
       </header>
-      <section id="main-content" class="mx-auto w-full max-w-5xl">
-        <slot />
-      </section>
-    </main>
+
+      <main class="mx-auto w-full max-w-6xl px-5 py-8 md:py-10">
+        <section id="main-content">
+          <slot />
+        </section>
+        {showAds && !noAds ? <AdBottom /> : null}
+      </main>
+
+      <footer class="border-t bg-card/70">
+        <div class="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 md:grid-cols-[1.8fr_1fr]">
+          <section>
+            <h2 class="text-sm font-semibold tracking-[0.16em] text-muted-foreground uppercase">About</h2>
+            <p class="mt-3 max-w-3xl text-sm text-muted-foreground">
+              Telecommut is a remote hiring marketplace focused on practical matching between distributed teams and
+              high-signal candidates. We prioritize clear job briefs, profile quality, and predictable moderation.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-sm font-semibold tracking-[0.16em] text-muted-foreground uppercase">Information</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li><a class="hover:underline" href="/help">Help</a></li>
+              <li><a class="hover:underline" href="/contact">Contacts</a></li>
+              <li><a class="hover:underline" href="/terms-and-conditions">Terms & Conditions</a></li>
+              <li><a class="hover:underline" href="/privacy-policy">Privacy Policy</a></li>
+            </ul>
+          </section>
+        </div>
+        <div class="mx-auto w-full max-w-6xl border-t px-5 py-4 text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Telecommut. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>

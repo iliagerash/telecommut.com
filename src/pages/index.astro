@@ -6,6 +6,8 @@ import { categories, contracts, countries, countryGroups, jobs } from "@/db/sche
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { socialImages } from "@/lib/social-images";
 import { toAbsoluteUrl } from "@/lib/seo";
+import AdMiddle from "@/components/ads/AdMiddle.astro";
+import AdTop from "@/components/ads/AdTop.astro";
 import { Badge } from "@/components/ui/badge";
 import HomeSearchForm from "@/components/home/HomeSearchForm";
 
@@ -215,9 +217,7 @@ const homepageJsonLd = {
                 <div class="space-y-4">
                   {
                     index === 1 && recentJobs.length > 3 ? (
-                      <div class="rounded-2xl border border-dashed px-4 py-3 text-center text-xs text-muted-foreground" aria-hidden="true">
-                        Ad slot placeholder (`parts.ad-top`) intentionally disabled in new build.
-                      </div>
+                      <AdTop />
                     ) : null
                   }
                   <article class="glass-panel rounded-2xl border p-5 shadow-sm">
@@ -267,10 +267,8 @@ const homepageJsonLd = {
       </div>
     </section>
 
-    <section class="ad-middle" aria-hidden="true">
-      <div class="rounded-2xl border border-dashed px-4 py-3 text-center text-xs text-muted-foreground">
-        Ad slot placeholder (`parts.ad-middle`) intentionally disabled in new build.
-      </div>
+    <section class="ad-middle">
+      <AdMiddle />
     </section>
 
     <section class="popular-categories mt-5">
