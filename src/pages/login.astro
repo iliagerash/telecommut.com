@@ -1,6 +1,8 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { socialImages } from "@/lib/social-images";
+
+const next = Astro.url.searchParams.get("next") ?? "";
 ---
 
 <PublicLayout
@@ -15,7 +17,7 @@ import { socialImages } from "@/lib/social-images";
       Don't have an account yet? <a class="underline" href="/register">Register</a> and verify your email to get started.
     </p>
 
-    <form id="login-form" class="mt-4 space-y-3">
+    <form id="login-form" class="mt-4 space-y-3" data-next={next}>
       <div>
         <label class="sr-only" for="auth-email">Email address</label>
         <input
@@ -64,10 +66,38 @@ import { socialImages } from "@/lib/social-images";
 
   <script is:inline>
     const form = document.getElementById("login-form");
+    const nextFromQuery = form instanceof HTMLFormElement ? (form.dataset.next ?? "") : "";
     const submit = document.getElementById("login-submit");
     const status = document.getElementById("login-status");
     const emailInput = document.getElementById("auth-email");
     const passwordInput = document.getElementById("auth-password");
+
+    const authPathPrefixes = ["/login", "/register", "/verify-email", "/password/reset", "/reset-password"];
+
+    function isAuthPath(pathname) {
+      return authPathPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+    }
+
+    function normalizeRedirectTarget(rawTarget) {
+      if (!rawTarget) return null;
+
+      try {
+        const parsed = new URL(rawTarget, window.location.origin);
+        if (parsed.origin !== window.location.origin) return null;
+
+        const normalizedPath = parsed.pathname || "/";
+        if (isAuthPath(normalizedPath)) return "/";
+
+        return `${normalizedPath}${parsed.search}${parsed.hash}`;
+      } catch {
+        return null;
+      }
+    }
+
+    const redirectTarget =
+      normalizeRedirectTarget(nextFromQuery) ??
+      normalizeRedirectTarget(document.referrer) ??
+      "/";
 
     function clearInputError(input) {
       if (!(input instanceof HTMLInputElement)) return;
@@ -98,6 +128,7 @@ import { socialImages } from "@/lib/social-images";
       const formData = new FormData(form);
       const email = String(formData.get("email") ?? "").trim();
       const password = String(formData.get("password") ?? "");
+      const rememberMe = Boolean(formData.get("remember"));
       if (!email) {
         setInputError(emailInput);
         setStatus("Email address is required.", "error");
@@ -113,11 +144,11 @@ import { socialImages } from "@/lib/social-images";
       setStatus("Submitting...");
 
       try {
-        const verifyCallbackUrl = `${window.location.origin}/app/profile`;
+        const verifyCallbackUrl = `${window.location.origin}${redirectTarget}`;
         const response = await fetch("/api/auth/sign-in/email", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, password, callbackURL: verifyCallbackUrl }),
+          body: JSON.stringify({ email, password, callbackURL: verifyCallbackUrl, rememberMe }),
         });
         const json = await response.json().catch(() => null);
 
@@ -130,7 +161,7 @@ import { socialImages } from "@/lib/social-images";
         }
 
         setStatus("Logged in. Redirecting...", "success");
-        window.location.href = "/app/dashboard";
+        window.location.href = redirectTarget;
       } catch {
         setStatus("Unable to complete request. Please try again.", "error");
       } finally {

@@ -4,10 +4,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("app page scaffolds", () => {
-  it("has workspace layout and dashboard route", () => {
+  it("has profile workspace route", () => {
     const expectedFiles = [
-      "src/layouts/app/AppLayout.astro",
-      "src/pages/app/dashboard.astro",
+      "src/pages/app/profile.astro",
     ];
 
     for (const file of expectedFiles) {

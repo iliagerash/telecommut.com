@@ -1,5 +1,5 @@
 ---
-import AppLayout from "@/layouts/app/AppLayout.astro";
+import PublicLayout from "@/layouts/PublicLayout.astro";
 import { getAuth } from "@/auth";
 
 export const prerender = false;
@@ -15,7 +15,7 @@ if (!session?.session?.id || !session.user) {
 const user = session.user;
 ---
 
-<AppLayout title="Profile" description="Manage your account details and password.">
+<PublicLayout robots="noindex,nofollow" title="Profile" description="Manage your account details and password.">
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
     <h2 class="text-3xl font-semibold tracking-tight">My Profile</h2>
     <p class="mt-2 text-sm text-muted-foreground">Update your account details and credentials.</p>
@@ -221,4 +221,4 @@ const user = session.user;
       }
     });
   </script>
-</AppLayout>
+</PublicLayout>

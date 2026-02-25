@@ -223,7 +223,7 @@ describe("auth routes", () => {
         body: JSON.stringify({
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787/app/dashboard",
+          callbackURL: "http://127.0.0.1:8787/app/profile",
         }),
       }),
     );

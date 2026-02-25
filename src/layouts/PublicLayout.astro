@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import AdBottom from "@/components/ads/AdBottom.astro";
+import PublicDesktopNav from "@/components/navigation/PublicDesktopNav";
 import PublicMobileNav from "@/components/navigation/PublicMobileNav";
 import { serializeJsonLd, toAbsoluteUrl } from "@/lib/seo";
 
@@ -88,29 +89,13 @@ const showAds = ["1", "true", "yes", "on"].includes(
       Skip to main content
     </a>
     <div class="bg-brand-grid min-h-screen">
-      <header class="border-b bg-primary/95 text-primary-foreground shadow-sm">
+      <header class="relative z-[80] border-b bg-primary/95 text-primary-foreground shadow-sm">
         <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-4">
           <a href="/" class="flex items-center gap-3 text-sm font-semibold tracking-[0.14em] uppercase">
             <img src="/brand/logo-mark.svg" alt="" width="26" height="26" loading="eager" />
             Telecommut
           </a>
-          <nav class="hidden flex-wrap gap-2 text-sm md:ml-4 md:flex">
-            <a class="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/resumes">
-              Post a resume
-            </a>
-            <a class="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/search/jobs">
-              Post a job
-            </a>
-            <a class="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/resumes">
-              Candidates search
-            </a>
-          </nav>
-          <div class="ml-auto hidden items-center gap-2 text-sm md:flex">
-            <a class="rounded-full bg-background px-4 py-1.5 font-semibold text-foreground hover:opacity-90" href="/login">Login</a>
-            <a class="rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10" href="/register">
-              Register
-            </a>
-          </div>
+          <PublicDesktopNav client:load />
           <div class="ml-auto md:hidden">
             <PublicMobileNav client:load />
           </div>
