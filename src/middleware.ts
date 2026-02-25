@@ -4,7 +4,6 @@ import { defineMiddleware } from "astro:middleware";
 
 import { getAuth } from "@/auth";
 import { getAllowedRolesForPath, hasRoleAccess, resolveUserRoleFromRecord } from "@/auth/authorization";
-import { findLegacyRedirect } from "@/routing/legacy-redirects";
 import { logError, logInfo } from "@/services/observability/logger";
 
 const shouldLogInfo = process.env.npm_lifecycle_event !== "build";
@@ -27,11 +26,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = requestId;
 
   try {
-    const legacyRedirect = findLegacyRedirect(context.url.pathname);
-    if (legacyRedirect) {
-      return context.redirect(legacyRedirect.to, legacyRedirect.status);
-    }
-
     const allowedRoles = getAllowedRolesForPath(context.url.pathname);
     if (allowedRoles) {
       const session = await getSession(context.request, context.locals);

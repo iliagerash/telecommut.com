@@ -1,57 +1,38 @@
 # telecommut.com
 
-Greenfield migration target for `telecommut.old`.
+Astro + React app for Telecommut.
 
-Stack:
+## Stack
+
 - Astro + React islands
 - TailwindCSS + shadcn/ui
-- Cloudflare Workers runtime
-- Drizzle ORM
-- D1 (production) + SQLite (local dev/tests)
+- Drizzle ORM (SQLite locally, D1 remotely)
+- Cloudflare Workers adapter
 
 ## Quick Start
 
 ```bash
 npm install
 cp .env.example .env
+bash ./scripts/create-local-db.sh
 npm run db:migrate:local
 npm run dev
 ```
 
-## Database Workflow
+## Scripts
 
-- Generate SQL migration files from schema changes:
+- `npm run dev` - start dev server
+- `npm run build` - production build
+- `npm run typecheck` - Astro/TS checks
+- `npm run lint` - ESLint
+- `npm run test` - Vitest
+- `npm run db:generate` - generate SQL migrations from schema
+- `npm run db:migrate:local` - apply migrations to `LOCAL_SQLITE_PATH`
+- `npm run db:migrate:remote` - apply migrations to remote D1
+- `npm run db:backfill:categories:local` - backfill category metadata in local DB
+- `npm run db:backfill:categories:remote` - backfill category metadata in remote D1
 
-```bash
-npm run db:generate
-```
+## Notes
 
-- Apply migrations to local SQLite (`LOCAL_SQLITE_PATH`):
-
-```bash
-npm run db:migrate:local
-```
-
-- Apply migrations to remote D1:
-
-```bash
-npm run db:migrate:d1:remote
-```
-
-- Run local data QA checks against SQLite:
-
-```bash
-npm run qa:data
-```
-
-## Config Notes
-
-- `wrangler.jsonc` contains placeholder IDs for `D1`, `KV`, and `R2`; replace them before deploy.
-- `.env.example` defines the baseline contract for DB, auth, Mailgun, and cron job security.
-- Migrated user access strategy is documented in `docs/migrated-user-strategy.md`.
-- Deploy/rollback runbook is documented in `docs/runbooks/deploy-and-rollback.md`.
-- Data QA checklist is documented in `docs/runbooks/data-qa-checklist.md`.
-- Release checklist is documented in `docs/runbooks/release-checklist.md`.
-- Incident response runbook is documented in `docs/runbooks/incident-response.md`.
-- Wave 6 accessibility/social checklist is documented in `docs/runbooks/wave6-accessibility-social-checklist.md`.
-- Post-parity schema normalization draft is documented in `docs/schema-normalization-plan.md`.
+- `LOCAL_SQLITE_PATH` is required for local DB operations.
+- `wrangler.jsonc` contains your D1/KV/R2 bindings for deployment.
