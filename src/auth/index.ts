@@ -14,5 +14,3 @@ export function getAuth(locals?: App.Locals) {
 
   return singletonAuth;
 }
-
-export const auth = getAuth();
