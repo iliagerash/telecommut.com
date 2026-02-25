@@ -1,0 +1,194 @@
+---
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import { socialImages } from "@/lib/social-images";
+---
+
+<PublicLayout
+  title="Register"
+  description="Create your Telecommut account."
+  robots="noindex,nofollow"
+  socialImagePath={socialImages.home}
+>
+  <section class="glass-panel mx-auto w-full max-w-xl rounded-3xl border p-6 shadow-sm md:p-8">
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">User Registration</h1>
+    <p class="mt-3 text-muted-foreground">
+      Already have an account? <a class="underline" href="/login">Login</a>.
+    </p>
+
+    <form id="register-form" class="mt-4 space-y-3">
+      <div>
+        <label class="sr-only" for="register-email">Email address</label>
+        <input
+          id="register-email"
+          name="email"
+          type="email"
+          required
+          placeholder="Email address *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="email"
+        />
+      </div>
+      <div>
+        <label class="sr-only" for="register-password">Password</label>
+        <input
+          id="register-password"
+          name="password"
+          type="password"
+          required
+          minlength="8"
+          placeholder="Password *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="new-password"
+        />
+      </div>
+      <div>
+        <label class="sr-only" for="register-password-confirm">Confirm password</label>
+        <input
+          id="register-password-confirm"
+          name="passwordConfirmation"
+          type="password"
+          required
+          minlength="8"
+          placeholder="Confirm Password *"
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          autocomplete="new-password"
+        />
+      </div>
+
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-medium">User type</legend>
+        <div class="flex flex-wrap items-center gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="radio" name="role" value="candidate" checked />
+            <span>Candidate</span>
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="radio" name="role" value="employer" />
+            <span>Employer</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-medium">Subscribe</legend>
+        <label class="flex items-start gap-2 text-sm text-muted-foreground">
+          <input id="subscribe" type="checkbox" name="subscribe" value="1" checked class="mt-0.5" />
+          <span>I agree to receive emails from this website</span>
+        </label>
+        <label class="flex items-start gap-2 text-sm text-muted-foreground">
+          <input id="subscribe_partners" type="checkbox" name="subscribe_partners" value="1" class="mt-0.5" />
+          <span>I agree to receive emails from this website's partners</span>
+        </label>
+      </fieldset>
+
+      <div class="flex items-center gap-3">
+        <button
+          id="register-submit"
+          type="submit"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          Register
+        </button>
+        <p id="register-status" class="text-sm text-muted-foreground" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </section>
+
+  <script is:inline>
+    const form = document.getElementById("register-form");
+    const submit = document.getElementById("register-submit");
+    const status = document.getElementById("register-status");
+    const emailInput = document.getElementById("register-email");
+    const passwordInput = document.getElementById("register-password");
+    const passwordConfirmInput = document.getElementById("register-password-confirm");
+
+    function clearInputError(input) {
+      if (!(input instanceof HTMLInputElement)) return;
+      input.classList.remove("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setInputError(input) {
+      if (!(input instanceof HTMLInputElement)) return;
+      input.classList.add("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setStatus(message, kind = "info") {
+      if (!status) return;
+      status.textContent = message;
+      status.classList.remove("text-muted-foreground", "text-red-600", "text-emerald-700");
+      if (kind === "error") status.classList.add("text-red-600");
+      else if (kind === "success") status.classList.add("text-emerald-700");
+      else status.classList.add("text-muted-foreground");
+    }
+
+    function deriveName(email) {
+      const local = email.split("@")[0] ?? "";
+      return local.trim() || "User";
+    }
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!submit || !status || !(form instanceof HTMLFormElement)) return;
+
+      clearInputError(emailInput);
+      clearInputError(passwordInput);
+      clearInputError(passwordConfirmInput);
+
+      const formData = new FormData(form);
+      const email = String(formData.get("email") ?? "").trim();
+      const password = String(formData.get("password") ?? "");
+      const passwordConfirmation = String(formData.get("passwordConfirmation") ?? "");
+      const role = String(formData.get("role") ?? "candidate").trim().toLowerCase();
+      if (!email) {
+        setInputError(emailInput);
+        setStatus("Email address is required.", "error");
+        return;
+      }
+      if (password.length < 8) {
+        setInputError(passwordInput);
+        setStatus("Password must be at least 8 characters.", "error");
+        return;
+      }
+
+      if (password !== passwordConfirmation) {
+        setInputError(passwordInput);
+        setInputError(passwordConfirmInput);
+        setStatus("Password confirmation does not match.", "error");
+        return;
+      }
+
+      submit.setAttribute("disabled", "disabled");
+      setStatus("Submitting...");
+
+      try {
+        const verifyCallbackUrl = `${window.location.origin}/app/profile`;
+        const response = await fetch("/api/auth/sign-up/email", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            name: deriveName(email),
+            email,
+            password,
+            role: role === "employer" ? "employer" : "candidate",
+            callbackURL: verifyCallbackUrl,
+          }),
+        });
+        const json = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          const message = typeof json?.message === "string" ? json.message : "Registration failed.";
+          setInputError(emailInput);
+          setStatus(message, "error");
+          return;
+        }
+
+        setStatus("Account created. Check your email to verify your account.", "success");
+        window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+      } catch {
+        setStatus("Unable to complete request. Please try again.", "error");
+      } finally {
+        submit.removeAttribute("disabled");
+      }
+    });
+  </script>
+</PublicLayout>

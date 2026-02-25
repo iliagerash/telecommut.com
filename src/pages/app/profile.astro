@@ -1,10 +1,10 @@
 ---
 import AppLayout from "@/layouts/app/AppLayout.astro";
-import { auth } from "@/auth";
+import { getAuth } from "@/auth";
 
 export const prerender = false;
 
-const session = await auth.api.getSession({
+const session = await getAuth(Astro.locals).api.getSession({
   headers: Astro.request.headers,
 });
 
@@ -107,17 +107,41 @@ const user = session.user;
     const dataForm = document.getElementById("profile-data-form");
     const dataSubmit = document.getElementById("profile-data-submit");
     const dataStatus = document.getElementById("profile-data-status");
+    const profileNameInput = document.getElementById("profile-name");
+    const profileImageInput = document.getElementById("profile-image");
+
+    function clearInputError(input) {
+      if (!(input instanceof HTMLInputElement)) return;
+      input.classList.remove("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setInputError(input) {
+      if (!(input instanceof HTMLInputElement)) return;
+      input.classList.add("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setStatus(element, message, kind = "info") {
+      if (!(element instanceof HTMLElement)) return;
+      element.textContent = message;
+      element.classList.remove("text-muted-foreground", "text-red-600", "text-emerald-700");
+      if (kind === "error") element.classList.add("text-red-600");
+      else if (kind === "success") element.classList.add("text-emerald-700");
+      else element.classList.add("text-muted-foreground");
+    }
 
     dataForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!dataSubmit || !dataStatus || !(dataForm instanceof HTMLFormElement)) return;
+
+      clearInputError(profileNameInput);
+      clearInputError(profileImageInput);
 
       const formData = new FormData(dataForm);
       const name = String(formData.get("name") ?? "").trim();
       const image = String(formData.get("image") ?? "").trim();
 
       dataSubmit.setAttribute("disabled", "disabled");
-      dataStatus.textContent = "Updating...";
+      setStatus(dataStatus, "Updating...");
 
       try {
         const response = await fetch("/api/auth/update-user", {
@@ -131,12 +155,14 @@ const user = session.user;
         const json = await response.json().catch(() => null);
         if (!response.ok) {
           const message = typeof json?.message === "string" ? json.message : "Unable to update profile data.";
-          dataStatus.textContent = message;
+          setInputError(profileNameInput);
+          setInputError(profileImageInput);
+          setStatus(dataStatus, message, "error");
           return;
         }
-        dataStatus.textContent = "Profile data updated.";
+        setStatus(dataStatus, "Profile data updated.", "success");
       } catch {
-        dataStatus.textContent = "Unable to complete request. Please try again.";
+        setStatus(dataStatus, "Unable to complete request. Please try again.", "error");
       } finally {
         dataSubmit.removeAttribute("disabled");
       }
@@ -145,22 +171,28 @@ const user = session.user;
     const passwordForm = document.getElementById("profile-password-form");
     const passwordSubmit = document.getElementById("profile-password-submit");
     const passwordStatus = document.getElementById("profile-password-status");
+    const currentPasswordInput = document.getElementById("current-password");
+    const newPasswordInput = document.getElementById("new-password");
 
     passwordForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!passwordSubmit || !passwordStatus || !(passwordForm instanceof HTMLFormElement)) return;
+
+      clearInputError(currentPasswordInput);
+      clearInputError(newPasswordInput);
 
       const formData = new FormData(passwordForm);
       const currentPassword = String(formData.get("currentPassword") ?? "");
       const newPassword = String(formData.get("newPassword") ?? "");
 
       if (newPassword.length < 8) {
-        passwordStatus.textContent = "Password must be at least 8 characters.";
+        setInputError(newPasswordInput);
+        setStatus(passwordStatus, "Password must be at least 8 characters.", "error");
         return;
       }
 
       passwordSubmit.setAttribute("disabled", "disabled");
-      passwordStatus.textContent = "Updating password...";
+      setStatus(passwordStatus, "Updating password...");
 
       try {
         const response = await fetch("/api/auth/change-password", {
@@ -175,13 +207,15 @@ const user = session.user;
         const json = await response.json().catch(() => null);
         if (!response.ok) {
           const message = typeof json?.message === "string" ? json.message : "Unable to update password.";
-          passwordStatus.textContent = message;
+          setInputError(currentPasswordInput);
+          setInputError(newPasswordInput);
+          setStatus(passwordStatus, message, "error");
           return;
         }
-        passwordStatus.textContent = "Password updated.";
+        setStatus(passwordStatus, "Password updated.", "success");
         passwordForm.reset();
       } catch {
-        passwordStatus.textContent = "Unable to complete request. Please try again.";
+        setStatus(passwordStatus, "Unable to complete request. Please try again.", "error");
       } finally {
         passwordSubmit.removeAttribute("disabled");
       }

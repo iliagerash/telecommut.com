@@ -1,18 +1,13 @@
 import { betterAuth } from "better-auth";
-import { memoryAdapter } from "better-auth/adapters/memory";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
+import { getDb } from "@/db/runtime";
+import * as schema from "@/db/schema";
 import {
   resetPasswordTemplate,
   sendMailgunMessage,
   verifyEmailTemplate,
 } from "@/services/mail";
-
-const memoryDb: Record<string, unknown[]> = {
-  user: [],
-  session: [],
-  account: [],
-  verification: [],
-};
 
 function requiredEnv(name: string): string {
   const value = import.meta.env[name];
@@ -58,21 +53,46 @@ function parsePositiveIntEnv(name: string, defaultValue: number): number {
   return parsed;
 }
 
-export function createAuth() {
+export function createAuth(options: { db?: ReturnType<typeof getDb> } = {}) {
   const appName = "Telecommut";
   const requireEmailVerification = parseBooleanEnv(
     "BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION",
     true,
   );
+  const db = options.db ?? getDb();
 
   return betterAuth({
     appName,
     baseURL: requiredEnv("BETTER_AUTH_URL"),
     secret: requiredEnv("BETTER_AUTH_SECRET"),
     trustedOrigins: parseTrustedOrigins(),
-    database: memoryAdapter(memoryDb),
+    database: drizzleAdapter(db, {
+      provider: "sqlite",
+      schema,
+      camelCase: true,
+    }),
+    user: {
+      modelName: "authUsers",
+      additionalFields: {
+        role: {
+          type: "string",
+          defaultValue: "candidate",
+          input: true,
+        },
+      },
+    },
+    session: {
+      modelName: "authSessions",
+    },
+    account: {
+      modelName: "authAccounts",
+    },
+    verification: {
+      modelName: "authVerifications",
+    },
     emailVerification: {
       sendOnSignUp: true,
+      autoSignInAfterVerification: true,
       expiresIn: parsePositiveIntEnv("BETTER_AUTH_VERIFY_TOKEN_TTL_SECONDS", 3600),
       sendVerificationEmail: async ({ user, url }) => {
         const template = verifyEmailTemplate({

@@ -6,7 +6,7 @@ const token = Astro.url.searchParams.get("token");
 if (token) {
   const callbackURL =
     Astro.url.searchParams.get("callbackURL") ??
-    `${Astro.url.origin}/verify-email?status=verified`;
+    `${Astro.url.origin}/app/profile`;
   const target = new URL("/api/auth/verify-email", Astro.url.origin);
   target.searchParams.set("token", token);
   target.searchParams.set("callbackURL", callbackURL);
@@ -32,7 +32,7 @@ const email = Astro.url.searchParams.get("email") ?? "";
 
     {status === "verified" ? (
       <div class="mt-5 rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3 text-sm text-emerald-900">
-        Email verified successfully. You can now sign in.
+        Email verified successfully. You can now login.
       </div>
     ) : null}
 
@@ -68,37 +68,51 @@ const email = Astro.url.searchParams.get("email") ?? "";
       </div>
     </form>
 
-    <div class="mt-6 flex flex-wrap gap-3 text-sm">
-      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/login">
-        Back to login
-      </a>
-      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/help">
-        Need help
-      </a>
-    </div>
   </section>
 
   <script is:inline>
     const form = document.getElementById("resend-form");
     const statusEl = document.getElementById("resend-status");
     const submit = document.getElementById("resend-submit");
+    const emailInput = document.getElementById("verify-email-input");
+
+    function clearInputError(input) {
+      if (!(input instanceof HTMLInputElement)) return;
+      input.classList.remove("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setInputError(input) {
+      if (!(input instanceof HTMLInputElement)) return;
+      input.classList.add("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setStatus(message, kind = "info") {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.classList.remove("text-muted-foreground", "text-red-600", "text-emerald-700");
+      if (kind === "error") statusEl.classList.add("text-red-600");
+      else if (kind === "success") statusEl.classList.add("text-emerald-700");
+      else statusEl.classList.add("text-muted-foreground");
+    }
 
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!statusEl || !submit || !(form instanceof HTMLFormElement)) return;
 
+      clearInputError(emailInput);
       const formData = new FormData(form);
       const email = String(formData.get("email") ?? "").trim();
       if (!email) {
-        statusEl.textContent = "Email is required.";
+        setInputError(emailInput);
+        setStatus("Email is required.", "error");
         return;
       }
 
       submit.setAttribute("disabled", "disabled");
-      statusEl.textContent = "Sending...";
+      setStatus("Sending...");
 
       try {
-        const callbackURL = `${window.location.origin}/verify-email?status=verified`;
+        const callbackURL = `${window.location.origin}/app/profile`;
         const response = await fetch("/api/auth/send-verification-email", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -107,12 +121,13 @@ const email = Astro.url.searchParams.get("email") ?? "";
         const json = await response.json().catch(() => null);
         if (!response.ok) {
           const message = typeof json?.message === "string" ? json.message : "Unable to resend verification email.";
-          statusEl.textContent = message;
+          setInputError(emailInput);
+          setStatus(message, "error");
           return;
         }
-        statusEl.textContent = "Verification email sent. Check your inbox.";
+        setStatus("Verification email sent. Check your inbox.", "success");
       } catch {
-        statusEl.textContent = "Unable to complete request. Please try again.";
+        setStatus("Unable to complete request. Please try again.", "error");
       } finally {
         submit.removeAttribute("disabled");
       }

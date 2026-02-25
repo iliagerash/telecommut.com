@@ -14,7 +14,7 @@ Stack:
 ```bash
 npm install
 cp .env.example .env
-npm run db:migrate:sqlite
+npm run db:migrate:local
 npm run dev
 ```
 
@@ -26,16 +26,10 @@ npm run dev
 npm run db:generate
 ```
 
-- Apply migrations to local SQLite (`LOCAL_SQLITE_PATH`, default `telecommut.db`):
+- Apply migrations to local SQLite (`LOCAL_SQLITE_PATH`):
 
 ```bash
-npm run db:migrate:sqlite
-```
-
-- Apply migrations to D1 local simulator:
-
-```bash
-npm run db:migrate:d1:local
+npm run db:migrate:local
 ```
 
 - Apply migrations to remote D1:

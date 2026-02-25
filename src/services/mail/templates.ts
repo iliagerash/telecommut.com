@@ -12,7 +12,7 @@ export type MailTemplate = {
 
 export function verifyEmailTemplate(payload: AuthTemplatePayload): MailTemplate {
   return {
-    subject: `${payload.appName}: verify your email`,
+    subject: "Verify your email",
     text: [
       `Hi,`,
       ``,
@@ -32,7 +32,7 @@ export function verifyEmailTemplate(payload: AuthTemplatePayload): MailTemplate 
 
 export function resetPasswordTemplate(payload: AuthTemplatePayload): MailTemplate {
   return {
-    subject: `${payload.appName}: reset your password`,
+    subject: "Reset your password",
     text: [
       `Hi,`,
       ``,

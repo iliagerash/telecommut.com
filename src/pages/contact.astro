@@ -113,10 +113,35 @@ const contactJsonLd = {
     const successPanel = document.getElementById("contact-success");
     const status = document.getElementById("contact-status");
     const submit = document.getElementById("contact-submit");
+    const nameInput = document.getElementById("contact-name");
+    const emailInput = document.getElementById("contact-email");
+    const messageInput = document.getElementById("contact-message");
+
+    function clearInputError(input) {
+      if (!(input instanceof HTMLInputElement) && !(input instanceof HTMLTextAreaElement)) return;
+      input.classList.remove("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setInputError(input) {
+      if (!(input instanceof HTMLInputElement) && !(input instanceof HTMLTextAreaElement)) return;
+      input.classList.add("border-red-500", "ring-2", "ring-red-300");
+    }
+
+    function setStatus(message, kind = "info") {
+      if (!(status instanceof HTMLElement)) return;
+      status.textContent = message;
+      status.classList.remove("text-muted-foreground", "text-red-600", "text-emerald-700");
+      if (kind === "error") status.classList.add("text-red-600");
+      else if (kind === "success") status.classList.add("text-emerald-700");
+      else status.classList.add("text-muted-foreground");
+    }
 
     if (form && successPanel && status && submit) {
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
+        clearInputError(nameInput);
+        clearInputError(emailInput);
+        clearInputError(messageInput);
 
         const formData = new FormData(form);
         const payload = {
@@ -126,9 +151,25 @@ const contactJsonLd = {
           website: String(formData.get("website") ?? ""),
         };
 
+        if (!payload.name) {
+          setInputError(nameInput);
+          setStatus("Name is required.", "error");
+          return;
+        }
+        if (!payload.email) {
+          setInputError(emailInput);
+          setStatus("Email is required.", "error");
+          return;
+        }
+        if (!payload.message) {
+          setInputError(messageInput);
+          setStatus("Message is required.", "error");
+          return;
+        }
+
         submit.setAttribute("disabled", "disabled");
         submit.setAttribute("aria-busy", "true");
-        status.textContent = "Sending...";
+        setStatus("Sending...");
 
         try {
           const response = await fetch("/api/contact", {
@@ -145,23 +186,26 @@ const contactJsonLd = {
           }
 
           if (response.status === 429) {
-            status.textContent = "Too many requests. Please try again later.";
+            setStatus("Too many requests. Please try again later.", "error");
             return;
           }
 
           if (response.status === 400) {
-            status.textContent = "Unable to send message. Check your input and try again.";
+            setInputError(nameInput);
+            setInputError(emailInput);
+            setInputError(messageInput);
+            setStatus("Unable to send message. Check your input and try again.", "error");
             return;
           }
 
           if (response.status === 503) {
-            status.textContent = "Contact service is unavailable right now. Please try again later.";
+            setStatus("Contact service is unavailable right now. Please try again later.", "error");
             return;
           }
 
-          status.textContent = "Unable to send message right now. Please try again later.";
+          setStatus("Unable to send message right now. Please try again later.", "error");
         } catch {
-          status.textContent = "Unable to send message right now. Please try again later.";
+          setStatus("Unable to send message right now. Please try again later.", "error");
         } finally {
           submit.removeAttribute("disabled");
           submit.removeAttribute("aria-busy");

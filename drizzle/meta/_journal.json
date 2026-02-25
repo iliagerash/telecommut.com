@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1771869689708,
-      "tag": "0000_outgoing_devos",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1771872022103,
-      "tag": "0001_smooth_emma_frost",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1771896459229,
-      "tag": "0002_outstanding_ultimates",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1771896970694,
-      "tag": "0003_flat_shen",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1771989491810,
-      "tag": "0004_wide_cerebro",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1771991376048,
-      "tag": "0005_wise_blob",
+      "when": 1772015438286,
+      "tag": "0000_nifty_thena",
       "breakpoints": true
     }
   ]

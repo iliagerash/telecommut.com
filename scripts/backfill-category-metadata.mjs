@@ -1,74 +1,15 @@
 import Database from "better-sqlite3";
-import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(".env") });
 
-function hasCategoriesTable(db) {
-  const row = db
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'categories' LIMIT 1")
-    .get();
-  return Boolean(row);
-}
-
-function countCategories(db) {
-  if (!hasCategoriesTable(db)) return 0;
-  const row = db.prepare("SELECT COUNT(*) AS c FROM categories").get();
-  return Number(row?.c ?? 0);
-}
-
-function resolveD1LocalPath() {
-  const d1Dir = path.resolve(".wrangler/state/v3/d1/miniflare-D1DatabaseObject");
-  if (!fs.existsSync(d1Dir)) return null;
-
-  const candidates = fs
-    .readdirSync(d1Dir)
-    .filter((entry) => entry.endsWith(".sqlite"))
-    .map((entry) => path.join(d1Dir, entry));
-
-  for (const file of candidates) {
-    try {
-      const db = new Database(file, { readonly: true });
-      const categoriesCount = countCategories(db);
-      db.close();
-      if (categoriesCount > 0) {
-        return file;
-      }
-    } catch {
-      // Ignore files that are not readable sqlite DBs.
-    }
-  }
-
-  return null;
-}
-
 function resolveSqlitePath() {
   const configuredPath = process.env.LOCAL_SQLITE_PATH?.trim();
-  if (configuredPath) {
-    return path.resolve(configuredPath);
+  if (!configuredPath) {
+    throw new Error("LOCAL_SQLITE_PATH is required for category backfill.");
   }
-
-  const defaultPath = path.resolve("telecommut.db");
-  if (fs.existsSync(defaultPath)) {
-    try {
-      const db = new Database(defaultPath, { readonly: true });
-      const categoriesCount = countCategories(db);
-      db.close();
-      if (categoriesCount > 0) {
-        return defaultPath;
-      }
-    } catch {
-      // Fall back to D1 local detection below.
-    }
-  }
-
-  const d1Path = resolveD1LocalPath();
-  if (d1Path) {
-    return d1Path;
-  }
-
-  return defaultPath;
+  return path.resolve(configuredPath);
 }
 
 const sqlitePath = resolveSqlitePath();

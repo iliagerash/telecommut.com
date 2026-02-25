@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const appMeta = sqliteTable("app_meta", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -9,15 +9,18 @@ export const appMeta = sqliteTable("app_meta", {
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const users = sqliteTable(
-  "users",
+export const authUsers = sqliteTable(
+  "auth_users",
   {
-    id: integer("id").primaryKey(),
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
     email: text("email").notNull(),
+    role: text("role").notNull().default("candidate"),
+    emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
     emailVerifiedAt: text("email_verified_at"),
-    password: text("password").notNull(),
+    image: text("image"),
+    password: text("password").notNull().default(""),
     rememberToken: text("remember_token"),
-    role: text("role"),
     candidateName: text("candidate_name").notNull().default(""),
     candidatePhone: text("candidate_phone").notNull().default(""),
     candidatePhoto: text("candidate_photo").notNull().default(""),
@@ -28,18 +31,66 @@ export const users = sqliteTable(
     companyLogo: text("company_logo").notNull().default(""),
     subscribe: integer("subscribe").notNull().default(0),
     subscribePartners: integer("subscribe_partners").notNull().default(0),
-    createdAt: text("created_at"),
-    updatedAt: text("updated_at"),
     deletedAt: text("deleted_at"),
     stripeId: text("stripe_id"),
     pmType: text("pm_type"),
     pmLastFour: text("pm_last_four"),
     trialEndsAt: text("trial_ends_at"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [
-    uniqueIndex("users_email_unique").on(table.email),
+    uniqueIndex("auth_users_email_unique").on(table.email),
   ],
 );
+
+export const authSessions = sqliteTable(
+  "auth_sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    token: text("token").notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("auth_sessions_token_unique").on(table.token),
+  ],
+);
+
+export const authAccounts = sqliteTable(
+  "auth_accounts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp_ms" }),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp_ms" }),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("auth_accounts_provider_account_unique").on(table.providerId, table.accountId),
+  ],
+);
+
+export const authVerifications = sqliteTable("auth_verifications", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
 
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey(),
@@ -89,7 +140,7 @@ export const contracts = sqliteTable("contracts", {
 
 export const jobs = sqliteTable("jobs", {
   id: integer("id").primaryKey(),
-  userId: integer("user_id").notNull().default(1),
+  userId: text("user_id").notNull().default("1"),
   categoryId: integer("category_id").notNull(),
   countryId: integer("country_id").notNull(),
   countryGroups: text("country_groups").notNull().default(""),
@@ -118,7 +169,7 @@ export const jobs = sqliteTable("jobs", {
 
 export const resumes = sqliteTable("resumes", {
   id: integer("id").primaryKey(),
-  userId: integer("user_id").notNull().default(1),
+  userId: text("user_id").notNull().default("1"),
   categoryId: integer("category_id").notNull(),
   countryId: integer("country_id").notNull(),
   position: text("position").notNull(),
@@ -133,28 +184,6 @@ export const resumes = sqliteTable("resumes", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const passwordResets = sqliteTable(
-  "password_resets",
-  {
-    email: text("email").notNull(),
-    token: text("token").notNull(),
-    createdAt: text("created_at"),
-  },
-  (table) => [
-    index("password_resets_email_index").on(table.email),
-  ],
-);
-
-export const sessions = sqliteTable("sessions", {
-  id: integer("id").primaryKey(),
-  url: text("url").notNull(),
-  ip: text("ip").notNull(),
-  referer: text("referer"),
-  userAgent: text("user_agent"),
-  utmSource: text("utm_source"),
-  createdAt: text("created_at").notNull(),
-});
-
 export const seoPages = sqliteTable("seo_pages", {
   id: integer("id").primaryKey(),
   url: text("url").notNull(),
@@ -164,17 +193,6 @@ export const seoPages = sqliteTable("seo_pages", {
   crawledAt: text("crawled_at"),
   bingCrawledAt: text("bing_crawled_at"),
   submittedAt: text("submitted_at"),
-});
-
-export const jobRedirects = sqliteTable("job_redirects", {
-  id: integer("id").primaryKey(),
-  jobId: integer("job_id").notNull(),
-  newId: integer("new_id").notNull().default(0),
-  url: text("url").notNull(),
-  googleHits: integer("google_hits").notNull().default(0),
-  bingHits: integer("bing_hits").notNull().default(0),
-  createdAt: text("created_at"),
-  updatedAt: text("updated_at"),
 });
 
 export const jobRemovals = sqliteTable("job_removals", {
@@ -230,7 +248,7 @@ export const subscriptions = sqliteTable(
   "subscriptions",
   {
     id: integer("id").primaryKey(),
-    userId: integer("user_id").notNull(),
+    userId: text("user_id").notNull(),
     type: text("type").notNull(),
     stripeId: text("stripe_id").notNull(),
     stripeStatus: text("stripe_status").notNull(),
@@ -262,16 +280,6 @@ export const subscriptionItems = sqliteTable(
     uniqueIndex("subscription_items_stripe_id_unique").on(table.stripeId),
   ],
 );
-
-export const failedJobs = sqliteTable("failed_jobs", {
-  id: integer("id").primaryKey(),
-  uuid: text("uuid").notNull(),
-  connection: text("connection").notNull(),
-  queue: text("queue").notNull(),
-  payload: text("payload").notNull(),
-  exception: text("exception").notNull(),
-  failedAt: text("failed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
 
 export type AppMeta = typeof appMeta.$inferSelect;
 export type NewAppMeta = typeof appMeta.$inferInsert;

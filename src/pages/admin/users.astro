@@ -3,7 +3,7 @@ import { desc } from "drizzle-orm";
 
 import AdminDataTable from "@/components/admin/AdminDataTable.astro";
 import { getRequestDb } from "@/db/request";
-import { users } from "@/db/schema";
+import { authUsers } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
 import { resolveNormalizedUserRoleFromRoleColumn } from "@/services/users/role-adapter";
@@ -22,8 +22,8 @@ const columns = [
 
 const rowsRaw = await db
   .select()
-  .from(users)
-  .orderBy(desc(users.id))
+  .from(authUsers)
+  .orderBy(desc(authUsers.createdAt))
   .limit(pagination.pageSize + 1)
   .offset(pagination.offset);
 
@@ -32,7 +32,7 @@ const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
   id: row.id ?? "-",
   email: row.email ?? "-",
   role: resolveNormalizedUserRoleFromRoleColumn(row) ?? "-",
-  updatedAt: row.updatedAt ?? "-",
+  updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : "-",
 }));
 
 const prevHref = pagination.page > 1 ? `/admin/users?page=${pagination.page - 1}` : undefined;

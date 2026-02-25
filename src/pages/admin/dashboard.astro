@@ -1,6 +1,6 @@
 ---
 import { getRequestDb } from "@/db/request";
-import { jobs, resumes, users } from "@/db/schema";
+import { authUsers, jobs, resumes } from "@/db/schema";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
 
 export const prerender = false;
@@ -9,18 +9,17 @@ const db = getRequestDb(Astro.locals);
 
 const allJobs = await db.select().from(jobs);
 const allResumes = await db.select().from(resumes);
-const allUsers = await db.select().from(users);
+const allUsers = await db.select().from(authUsers);
 const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
 const openJobs = allJobs.length;
 const activeResumes = allResumes.length;
 const newUsers7d = allUsers.filter((user) => {
-  if (!user.createdAt) {
+  if (!user.createdAt || typeof user.createdAt !== "number") {
     return false;
   }
 
-  const ts = new Date(user.createdAt).getTime();
-  return Number.isFinite(ts) && ts >= sevenDaysAgo;
+  return Number.isFinite(user.createdAt) && user.createdAt >= sevenDaysAgo;
 }).length;
 ---
 

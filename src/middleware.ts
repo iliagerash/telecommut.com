@@ -2,13 +2,16 @@ import { randomUUID } from "node:crypto";
 
 import { defineMiddleware } from "astro:middleware";
 
-import { auth } from "@/auth";
+import { getAuth } from "@/auth";
 import { getAllowedRolesForPath, hasRoleAccess, resolveUserRoleFromRecord } from "@/auth/authorization";
 import { findLegacyRedirect } from "@/routing/legacy-redirects";
 import { logError, logInfo } from "@/services/observability/logger";
 
-async function getSession(request: Request) {
+const shouldLogInfo = process.env.npm_lifecycle_event !== "build";
+
+async function getSession(request: Request, locals: App.Locals) {
   try {
+    const auth = getAuth(locals);
     return await auth.api.getSession({
       headers: request.headers,
     });
@@ -31,7 +34,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const allowedRoles = getAllowedRolesForPath(context.url.pathname);
     if (allowedRoles) {
-      const session = await getSession(context.request);
+      const session = await getSession(context.request, context.locals);
       if (!session?.session?.id) {
         const redirectUrl = new URL("/login", context.url);
         redirectUrl.searchParams.set("next", context.url.pathname);
@@ -43,12 +46,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
       const role = resolveUserRoleFromRecord(userRecord);
 
       if (!hasRoleAccess(context.url.pathname, role)) {
-        logInfo("request.forbidden", {
-          requestId,
-          path: context.url.pathname,
-          role,
-          requiredRoles: allowedRoles,
-        });
+        if (shouldLogInfo) {
+          logInfo("request.forbidden", {
+            requestId,
+            path: context.url.pathname,
+            role,
+            requiredRoles: allowedRoles,
+          });
+        }
 
         return context.redirect("/403", 302);
       }
@@ -56,13 +61,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const response = await next();
 
-    logInfo("request.completed", {
-      requestId,
-      method: context.request.method,
-      path: context.url.pathname,
-      status: response.status,
-      durationMs: Date.now() - start,
-    });
+    if (shouldLogInfo) {
+      logInfo("request.completed", {
+        requestId,
+        method: context.request.method,
+        path: context.url.pathname,
+        status: response.status,
+        durationMs: Date.now() - start,
+      });
+    }
 
     response.headers.set("x-request-id", requestId);
     return response;

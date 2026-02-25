@@ -11,7 +11,19 @@ export default defineConfig({
   integrations: [react()],
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    ssr: {
+      external: [
+        "node:crypto",
+        "node:path",
+        "node:async_hooks",
+        "path",
+        "util",
+        "better-sqlite3",
+        "bindings",
+        "file-uri-to-path",
+      ],
+    },
   },
 
   adapter: cloudflare({

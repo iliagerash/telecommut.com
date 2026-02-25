@@ -42,7 +42,7 @@ export default function PublicMobileNav() {
             </a>
           </SheetClose>
           <SheetClose asChild>
-            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/login?mode=register">
+            <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/register">
               Register
             </a>
           </SheetClose>

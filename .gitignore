@@ -4,6 +4,8 @@ dist/
 .astro/
 .wrangler/
 .local/
+db/*
+!db/.gitkeep
 
 # dependencies
 node_modules/

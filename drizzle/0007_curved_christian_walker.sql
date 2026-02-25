@@ -1,0 +1,1 @@
+ALTER TABLE `auth_users` ADD `role` text DEFAULT 'candidate' NOT NULL;

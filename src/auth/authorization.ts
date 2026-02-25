@@ -42,7 +42,17 @@ export function resolveUserRole(value: unknown): AppRole | null {
 }
 
 export function resolveUserRoleFromRecord(record: { role?: unknown; type?: unknown } | null | undefined): AppRole | null {
-  return resolveAccessRoleFromRoleColumn(record);
+  const resolved = resolveAccessRoleFromRoleColumn(record);
+  if (resolved) {
+    return resolved;
+  }
+
+  // Better Auth users may not carry legacy role/type fields; default authenticated users to "user".
+  if (record && typeof record === "object" && "id" in record) {
+    return "user";
+  }
+
+  return null;
 }
 
 export function hasRoleAccess(pathname: string, role: AppRole | null): boolean {

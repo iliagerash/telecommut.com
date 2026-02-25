@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 
 import { Badge } from "@/components/ui/badge";
 import { getRequestDb } from "@/db/request";
-import { categories, contracts, countries, resumes, users } from "@/db/schema";
+import { authUsers, categories, contracts, countries, resumes } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { buildPaginationState } from "@/lib/pagination";
 import { toAbsoluteUrl } from "@/lib/seo";
@@ -38,7 +38,7 @@ if (countryId !== null) {
 const resultRows = await db
   .select()
   .from(resumes)
-  .leftJoin(users, eq(resumes.userId, users.id))
+  .leftJoin(authUsers, eq(resumes.userId, authUsers.id))
   .leftJoin(categories, eq(resumes.categoryId, categories.id))
   .leftJoin(countries, eq(resumes.countryId, countries.id))
   .leftJoin(contracts, eq(resumes.contractCode, contracts.code))
@@ -63,8 +63,8 @@ const items = resultRows.slice(0, pagination.pageSize).map((row) => ({
   categoryTitle: row.categories?.title ?? null,
   countryName: row.countries?.name ?? null,
   contractTitle: row.contracts?.title ?? null,
-  candidateName: row.users?.candidateName ?? "",
-  candidatePhoto: row.users?.candidatePhoto ?? "",
+  candidateName: row.auth_users?.candidateName ?? "",
+  candidatePhoto: row.auth_users?.candidatePhoto ?? "",
 }));
 
 if (pagination.page > 1 && items.length === 0) {
