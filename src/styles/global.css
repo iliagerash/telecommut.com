@@ -52,9 +52,9 @@
 :root {
     --radius: 0.75rem;
     --background: oklch(0.99 0.004 84);
-    --foreground: oklch(0.19 0.03 228);
+    --foreground: oklch(0.14 0.03 228);
     --card: oklch(1 0.01 95);
-    --card-foreground: oklch(0.19 0.03 228);
+    --card-foreground: oklch(0.14 0.03 228);
     --popover: oklch(1 0.01 95);
     --popover-foreground: oklch(0.19 0.03 228);
     --primary: oklch(0.41 0.12 236);
@@ -62,7 +62,7 @@
     --secondary: oklch(0.94 0.02 210);
     --secondary-foreground: oklch(0.25 0.05 232);
     --muted: oklch(0.96 0.01 210);
-    --muted-foreground: oklch(0.49 0.05 230);
+    --muted-foreground: oklch(0.4 0.05 230);
     --accent: oklch(0.86 0.12 78);
     --accent-foreground: oklch(0.26 0.03 246);
     --destructive: oklch(0.59 0.2 28);
@@ -143,6 +143,25 @@
   ::selection {
     background: color-mix(in oklab, var(--brand-highlight) 62%, white);
     color: var(--foreground);
+  }
+
+  a,
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  summary,
+  select,
+  [data-slot="button"],
+  [data-slot="select-trigger"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [data-slot="button"]:disabled,
+  [data-slot="select-trigger"][data-disabled] {
+    cursor: not-allowed;
   }
 }
 

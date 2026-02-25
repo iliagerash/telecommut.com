@@ -1,34 +1,158 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
+import { toAbsoluteUrl } from "@/lib/seo";
 import { socialImages } from "@/lib/social-images";
+
+const helpJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: toAbsoluteUrl("/"),
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Help",
+          item: toAbsoluteUrl("/help"),
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is Telecommut.com?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Telecommut.com is a free Remote Job Board where employers can post remote jobs and search for candidates, and candidates can search jobs and submit resumes.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How can I register an account with you?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use the registration form. After submitting registration, you will receive an email with a link to confirm your account.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What to do if I forget my password?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use the forgot password flow on the login page to request a reset link by email.",
+          },
+        },
+      ],
+    },
+  ],
+};
 ---
 
-<PublicLayout title="Help" description="Help center and support guidance." socialImagePath={socialImages.help}>
+<PublicLayout
+  title="Help"
+  description="Frequently asked questions."
+  robots="noindex,nofollow"
+  canonicalPath="/help"
+  socialImagePath={socialImages.help}
+  jsonLd={helpJsonLd}
+>
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
-    <p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Support</p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Help Center</h1>
-    <p class="mt-3 max-w-2xl text-muted-foreground">
-      Find answers about account access, moderation rules, and posting workflows.
-      This page will host the full searchable knowledge base.
+    <h1 class="text-4xl font-semibold tracking-tight">Frequently asked questions</h1>
+    <p class="mt-3 max-w-3xl text-muted-foreground">
+      Probably you'll find your answer here. Contact us if you don't find what you're looking for.
     </p>
-    <div class="mt-5 flex flex-wrap gap-3">
-      <a class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90" href="/contact">
-        Contact Support
-      </a>
-      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/resources">
-        Browse Resources
-      </a>
-    </div>
   </section>
 
-  <section class="mt-4 grid gap-3 md:grid-cols-2">
-    <article class="glass-panel rounded-2xl border p-4">
-      <h2 class="text-lg font-semibold">Account Access</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Reset links, session behavior, and trusted callback URL policy.</p>
+  <section class="mt-4 space-y-4">
+    <article class="glass-panel rounded-2xl border p-5 md:p-6">
+      <h2 class="text-2xl font-semibold tracking-tight">General</h2>
+      <ul class="mt-4 space-y-4">
+        <li>
+          <h3 class="text-lg font-semibold">What is Telecommut.com?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Telecommut.com is a free Remote Job Board where employers can post their remote jobs and search for candidates,
+            and candidates can search for available remote jobs and submit their resumes.
+          </p>
+        </li>
+        <li>
+          <h3 class="text-lg font-semibold">How can I register an account with you?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Please use the <a class="underline" href="/login?mode=register">registration form</a>. After you submit the
+            registration form you will receive an email with a link to confirm your account.
+          </p>
+        </li>
+        <li>
+          <h3 class="text-lg font-semibold">What to do if I forget my password?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Use the forgot password link below the login form, enter your email address, and submit the form to receive a
+            password reset link.
+          </p>
+        </li>
+      </ul>
     </article>
-    <article class="glass-panel rounded-2xl border p-4">
-      <h2 class="text-lg font-semibold">Platform Rules</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Moderation outcomes and appeal flow for jobs and resumes.</p>
+
+    <article class="glass-panel rounded-2xl border p-5 md:p-6">
+      <h2 class="text-2xl font-semibold tracking-tight">I am a Candidate</h2>
+      <ul class="mt-4 space-y-4">
+        <li>
+          <h3 class="text-lg font-semibold">How can I search for remote jobs published by employers?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Please use our search form on the Home page.</p>
+        </li>
+        <li>
+          <h3 class="text-lg font-semibold">How can I apply for a job?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Open any job listing, fill in your message for the employer, and click Apply now. If a listing uses an external
+            application URL, you will be forwarded to the employer's application page.
+          </p>
+        </li>
+      </ul>
+    </article>
+
+    <article class="glass-panel rounded-2xl border p-5 md:p-6">
+      <h2 class="text-2xl font-semibold tracking-tight">I am an Employer</h2>
+      <ul class="mt-4 space-y-4">
+        <li>
+          <h3 class="text-lg font-semibold">How can I search for candidates profiles?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Please use our <a class="underline" href="/search/resumes">resumes search page</a>.
+          </p>
+        </li>
+        <li>
+          <h3 class="text-lg font-semibold">Do you offer any subscription plans for employers?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Currently all services for employers on our website are free. This can change in the future.
+          </p>
+        </li>
+        <li>
+          <h3 class="text-lg font-semibold">How can I post my remote jobs?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Use <a class="underline" href="/search/jobs">Post a job</a> from the main navigation. Please keep in mind that all jobs are verified by our
+            team. We don't accept illegal, duplicate, fraudulent, discriminatory, or suspicious job listings.
+          </p>
+        </li>
+        <li>
+          <h3 class="text-lg font-semibold">How can I manage my jobs?</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Use the <a class="underline" href="/app/dashboard">dashboard</a> to manage your listings.
+          </p>
+        </li>
+      </ul>
+    </article>
+
+    <article class="glass-panel rounded-2xl border p-5 md:p-6">
+      <h2 class="text-2xl font-semibold tracking-tight">My Question Is Not Listed</h2>
+      <p class="mt-3 text-sm text-muted-foreground">
+        Contact us at <a class="underline" href="mailto:support@telecommut.com">support@telecommut.com</a> or submit the
+        <a class="underline" href="/contact"> contact form</a>.
+      </p>
     </article>
   </section>
 </PublicLayout>

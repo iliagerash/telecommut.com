@@ -18,6 +18,11 @@ function requiredEnv(name: string): string {
   return value;
 }
 
+function hasEnv(name: string): boolean {
+  const value = import.meta.env[name];
+  return typeof value === "string" && value.trim() !== "";
+}
+
 function getClientIp(request: Request): string {
   return request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for") ?? "unknown";
 }
@@ -65,13 +70,33 @@ export const POST: APIRoute = async ({ request }) => {
     message,
   });
 
-  await sendMailgunMessage({
-    to: requiredEnv("CONTACT_INBOX"),
-    subject: template.subject,
-    text: template.text,
-    html: template.html,
-    replyTo: senderEmail,
-  });
+  const isMailConfigured =
+    hasEnv("CONTACT_INBOX") &&
+    hasEnv("MAILGUN_API_KEY") &&
+    hasEnv("MAILGUN_DOMAIN") &&
+    hasEnv("MAILGUN_FROM");
+
+  if (!isMailConfigured) {
+    return new Response(JSON.stringify({ error: "Contact mail service is not configured" }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  try {
+    await sendMailgunMessage({
+      to: requiredEnv("CONTACT_INBOX"),
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+      replyTo: senderEmail,
+    });
+  } catch {
+    return new Response(JSON.stringify({ error: "Failed to deliver message" }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+  }
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 202,
