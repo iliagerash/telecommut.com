@@ -40,14 +40,12 @@ import { socialImages } from "@/lib/social-images";
       </div>
     </form>
 
-    <div class="mt-6 flex flex-wrap gap-3 text-sm">
-      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/login">
-        Back to login
-      </a>
-      <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href="/help">
-        Need help
-      </a>
-    </div>
+    <div
+      id="request-reset-success"
+      class="mt-6 hidden rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-4 text-sm text-emerald-900"
+      role="status"
+      aria-live="polite"
+    ></div>
   </section>
 
   <script is:inline>
@@ -55,6 +53,7 @@ import { socialImages } from "@/lib/social-images";
     const statusEl = document.getElementById("request-reset-status");
     const submit = document.getElementById("request-reset-submit");
     const emailInput = document.getElementById("reset-email");
+    const successEl = document.getElementById("request-reset-success");
 
     function clearInputError(input) {
       if (!(input instanceof HTMLInputElement)) return;
@@ -92,7 +91,8 @@ import { socialImages } from "@/lib/social-images";
       setStatus("Sending...");
 
       try {
-        const redirectTo = `${window.location.origin}/reset-password`;
+        const encodedEmail = encodeURIComponent(email);
+        const redirectTo = `${window.location.origin}/reset-password?email=${encodedEmail}`;
         const response = await fetch("/api/auth/request-password-reset", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -106,7 +106,14 @@ import { socialImages } from "@/lib/social-images";
           return;
         }
 
-        setStatus("If this email exists, a reset link has been sent.", "success");
+        setStatus("", "info");
+        if (form instanceof HTMLFormElement) {
+          form.classList.add("hidden");
+        }
+        if (successEl instanceof HTMLElement) {
+          successEl.textContent = `If an account exists for ${email}, a reset link has been sent.`;
+          successEl.classList.remove("hidden");
+        }
       } catch {
         setStatus("Unable to complete request. Please try again.", "error");
       } finally {
