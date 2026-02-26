@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { getDb } from "@/db/runtime";
 import * as schema from "@/db/schema";
+import { createPasswordHasher } from "@/auth/password";
 import {
   resetPasswordTemplate,
   sendMailgunMessage,
@@ -77,6 +78,9 @@ function parsePositiveIntEnv(name: string, defaultValue: number, runtimeEnv?: Ru
 export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: RuntimeEnv } = {}) {
   const runtimeEnv = options.env;
   const appName = "Telecommut";
+  const passwordHasher = createPasswordHasher({
+    iterations: parsePositiveIntEnv("BETTER_AUTH_PASSWORD_ITERATIONS", 6000, runtimeEnv),
+  });
   const requireEmailVerification = parseBooleanEnv(
     "BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION",
     true,
@@ -137,6 +141,10 @@ export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: Runti
       requireEmailVerification,
       minPasswordLength: 8,
       maxPasswordLength: 128,
+      password: {
+        hash: passwordHasher.hash,
+        verify: passwordHasher.verify,
+      },
       resetPasswordTokenExpiresIn: parsePositiveIntEnv(
         "BETTER_AUTH_RESET_TOKEN_TTL_SECONDS",
         3600,
