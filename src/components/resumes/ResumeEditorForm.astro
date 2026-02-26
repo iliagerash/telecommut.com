@@ -1,0 +1,230 @@
+---
+type Option = {
+  id: number;
+  label: string;
+};
+
+type Choice = {
+  value: string;
+  label: string;
+};
+
+type ResumeEditorValues = {
+  position: string;
+  categoryId: string;
+  countryId: string;
+  salaryMin: string;
+  salaryPeriod: string;
+  currency: string;
+  contractCode: string;
+  skills: string;
+  description: string;
+};
+
+type Props = {
+  action: string;
+  submitLabel: string;
+  returnTo: string;
+  profileName: string;
+  profileEmail: string;
+  profilePhone: string;
+  profileImage: string;
+  currencies: string[];
+  categories: Option[];
+  countries: Option[];
+  contracts: Choice[];
+  values: ResumeEditorValues;
+  hasCurrencySeparator?: boolean;
+  majorCurrencyCount?: number;
+  errorText?: string;
+  successText?: string;
+  hiddenFields?: Record<string, string>;
+};
+
+const {
+  action,
+  submitLabel,
+  returnTo,
+  profileName,
+  profileEmail,
+  profilePhone,
+  profileImage,
+  currencies,
+  categories,
+  countries,
+  contracts,
+  values,
+  hasCurrencySeparator = false,
+  majorCurrencyCount = 0,
+  errorText = "",
+  successText = "",
+  hiddenFields = {},
+} = Astro.props;
+---
+
+{
+  errorText ? <p class="mt-4 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{errorText}</p> : null
+}
+{
+  successText ? <p class="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{successText}</p> : null
+}
+
+<section class="mt-5 rounded-2xl border bg-background p-4">
+  <h2 class="text-lg font-semibold">Profile data</h2>
+  <div class="mt-4 grid gap-4 md:grid-cols-[96px_1fr] md:items-center">
+    {
+      profileImage ? (
+        <img src={profileImage} alt="" class="size-24 rounded-xl border object-cover" />
+      ) : (
+        <div class="size-24 rounded-xl border bg-muted" aria-hidden="true"></div>
+      )
+    }
+    <div class="space-y-2 text-sm">
+      {profileName ? <p><strong>Name:</strong> {profileName}</p> : null}
+      {profileEmail ? (
+        <p>
+          <strong>Email:</strong> <a class="text-blue-600 underline" href={`mailto:${profileEmail}`}>{profileEmail}</a>
+        </p>
+      ) : null}
+      {profilePhone ? <p><strong>Phone:</strong> {profilePhone}</p> : null}
+      <a class="text-blue-600 underline" href="/app/profile">Edit profile</a>
+    </div>
+  </div>
+</section>
+
+<form class="mt-6 space-y-6" action={action} method="POST">
+  <input type="hidden" name="return_to" value={returnTo} />
+  {
+    Object.entries(hiddenFields).map(([name, value]) => (
+      <input type="hidden" name={name} value={value} />
+    ))
+  }
+
+  <section class="rounded-2xl border bg-background p-4">
+    <h2 class="text-lg font-semibold">Resume data</h2>
+
+    <div class="mt-4 space-y-4">
+      <div>
+        <label class="mb-1 block text-sm font-medium" for="position">Resume position *</label>
+        <input
+          id="position"
+          name="position"
+          type="text"
+          required
+          value={values.position}
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+        />
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="relative">
+          <label class="mb-1 block text-sm font-medium" for="category_id">Category *</label>
+          <select id="category_id" name="category_id" required class="h-11 w-full appearance-none rounded-xl border bg-background px-3 pr-9 text-sm">
+            <option value="">Select category</option>
+            {
+              categories.map((category) => (
+                <option value={String(category.id)} selected={String(category.id) === values.categoryId}>{category.label}</option>
+              ))
+            }
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-3 top-6 flex items-center text-muted-foreground">▾</span>
+        </div>
+        <div class="relative">
+          <label class="mb-1 block text-sm font-medium" for="country_id">Candidate country *</label>
+          <select id="country_id" name="country_id" required class="h-11 w-full appearance-none rounded-xl border bg-background px-3 pr-9 text-sm">
+            <option value="">Select country</option>
+            {
+              countries.map((country) => (
+                <option value={String(country.id)} selected={String(country.id) === values.countryId}>{country.label}</option>
+              ))
+            }
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-3 top-6 flex items-center text-muted-foreground">▾</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium" for="salary_min">Salary from</label>
+        <input
+          id="salary_min"
+          name="salary_min"
+          type="text"
+          value={values.salaryMin}
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+        />
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="relative">
+          <label class="mb-1 block text-sm font-medium" for="salary_period">Per</label>
+          <select
+            id="salary_period"
+            name="salary_period"
+            class="h-11 w-full appearance-none rounded-xl border bg-background px-3 pr-9 text-sm"
+          >
+            <option value="hour" selected={values.salaryPeriod === "hour"}>hour</option>
+            <option value="day" selected={values.salaryPeriod === "day"}>day</option>
+            <option value="week" selected={values.salaryPeriod === "week"}>week</option>
+            <option value="month" selected={values.salaryPeriod === "month"}>month</option>
+            <option value="year" selected={values.salaryPeriod === "year"}>year</option>
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-3 top-6 flex items-center text-muted-foreground">▾</span>
+        </div>
+        <div class="relative">
+          <label class="mb-1 block text-sm font-medium" for="currency">Currency</label>
+          <select id="currency" name="currency" class="h-11 w-full appearance-none rounded-xl border bg-background px-3 pr-9 text-sm">
+            {currencies.slice(0, majorCurrencyCount).map((currency) => (
+              <option value={currency} selected={currency === values.currency}>{currency}</option>
+            ))}
+            {hasCurrencySeparator ? <option disabled>──────────</option> : null}
+            {currencies.slice(majorCurrencyCount).map((currency) => (
+              <option value={currency} selected={currency === values.currency}>{currency}</option>
+            ))}
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-3 top-6 flex items-center text-muted-foreground">▾</span>
+        </div>
+        <div class="relative">
+          <label class="mb-1 block text-sm font-medium" for="contract_code">Employment type</label>
+          <select id="contract_code" name="contract_code" class="h-11 w-full appearance-none rounded-xl border bg-background px-3 pr-9 text-sm">
+            {
+              contracts.map((contract) => (
+                <option value={contract.value} selected={contract.value === values.contractCode}>{contract.label}</option>
+              ))
+            }
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-3 top-6 flex items-center text-muted-foreground">▾</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium" for="skills">Skills</label>
+        <input
+          id="skills"
+          name="skills"
+          type="text"
+          value={values.skills}
+          class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+        />
+        <p class="mt-1 text-xs text-muted-foreground">comma separated, 255 characters max</p>
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium" for="description">CV text *</label>
+        <textarea
+          id="description"
+          name="description"
+          rows="10"
+          required
+          class="w-full rounded-xl border bg-background px-3 py-2 text-sm"
+        >{values.description}</textarea>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90">
+      {submitLabel}
+    </button>
+    <a class="rounded-xl border px-5 py-2.5 text-sm font-semibold hover:bg-secondary" href="/app/resumes/list">Cancel</a>
+  </div>
+</form>

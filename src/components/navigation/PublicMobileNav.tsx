@@ -102,7 +102,7 @@ export default function PublicMobileNav({ initialUserType = "guest" }: PublicMob
         <nav className="flex flex-col gap-1 px-4 pb-4 text-sm">
           {showPostResume ? (
             <SheetClose asChild>
-              <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/resumes">
+              <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/resumes/create">
                 Post a resume
               </a>
             </SheetClose>
@@ -142,7 +142,7 @@ export default function PublicMobileNav({ initialUserType = "guest" }: PublicMob
             <>
               {userType === "candidate" ? (
                 <SheetClose asChild>
-                  <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/resumes">
+                  <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/resumes/list">
                     My resumes
                   </a>
                 </SheetClose>

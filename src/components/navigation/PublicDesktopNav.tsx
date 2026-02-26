@@ -111,7 +111,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
     <>
       <nav className="hidden flex-wrap gap-2 text-sm md:ml-4 md:flex">
         {showPostResume ? (
-          <a className="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/resumes">
+          <a className="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/app/resumes/create">
             Post a resume
           </a>
         ) : null}
@@ -144,7 +144,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
             </summary>
             <div className="absolute right-0 z-50 mt-2 w-52 rounded-xl border border-primary-foreground/20 bg-primary p-2 shadow-lg">
               {userType === "candidate" ? (
-                <a className="block rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/resumes">
+                <a className="block rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/resumes/list">
                   My resumes
                 </a>
               ) : null}

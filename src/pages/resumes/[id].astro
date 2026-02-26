@@ -14,42 +14,44 @@ export const prerender = false;
 
 const idRaw = (Astro.params.id ?? "").trim();
 const parsedId = Number.parseInt(idRaw, 10);
-if (!Number.isFinite(parsedId) || parsedId <= 0) {
-  throw new Response("Not found", { status: 404 });
-}
+const invalidId = !Number.isFinite(parsedId) || parsedId <= 0;
 
 const session = await getAuth(Astro.locals).api.getSession({
   headers: Astro.request.headers,
 });
 if (!session?.session?.id || !session.user) {
-  return Astro.redirect(`/login?next=${encodeURIComponent(`/resumes/${parsedId}`)}`, 302);
-}
-
-const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);
-if (viewerRole === "candidate") {
-  return Astro.redirect("/403", 302);
+  return Astro.redirect(`/login?next=${encodeURIComponent(Astro.url.pathname)}`, 302);
 }
 
 const db = getRequestDb(Astro.locals);
-const rows = await db
-  .select()
-  .from(resumes)
-  .leftJoin(authUsers, eq(resumes.userId, authUsers.id))
-  .leftJoin(categories, eq(resumes.categoryId, categories.id))
-  .leftJoin(countries, eq(resumes.countryId, countries.id))
-  .leftJoin(contracts, eq(resumes.contractCode, contracts.code))
-  .where(eq(resumes.id, parsedId))
-  .limit(1);
+const rows = invalidId
+  ? []
+  : await db
+      .select()
+      .from(resumes)
+      .leftJoin(authUsers, eq(resumes.userId, authUsers.id))
+      .leftJoin(categories, eq(resumes.categoryId, categories.id))
+      .leftJoin(countries, eq(resumes.countryId, countries.id))
+      .leftJoin(contracts, eq(resumes.contractCode, contracts.code))
+      .where(eq(resumes.id, parsedId))
+      .limit(1);
 
-if (rows.length === 0) {
-  throw new Response("Not found", { status: 404 });
+const notFound = rows.length === 0;
+if (notFound) {
+  Astro.response.status = 404;
 }
 
-const resume = rows[0].resumes;
-const user = rows[0].auth_users;
-const category = rows[0].categories;
-const country = rows[0].countries;
-const contract = rows[0].contracts;
+const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);
+const isOwner = !notFound && String(rows[0].resumes.userId) === String(session.user.id);
+if (viewerRole === "candidate" && !isOwner) {
+  return Astro.redirect("/403", 302);
+}
+
+const resume = rows[0]?.resumes ?? null;
+const user = rows[0]?.auth_users ?? null;
+const category = rows[0]?.categories ?? null;
+const country = rows[0]?.countries ?? null;
+const contract = rows[0]?.contracts ?? null;
 
 function formatSalary(min: number | null, currency: string | null, period: string | null): string | null {
   const hasMin = (min ?? 0) > 0;
@@ -77,8 +79,8 @@ function relativeDate(dateValue: string | null): string {
   return rtf.format(Math.round(deltaSeconds / 604800), "week");
 }
 
-const salary = formatSalary(resume.salaryMin, resume.currency, resume.salaryPeriod);
-const skills = (resume.skills ?? "")
+const salary = resume ? formatSalary(resume.salaryMin, resume.currency, resume.salaryPeriod) : null;
+const skills = ((resume?.skills ?? ""))
   .split(",")
   .map((value) => value.trim())
   .filter(Boolean);
@@ -91,79 +93,91 @@ const countryName = country?.name ?? "Unspecified";
 ---
 
 <PublicLayout
-  title={`${resume.position} (${resume.id})`}
-  description={`${resume.position} resume in ${categoryTitle}.`}
+  title={notFound ? "Resume not found" : `${resume?.position ?? "Resume"} (${resume?.id ?? parsedId})`}
+  description={notFound ? "Resume not found." : `${resume?.position ?? "Resume"} resume in ${categoryTitle}.`}
   socialImagePath={socialImages.resumes}
-  canonicalPath={`/resumes/${resume.id}`}
+  canonicalPath={Astro.url.pathname}
   robots="noindex,nofollow"
   noAds
   jsonLd={{
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    name: `${resume.position} (${resume.id})`,
-    description: `${resume.position} resume in ${categoryTitle}.`,
+    name: notFound ? "Resume not found" : `${resume?.position ?? "Resume"} (${resume?.id ?? parsedId})`,
+    description: notFound ? "Resume not found." : `${resume?.position ?? "Resume"} resume in ${categoryTitle}.`,
   }}
 >
-  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
-    <nav class="mb-4 text-sm text-muted-foreground">
-      <a class="hover:underline" href="/resumes">Candidates Search</a>
-      <span class="mx-2">-&gt;</span>
-      <span>{resume.position}</span>
-    </nav>
+  {
+    notFound ? (
+      <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+        <h1 class="text-4xl font-semibold tracking-tight">Resume not found</h1>
+        <p class="mt-3 text-sm text-red-700">Resume not found. Please use candidate search to find available profiles.</p>
+        <a class="mt-4 inline-flex rounded-full border px-4 py-2 text-sm font-medium hover:bg-secondary" href="/resumes">Candidates Search</a>
+      </section>
+    ) : (
+      <>
+        <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+          <nav class="mb-4 text-sm text-muted-foreground">
+            <a class="hover:underline" href="/resumes">Candidates Search</a>
+            <span class="mx-2">-&gt;</span>
+            <span>{resume?.position}</span>
+          </nav>
 
-    <div class="flex flex-wrap items-start gap-4">
-      {
-        candidateImage ? (
-          <img
-            src={candidateImage}
-            alt=""
-            class="h-20 w-20 rounded-full border object-cover"
-            loading="lazy"
-          />
-        ) : null
-      }
-      <div class="min-w-[260px] flex-1">
-        <h1 class="text-4xl font-semibold tracking-tight">{resume.position}</h1>
-        {candidateName ? <p class="mt-2 text-sm text-muted-foreground">{candidateName}</p> : null}
-        <div class="mt-3 flex flex-wrap gap-2 text-xs">
-          <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">
-            {contract?.title ?? "Contract not specified"}
-          </Badge>
-          {salary ? <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">{salary}</Badge> : null}
-        </div>
-      </div>
-    </div>
+          <div class="flex flex-wrap items-start gap-4">
+            {
+              candidateImage ? (
+                <img
+                  src={candidateImage}
+                  alt=""
+                  class="h-20 w-20 rounded-full border object-cover"
+                  loading="lazy"
+                />
+              ) : null
+            }
+            <div class="min-w-[260px] flex-1">
+              <h1 class="text-4xl font-semibold tracking-tight">{resume?.position}</h1>
+              {candidateName ? <p class="mt-2 text-sm text-muted-foreground">{candidateName}</p> : null}
+              <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">
+                  {contract?.title ?? "Contract not specified"}
+                </Badge>
+                {salary ? <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">{salary}</Badge> : null}
+              </div>
+            </div>
+          </div>
 
-    <div class="mt-5 flex flex-wrap gap-2 text-xs">
-      <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
-        Posted: {relativeDate(resume.updatedAt)}
-      </Badge>
-      <Badge className="bg-slate-200 text-slate-900 hover:bg-slate-200">{categoryTitle}</Badge>
-      <Badge className="bg-teal-100 text-teal-900 hover:bg-teal-100">{countryName}</Badge>
-    </div>
+          <div class="mt-5 flex flex-wrap gap-2 text-xs">
+            <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+              Posted: {relativeDate(resume?.updatedAt ?? null)}
+            </Badge>
+            <Badge className="bg-slate-200 text-slate-900 hover:bg-slate-200">{categoryTitle}</Badge>
+            <Badge className="bg-teal-100 text-teal-900 hover:bg-teal-100">{countryName}</Badge>
+          </div>
 
-    <article class="prose prose-sm mt-5 max-w-none" set:html={formatDescriptionHtml(resume.description)} />
+          <article class="prose prose-sm mt-5 max-w-none" set:html={formatDescriptionHtml(resume?.description ?? "")} />
 
-    {
-      skills.length > 0 ? (
-        <div class="mt-4 flex flex-wrap gap-2">
-          {skills.map((skill) => <span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium">{skill}</span>)}
-        </div>
-      ) : null
-    }
-  </section>
+          {
+            skills.length > 0 ? (
+              <div class="mt-4 flex flex-wrap gap-2">
+                {skills.map((skill) => <span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium">{skill}</span>)}
+              </div>
+            ) : null
+          }
+        </section>
 
-  <section class="glass-panel mt-4 rounded-3xl border p-6 shadow-sm md:p-8">
-    <h2 class="text-2xl font-semibold tracking-tight">Resume contact data</h2>
-    {candidateName ? <p class="mt-3 text-sm"><strong>Name:</strong> {candidateName}</p> : null}
-    {candidateEmail ? (
-      <p class="mt-2 text-sm">
-        <strong>Email:</strong> <a class="text-blue-600 underline" href={`mailto:${candidateEmail}`}>{candidateEmail}</a>
-      </p>
-    ) : null}
-    {candidatePhone ? <p class="mt-2 text-sm"><strong>Phone:</strong> {candidatePhone}</p> : null}
-    <a class="mt-5 inline-flex rounded-full bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900" href="/app/jobs/create">
-      Post a job
-    </a>
-  </section>
+        <section class="glass-panel mt-4 rounded-3xl border p-6 shadow-sm md:p-8">
+          <h2 class="text-2xl font-semibold tracking-tight">Resume contact data</h2>
+          {candidateName ? <p class="mt-3 text-sm"><strong>Name:</strong> {candidateName}</p> : null}
+          {candidateEmail ? (
+            <p class="mt-2 text-sm">
+              <strong>Email:</strong> <a class="text-blue-600 underline" href={`mailto:${candidateEmail}`}>{candidateEmail}</a>
+            </p>
+          ) : null}
+          {candidatePhone ? <p class="mt-2 text-sm"><strong>Phone:</strong> {candidatePhone}</p> : null}
+          <a class="mt-5 inline-flex rounded-full bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900" href="/app/jobs/create">
+            Post a job
+          </a>
+        </section>
+      </>
+    )
+  }
 </PublicLayout>

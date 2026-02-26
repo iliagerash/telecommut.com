@@ -1,0 +1,78 @@
+---
+import { asc, eq } from "drizzle-orm";
+
+import { getAuth } from "@/auth";
+import ResumeEditorForm from "@/components/resumes/ResumeEditorForm.astro";
+import { getRequestDb } from "@/db/request";
+import { authUsers, categories, contracts, countries } from "@/db/schema";
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
+
+export const prerender = false;
+
+const session = await getAuth(Astro.locals).api.getSession({ headers: Astro.request.headers });
+if (!session?.session?.id || !session.user?.id) {
+  return Astro.redirect("/login?next=/app/resumes/create", 302);
+}
+
+if (resolveNormalizedUserRoleFromRecord(session.user) === "employer") {
+  return Astro.redirect("/403", 302);
+}
+
+const db = getRequestDb(Astro.locals);
+const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, String(session.user.id))).limit(1);
+const [categoryRowsRaw, countryRowsRaw, contractRowsRaw] = await Promise.all([
+  db.select().from(categories).orderBy(asc(categories.title)),
+  db.select().from(countries).orderBy(asc(countries.weight), asc(countries.name)),
+  db.select().from(contracts).orderBy(asc(contracts.id)),
+]);
+
+const categoryRows = categoryRowsRaw.map((row) => ({ id: row.id, label: row.title }));
+const countryRows = countryRowsRaw.map((row) => ({ id: row.id, label: row.name }));
+const contractRows = contractRowsRaw.map((row) => ({ value: row.code, label: row.title }));
+
+const preferredCurrencyOrder = ["USD", "CAD", "EUR", "GBP"];
+const allCurrencies = Array.from(new Set(countryRowsRaw.map((item) => (item.currency ?? "").trim().toUpperCase()).filter(Boolean))).sort();
+const majorCurrencies = preferredCurrencyOrder.filter((code) => allCurrencies.includes(code));
+const otherCurrencies = allCurrencies.filter((code) => !preferredCurrencyOrder.includes(code));
+const currencies = [...majorCurrencies, ...otherCurrencies];
+const hasCurrencySeparator = majorCurrencies.length > 0 && otherCurrencies.length > 0;
+
+const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
+const successText = (Astro.url.searchParams.get("success") ?? "").trim();
+const profileImage = String(profileUser?.image ?? session.user.image ?? "").trim();
+---
+
+<PublicLayout title="Create Resume" description="Create your resume profile." robots="noindex,nofollow" noAds={true}>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <h1 class="text-3xl font-semibold tracking-tight">Create Resume</h1>
+    <ResumeEditorForm
+      action="/api/resumes/create"
+      submitLabel="Update"
+      returnTo="/app/resumes/list"
+      profileName={profileUser?.candidateName ?? ""}
+      profileEmail={session.user.email ?? ""}
+      profilePhone={profileUser?.candidatePhone ?? ""}
+      profileImage={profileImage}
+      currencies={currencies.length > 0 ? currencies : ["USD"]}
+      categories={categoryRows}
+      countries={countryRows}
+      contracts={contractRows}
+      hasCurrencySeparator={hasCurrencySeparator}
+      majorCurrencyCount={majorCurrencies.length}
+      errorText={errorText}
+      successText={successText}
+      values={{
+        position: "",
+        categoryId: "",
+        countryId: "",
+        salaryMin: "",
+        salaryPeriod: "hour",
+        currency: currencies[0] ?? "USD",
+        contractCode: contractRows[0]?.value ?? "full_time",
+        skills: "",
+        description: "",
+      }}
+    />
+  </section>
+</PublicLayout>
