@@ -1,0 +1,431 @@
+---
+import { and, desc, eq } from "drizzle-orm";
+
+import { getAuth } from "@/auth";
+import { getRequestDb } from "@/db/request";
+import { authUsers, categories, contracts, countries, countryGroups, jobRemovals, jobs } from "@/db/schema";
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import { toAbsoluteUrl } from "@/lib/seo";
+import { socialImages } from "@/lib/social-images";
+import { evaluateJobHttpSemantics, type JobState } from "@/services/crawler/http-semantics";
+import { Badge } from "@/components/ui/badge";
+
+export const prerender = false;
+
+const idRaw = (Astro.params.id ?? "").trim();
+const parsedId = Number.parseInt(idRaw, 10);
+if (!Number.isFinite(parsedId) || parsedId <= 0) {
+  throw new Response("Not found", { status: 404 });
+}
+
+const db = getRequestDb(Astro.locals);
+const [countryGroupRows, session] = await Promise.all([
+  db.select().from(countryGroups),
+  getAuth(Astro.locals).api.getSession({ headers: Astro.request.headers }).catch(() => null),
+]);
+const countryGroupNameById = new Map(countryGroupRows.map((row) => [String(row.id), row.name]));
+const isAuthenticated = Boolean(session?.session?.id);
+
+function stripHtml(value: string | null): string {
+  if (!value) return "";
+  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function excerpt(value: string | null, maxWords = 40): string {
+  const words = stripHtml(value).split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) {
+    return words.join(" ");
+  }
+  return `${words.slice(0, maxWords).join(" ")}...`;
+}
+
+function formatSalary(min: number | null, max: number | null, currency: string | null, period: string | null): string | null {
+  const hasMin = (min ?? 0) > 0;
+  const hasMax = (max ?? 0) > 0;
+  if (!hasMin && !hasMax) return null;
+
+  const formatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  const parts: string[] = [];
+  if (hasMin) parts.push(formatter.format(min ?? 0));
+  if (hasMax) {
+    if (parts.length > 0) parts.push("-");
+    parts.push(formatter.format(max ?? 0));
+  }
+
+  const suffix = currency && period ? ` ${currency} / ${period}` : "";
+  return `${parts.join(" ")}${suffix}`;
+}
+
+function resolveHiringFrom(countryGroupsValue: string | null, countryName: string | null): string {
+  const normalized = (countryGroupsValue ?? "").trim();
+  if (!normalized || normalized === "0") {
+    return countryName?.trim() || "Worldwide";
+  }
+
+  const labels = normalized
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .filter((value) => value !== "0")
+    .map((key) => countryGroupNameById.get(key))
+    .filter((value): value is string => Boolean(value));
+
+  return labels.length > 0 ? labels.join(", ") : countryName?.trim() || "Worldwide";
+}
+
+function relativeDate(dateValue: string | null): string {
+  if (!dateValue) return "Recently";
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "Recently";
+
+  const deltaSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+  const abs = Math.abs(deltaSeconds);
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+  if (abs < 60) return rtf.format(Math.round(deltaSeconds), "second");
+  if (abs < 3600) return rtf.format(Math.round(deltaSeconds / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(deltaSeconds / 3600), "hour");
+  if (abs < 604800) return rtf.format(Math.round(deltaSeconds / 86400), "day");
+  return rtf.format(Math.round(deltaSeconds / 604800), "week");
+}
+
+function parseDate(value: string | null): Date {
+  if (!value) return new Date();
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return new Date();
+  return parsed;
+}
+
+const row = await db
+  .select()
+  .from(jobs)
+  .leftJoin(categories, eq(jobs.categoryId, categories.id))
+  .leftJoin(countries, eq(jobs.countryId, countries.id))
+  .leftJoin(contracts, eq(jobs.contractCode, contracts.code))
+  .leftJoin(authUsers, eq(jobs.userId, authUsers.id))
+  .where(eq(jobs.id, parsedId))
+  .limit(1);
+
+let notFoundStatus: 404 | 410 = 404;
+let detail:
+  | null
+  | {
+      id: number;
+      position: string;
+      companyName: string;
+      salaryMin: number | null;
+      salaryMax: number | null;
+      currency: string | null;
+      salaryPeriod: string | null;
+      description: string;
+      applyText: string;
+      url: string | null;
+      skills: string | null;
+      countryGroups: string | null;
+      updatedAt: string | null;
+      expires: string | null;
+      status: number;
+      contractTitle: string | null;
+      contractCode: string | null;
+      categoryTitle: string | null;
+      categorySlug: string | null;
+      countryName: string | null;
+      ownerEmail: string | null;
+      ownerPhone: string | null;
+    } = null;
+
+if (row.length === 0) {
+  const removal = await db.select().from(jobRemovals).where(eq(jobRemovals.id, parsedId)).limit(1);
+  if (removal.length > 0) {
+    notFoundStatus = 410;
+  }
+} else {
+  const job = row[0].jobs;
+  detail = {
+    id: job.id,
+    position: job.position,
+    companyName: job.companyName,
+    salaryMin: job.salaryMin,
+    salaryMax: job.salaryMax,
+    currency: job.currency,
+    salaryPeriod: job.salaryPeriod,
+    description: job.description,
+    applyText: job.applyText,
+    url: job.url,
+    skills: job.skills,
+    countryGroups: job.countryGroups,
+    updatedAt: job.updatedAt,
+    expires: job.expires,
+    status: job.status,
+    contractTitle: row[0].contracts?.title ?? null,
+    contractCode: job.contractCode ?? null,
+    categoryTitle: row[0].categories?.title ?? null,
+    categorySlug: row[0].categories?.slug ?? null,
+    countryName: row[0].countries?.name ?? null,
+    ownerEmail: row[0].auth_users?.email ?? null,
+    ownerPhone: row[0].auth_users?.companyPhone ?? row[0].auth_users?.candidatePhone ?? null,
+  };
+}
+
+if (!detail) {
+  if (notFoundStatus === 410) {
+    const semantics = evaluateJobHttpSemantics(
+      {
+        id: String(parsedId),
+        state: "removed",
+        updatedAt: new Date(),
+      },
+      Astro.request,
+    );
+
+    Astro.response.status = 410;
+    Astro.response.headers.set("etag", semantics.etag);
+    Astro.response.headers.set("last-modified", semantics.lastModified);
+    Astro.response.headers.set("cache-control", semantics.cacheControl);
+    Astro.response.headers.set("x-robots-tag", semantics.robots);
+  } else {
+    throw new Response("Not found", { status: 404 });
+  }
+}
+
+const isExpired = detail
+  ? ((detail.status ?? 0) !== 1 || parseDate(detail.expires).getTime() < Date.now())
+  : true;
+
+const state: JobState = detail ? (isExpired ? "expired" : "active") : "removed";
+const semantics = evaluateJobHttpSemantics(
+  {
+    id: String(parsedId),
+    state,
+    updatedAt: detail ? parseDate(detail.updatedAt) : new Date(),
+  },
+  Astro.request,
+);
+
+Astro.response.status = semantics.status;
+Astro.response.headers.set("etag", semantics.etag);
+Astro.response.headers.set("last-modified", semantics.lastModified);
+Astro.response.headers.set("cache-control", semantics.cacheControl);
+Astro.response.headers.set("x-robots-tag", semantics.robots);
+Astro.response.headers.set("x-telecommut-job-state", state);
+
+const pageTitle = !detail || state !== "active" ? "Job No Longer Available" : `${detail.position} (${detail.id})`;
+const pageDescription = !detail || state !== "active"
+  ? "This job was removed or expired."
+  : `${detail.position} remote job in ${detail.categoryTitle ?? "General"} category.`;
+const robots = !detail || state !== "active" ? "noindex,nofollow" : "index,follow";
+const canonicalPath = `/jobs/${encodeURIComponent(String(parsedId))}`;
+
+let applyHtml = "";
+if (detail) {
+  applyHtml = (detail.applyText ?? "").trim();
+  if (!applyHtml) {
+    if ((detail.url ?? "").trim()) {
+      const href = (detail.url ?? "").trim();
+      applyHtml = `<a href="${href}" target="_blank" rel="noopener noreferrer">${href}</a>`;
+    } else if ((detail.ownerEmail ?? "").trim()) {
+      const email = (detail.ownerEmail ?? "").trim();
+      const phone = (detail.ownerPhone ?? "").trim();
+      applyHtml = `Email: <a href="mailto:${email}">${email}</a>${phone ? `<br />Phone: ${phone}` : ""}`;
+    } else {
+      applyHtml = "Please contact the employer for application details.";
+    }
+  }
+}
+
+const relatedRows = detail
+  ? await db
+      .select()
+      .from(jobs)
+      .leftJoin(countries, eq(jobs.countryId, countries.id))
+      .leftJoin(contracts, eq(jobs.contractCode, contracts.code))
+      .where(and(eq(jobs.status, 1), eq(jobs.categoryId, detail.id ? row[0].jobs.categoryId : 0)))
+      .orderBy(desc(jobs.id))
+      .limit(12)
+  : [];
+
+const relatedJobs = relatedRows
+  .map((item) => ({
+    id: item.jobs.id,
+    position: item.jobs.position,
+    companyName: item.jobs.companyName,
+    description: excerpt(item.jobs.description),
+    salary: formatSalary(item.jobs.salaryMin, item.jobs.salaryMax, item.jobs.currency, item.jobs.salaryPeriod),
+    contractTitle: item.contracts?.title ?? "Contract not specified",
+    hiringFrom: resolveHiringFrom(item.jobs.countryGroups, item.countries?.name ?? null),
+    updatedAt: relativeDate(item.jobs.updatedAt),
+  }))
+  .filter((item) => item.id !== parsedId)
+  .slice(0, 4);
+
+const jsonLd = detail && state === "active"
+  ? {
+      "@context": "https://schema.org",
+      "@type": "JobPosting",
+      title: detail.position,
+      description: stripHtml(detail.description),
+      datePosted: parseDate(detail.updatedAt).toISOString(),
+      validThrough: parseDate(detail.expires).toISOString(),
+      employmentType: (detail.contractCode ?? "").toUpperCase(),
+      jobLocationType: "TELECOMMUTE",
+      hiringOrganization: {
+        "@type": "Organization",
+        name: detail.companyName,
+      },
+      identifier: {
+        "@type": "PropertyValue",
+        name: "telecommut.com",
+        value: String(detail.id),
+      },
+      baseSalary: ((detail.salaryMin ?? 0) > 0 || (detail.salaryMax ?? 0) > 0)
+        ? {
+            "@type": "MonetaryAmount",
+            currency: detail.currency,
+            value: {
+              "@type": "QuantitativeValue",
+              minValue: detail.salaryMin ?? 0,
+              maxValue: detail.salaryMax ?? 0,
+              unitText: (detail.salaryPeriod ?? "").toUpperCase(),
+            },
+          }
+        : undefined,
+    }
+  : {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Job No Longer Available",
+      url: toAbsoluteUrl(canonicalPath),
+      description: pageDescription,
+    };
+---
+
+<PublicLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalPath={canonicalPath}
+  socialImagePath={socialImages.jobs}
+  robots={robots}
+  noAds
+  jsonLd={jsonLd}
+>
+  {
+    !detail || state !== "active" ? (
+      <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+        <h1 class="text-4xl font-semibold tracking-tight">Job No Longer Available</h1>
+        <p class="mt-3 text-sm text-red-700">
+          This job is expired. Please use the search form to find active jobs or submit your resume.
+        </p>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <a class="rounded-full border px-4 py-2 text-sm font-medium hover:bg-secondary" href="/search/jobs">Browse active jobs</a>
+          <a class="rounded-full border px-4 py-2 text-sm font-medium hover:bg-secondary" href="/resumes/create">Post a resume</a>
+        </div>
+      </section>
+    ) : (
+      <>
+        <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+          <nav class="mb-4 text-sm text-muted-foreground">
+            <a class="hover:underline" href="/">Home</a>
+            <span class="mx-2">-&gt;</span>
+            {
+              detail.categoryTitle ? (
+                detail.categorySlug ? (
+                  <a class="hover:underline" href={`/category/${encodeURIComponent(detail.categorySlug)}`}>{detail.categoryTitle}</a>
+                ) : (
+                  <span>{detail.categoryTitle}</span>
+                )
+              ) : (
+                <span>Uncategorized</span>
+              )
+            }
+            <span class="mx-2">-&gt;</span>
+            <span>{detail.position}</span>
+          </nav>
+          <h1 class="text-4xl font-semibold tracking-tight">{detail.position}</h1>
+          <p class="mt-2 text-sm text-muted-foreground">{detail.companyName || "Unknown company"}</p>
+
+          <div class="mt-4 flex flex-wrap gap-2 text-xs">
+            <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">
+              {detail.contractTitle || "Contract not specified"}
+            </Badge>
+            {
+              formatSalary(detail.salaryMin, detail.salaryMax, detail.currency, detail.salaryPeriod) ? (
+                <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">
+                  {formatSalary(detail.salaryMin, detail.salaryMax, detail.currency, detail.salaryPeriod)}
+                </Badge>
+              ) : null
+            }
+            <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+              Posted: {relativeDate(detail.updatedAt)}
+            </Badge>
+            <Badge className="bg-slate-200 text-slate-900 hover:bg-slate-200">
+              {detail.categoryTitle || "Uncategorized"}
+            </Badge>
+          </div>
+
+          <p class="mt-3 text-sm text-muted-foreground">
+            Hiring from: {resolveHiringFrom(detail.countryGroups, detail.countryName)}
+          </p>
+
+          <article class="prose prose-sm mt-5 max-w-none" set:html={detail.description} />
+
+          {
+            detail.skills ? (
+              <div class="mt-4 flex flex-wrap gap-2">
+                {detail.skills.split(",").map((skill) => skill.trim()).filter(Boolean).map((skill) => (
+                  <span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium">{skill}</span>
+                ))}
+              </div>
+            ) : null
+          }
+        </section>
+
+        <section class="glass-panel mt-4 rounded-3xl border p-6 shadow-sm">
+          <h2 class="text-2xl font-semibold tracking-tight">How to apply</h2>
+          {
+            isAuthenticated ? (
+              <p class="mt-3 text-sm text-muted-foreground [&_a]:text-blue-600 [&_a]:underline" set:html={applyHtml} />
+            ) : (
+              <p class="mt-3 text-sm text-red-700">
+                To apply for this job you need to <a class="text-blue-600 underline" href="/login">login</a>. If you don&apos;t have an account yet, please{" "}
+                <a class="text-blue-600 underline" href="/register">register</a>.
+              </p>
+            )
+          }
+          <a
+            class="mt-4 inline-flex rounded-full bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900"
+            href="/resumes/create"
+          >
+            Post a resume
+          </a>
+        </section>
+
+        {
+          relatedJobs.length > 0 ? (
+            <section class="mt-6">
+              <h2 class="text-2xl font-semibold tracking-tight">Similar jobs</h2>
+              <div class="mt-4 space-y-4">
+                {
+                  relatedJobs.map((job) => (
+                    <article class="glass-panel rounded-2xl border p-5 shadow-sm">
+                      <a class="text-2xl font-semibold tracking-tight hover:underline" href={`/jobs/${job.id}`}>
+                        {job.position}
+                      </a>
+                      <p class="mt-1 text-sm text-muted-foreground">{job.companyName || "Unknown company"}</p>
+                      <p class="mt-4 text-sm text-muted-foreground">{job.description}</p>
+                      <div class="mt-5 flex flex-wrap gap-2 text-xs">
+                        <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">{job.contractTitle}</Badge>
+                        {job.salary ? <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">{job.salary}</Badge> : null}
+                        <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Posted: {job.updatedAt}</Badge>
+                        <Badge className="bg-teal-100 text-teal-900 hover:bg-teal-100">Hiring from: {job.hiringFrom}</Badge>
+                      </div>
+                    </article>
+                  ))
+                }
+              </div>
+            </section>
+          ) : null
+        }
+      </>
+    )
+  }
+</PublicLayout>
