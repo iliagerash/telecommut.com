@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "deploy": "wrangler deploy --config wrangler.jsonc --keep-vars",
     "preview": "astro preview",
     "astro": "astro",
     "typecheck": "astro check",
