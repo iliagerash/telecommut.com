@@ -1,12 +1,26 @@
 ---
 import { asc } from "drizzle-orm";
 
+import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { categories, countries } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { socialImages } from "@/lib/social-images";
+import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
+
+const session = await getAuth(Astro.locals).api.getSession({
+  headers: Astro.request.headers,
+});
+if (!session?.session?.id || !session.user) {
+  return Astro.redirect("/login?next=/resumes", 302);
+}
+
+const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);
+if (viewerRole === "candidate") {
+  return Astro.redirect("/403", 302);
+}
 
 const db = getRequestDb(Astro.locals);
 

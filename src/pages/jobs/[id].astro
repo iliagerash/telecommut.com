@@ -5,6 +5,7 @@ import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { authUsers, categories, contracts, countries, countryGroups, jobRemovals, jobs } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
+import { formatDescriptionHtml } from "@/lib/description";
 import { toAbsoluteUrl } from "@/lib/seo";
 import { socialImages } from "@/lib/social-images";
 import { evaluateJobHttpSemantics, type JobState } from "@/services/crawler/http-semantics";
@@ -366,7 +367,7 @@ const jsonLd = detail && state === "active"
             Hiring from: {resolveHiringFrom(detail.countryGroups, detail.countryName)}
           </p>
 
-          <article class="prose prose-sm mt-5 max-w-none" set:html={detail.description} />
+          <article class="prose prose-sm mt-5 max-w-none" set:html={formatDescriptionHtml(detail.description)} />
 
           {
             detail.skills ? (
