@@ -12,6 +12,9 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      cors: true,
+    },
     ssr: {
       external: [
         "node:crypto",

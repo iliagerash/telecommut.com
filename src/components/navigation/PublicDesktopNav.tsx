@@ -18,9 +18,13 @@ type AuthSessionPayload = {
   user?: AuthSessionUser | null;
 };
 
-export default function PublicDesktopNav() {
-  const [userType, setUserType] = useState<HeaderUserType>("guest");
-  const [isReady, setIsReady] = useState(false);
+type PublicDesktopNavProps = {
+  initialUserType?: HeaderUserType;
+};
+
+export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDesktopNavProps) {
+  const [userType, setUserType] = useState<HeaderUserType>(initialUserType);
+  const [isReady, setIsReady] = useState(initialUserType !== "guest");
   const [loginHref, setLoginHref] = useState("/login");
   const profileMenuRef = useRef<HTMLDetailsElement | null>(null);
 
@@ -39,7 +43,7 @@ export default function PublicDesktopNav() {
 
         if (!response.ok) {
           if (!cancelled) {
-            setUserType("guest");
+            setUserType(initialUserType);
           }
           return;
         }
@@ -50,7 +54,7 @@ export default function PublicDesktopNav() {
         }
       } catch {
         if (!cancelled) {
-          setUserType("guest");
+          setUserType(initialUserType);
         }
       } finally {
         if (!cancelled) {
@@ -64,7 +68,7 @@ export default function PublicDesktopNav() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialUserType]);
 
   useEffect(() => {
     const next = `${window.location.pathname}${window.location.search}`;
@@ -136,7 +140,7 @@ export default function PublicDesktopNav() {
         ) : (
           <details ref={profileMenuRef} className="group relative">
             <summary className="list-none cursor-pointer rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10">
-              My profile
+              Account
             </summary>
             <div className="absolute right-0 z-50 mt-2 w-52 rounded-xl border border-primary-foreground/20 bg-primary p-2 shadow-lg">
               {userType === "candidate" ? (
@@ -155,7 +159,7 @@ export default function PublicDesktopNav() {
                 </a>
               ) : null}
               <a className="block rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/profile">
-                Edit my profile
+                My profile
               </a>
               <button
                 type="button"

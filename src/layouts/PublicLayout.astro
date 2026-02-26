@@ -3,6 +3,9 @@ import "../styles/global.css";
 import AdBottom from "@/components/ads/AdBottom.astro";
 import PublicDesktopNav from "@/components/navigation/PublicDesktopNav";
 import PublicMobileNav from "@/components/navigation/PublicMobileNav";
+import { getAuth } from "@/auth";
+import { normalizeHeaderUserType } from "@/components/navigation/public-nav";
+import type { HeaderUserType } from "@/components/navigation/public-nav";
 import { serializeJsonLd, toAbsoluteUrl } from "@/lib/seo";
 
 interface Props {
@@ -39,6 +42,15 @@ const socialImageHref = toAbsoluteUrl(socialImagePath);
 const showAds = ["1", "true", "yes", "on"].includes(
   String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
 );
+let initialUserType: HeaderUserType = "guest";
+try {
+  const session = await getAuth(Astro.locals).api.getSession({
+    headers: Astro.request.headers,
+  });
+  initialUserType = normalizeHeaderUserType(session?.user ?? null);
+} catch {
+  initialUserType = "guest";
+}
 ---
 
 <html lang="en">
@@ -95,9 +107,9 @@ const showAds = ["1", "true", "yes", "on"].includes(
             <img src="/brand/logo-mark.svg" alt="" width="26" height="26" loading="eager" />
             Telecommut
           </a>
-          <PublicDesktopNav client:load />
+          <PublicDesktopNav client:load initialUserType={initialUserType} />
           <div class="ml-auto md:hidden">
-            <PublicMobileNav client:load />
+            <PublicMobileNav client:load initialUserType={initialUserType} />
           </div>
         </div>
       </header>
