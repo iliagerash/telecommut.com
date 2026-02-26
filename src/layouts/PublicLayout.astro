@@ -43,13 +43,15 @@ const showAds = ["1", "true", "yes", "on"].includes(
   String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
 );
 let initialUserType: HeaderUserType = "guest";
-try {
-  const session = await getAuth(Astro.locals).api.getSession({
-    headers: Astro.request.headers,
-  });
-  initialUserType = normalizeHeaderUserType(session?.user ?? null);
-} catch {
-  initialUserType = "guest";
+if (!Astro.isPrerendered) {
+  try {
+    const session = await getAuth(Astro.locals).api.getSession({
+      headers: Astro.request.headers,
+    });
+    initialUserType = normalizeHeaderUserType(session?.user ?? null);
+  } catch {
+    initialUserType = "guest";
+  }
 }
 ---
 
