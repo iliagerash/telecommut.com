@@ -9,19 +9,40 @@ import {
   verifyEmailTemplate,
 } from "@/services/mail";
 
-function requiredEnv(name: string): string {
-  const value = import.meta.env[name];
+type RuntimeEnv = Record<string, unknown> | undefined;
+
+function readEnv(name: string, runtimeEnv?: RuntimeEnv): string | undefined {
+  const runtimeValue = runtimeEnv?.[name];
+  if (typeof runtimeValue === "string" && runtimeValue.trim() !== "") {
+    return runtimeValue.trim();
+  }
+
+  const importMetaValue = import.meta.env[name];
+  if (typeof importMetaValue === "string" && importMetaValue.trim() !== "") {
+    return importMetaValue.trim();
+  }
+
+  const processValue = process.env[name];
+  if (typeof processValue === "string" && processValue.trim() !== "") {
+    return processValue.trim();
+  }
+
+  return undefined;
+}
+
+function requiredEnv(name: string, runtimeEnv?: RuntimeEnv): string {
+  const value = readEnv(name, runtimeEnv);
   if (!value || value.trim() === "") {
     throw new Error(`Missing required env var: ${name}`);
   }
 
-  return value;
+  return value.trim();
 }
 
-function parseTrustedOrigins(): string[] {
-  const configured = import.meta.env.BETTER_AUTH_TRUSTED_ORIGINS;
+function parseTrustedOrigins(runtimeEnv?: RuntimeEnv): string[] {
+  const configured = readEnv("BETTER_AUTH_TRUSTED_ORIGINS", runtimeEnv);
   if (!configured || configured.trim() === "") {
-    return [requiredEnv("BETTER_AUTH_URL")];
+    return [requiredEnv("BETTER_AUTH_URL", runtimeEnv)];
   }
 
   return configured
@@ -30,8 +51,8 @@ function parseTrustedOrigins(): string[] {
     .filter(Boolean);
 }
 
-function parseBooleanEnv(name: string, defaultValue: boolean): boolean {
-  const value = import.meta.env[name];
+function parseBooleanEnv(name: string, defaultValue: boolean, runtimeEnv?: RuntimeEnv): boolean {
+  const value = readEnv(name, runtimeEnv);
   if (!value || value.trim() === "") {
     return defaultValue;
   }
@@ -39,8 +60,8 @@ function parseBooleanEnv(name: string, defaultValue: boolean): boolean {
   return value.trim().toLowerCase() === "true";
 }
 
-function parsePositiveIntEnv(name: string, defaultValue: number): number {
-  const value = import.meta.env[name];
+function parsePositiveIntEnv(name: string, defaultValue: number, runtimeEnv?: RuntimeEnv): number {
+  const value = readEnv(name, runtimeEnv);
   if (!value || value.trim() === "") {
     return defaultValue;
   }
@@ -53,19 +74,21 @@ function parsePositiveIntEnv(name: string, defaultValue: number): number {
   return parsed;
 }
 
-export function createAuth(options: { db?: ReturnType<typeof getDb> } = {}) {
+export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: RuntimeEnv } = {}) {
+  const runtimeEnv = options.env;
   const appName = "Telecommut";
   const requireEmailVerification = parseBooleanEnv(
     "BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION",
     true,
+    runtimeEnv,
   );
   const db = options.db ?? getDb();
 
   return betterAuth({
     appName,
-    baseURL: requiredEnv("BETTER_AUTH_URL"),
-    secret: requiredEnv("BETTER_AUTH_SECRET"),
-    trustedOrigins: parseTrustedOrigins(),
+    baseURL: requiredEnv("BETTER_AUTH_URL", runtimeEnv),
+    secret: requiredEnv("BETTER_AUTH_SECRET", runtimeEnv),
+    trustedOrigins: parseTrustedOrigins(runtimeEnv),
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema,
@@ -93,7 +116,7 @@ export function createAuth(options: { db?: ReturnType<typeof getDb> } = {}) {
     emailVerification: {
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
-      expiresIn: parsePositiveIntEnv("BETTER_AUTH_VERIFY_TOKEN_TTL_SECONDS", 3600),
+      expiresIn: parsePositiveIntEnv("BETTER_AUTH_VERIFY_TOKEN_TTL_SECONDS", 3600, runtimeEnv),
       sendVerificationEmail: async ({ user, url }) => {
         const template = verifyEmailTemplate({
           appName,
@@ -106,7 +129,7 @@ export function createAuth(options: { db?: ReturnType<typeof getDb> } = {}) {
           subject: template.subject,
           text: template.text,
           html: template.html,
-        });
+        }, { env: runtimeEnv });
       },
     },
     emailAndPassword: {
@@ -117,6 +140,7 @@ export function createAuth(options: { db?: ReturnType<typeof getDb> } = {}) {
       resetPasswordTokenExpiresIn: parsePositiveIntEnv(
         "BETTER_AUTH_RESET_TOKEN_TTL_SECONDS",
         3600,
+        runtimeEnv,
       ),
       sendResetPassword: async ({ user, url }) => {
         const template = resetPasswordTemplate({
@@ -130,7 +154,7 @@ export function createAuth(options: { db?: ReturnType<typeof getDb> } = {}) {
           subject: template.subject,
           text: template.text,
           html: template.html,
-        });
+        }, { env: runtimeEnv });
       },
     },
   });

@@ -6,6 +6,7 @@ type MailgunConfig = {
   from: string;
   region: "us" | "eu";
 };
+type RuntimeEnv = Record<string, unknown> | undefined;
 
 export type SendMailInput = {
   to: string;
@@ -15,17 +16,36 @@ export type SendMailInput = {
   replyTo?: string;
 };
 
-function requiredEnv(name: string): string {
-  const value = import.meta.env[name];
+function readEnv(name: string, runtimeEnv?: RuntimeEnv): string | undefined {
+  const runtimeValue = runtimeEnv?.[name];
+  if (typeof runtimeValue === "string" && runtimeValue.trim() !== "") {
+    return runtimeValue.trim();
+  }
+
+  const importMetaValue = import.meta.env[name];
+  if (typeof importMetaValue === "string" && importMetaValue.trim() !== "") {
+    return importMetaValue.trim();
+  }
+
+  const processValue = process.env[name];
+  if (typeof processValue === "string" && processValue.trim() !== "") {
+    return processValue.trim();
+  }
+
+  return undefined;
+}
+
+function requiredEnv(name: string, runtimeEnv?: RuntimeEnv): string {
+  const value = readEnv(name, runtimeEnv);
   if (!value || value.trim() === "") {
     throw new Error(`Missing required env var: ${name}`);
   }
 
-  return value;
+  return value.trim();
 }
 
-function parseMailgunRegion(): "us" | "eu" {
-  const rawRegion = import.meta.env.MAILGUN_REGION;
+function parseMailgunRegion(runtimeEnv?: RuntimeEnv): "us" | "eu" {
+  const rawRegion = readEnv("MAILGUN_REGION", runtimeEnv);
   if (!rawRegion || rawRegion.trim() === "") {
     return "us";
   }
@@ -38,17 +58,17 @@ function parseMailgunRegion(): "us" | "eu" {
   throw new Error("Invalid MAILGUN_REGION. Use 'us' or 'eu'.");
 }
 
-function getConfig(): MailgunConfig {
+function getConfig(runtimeEnv?: RuntimeEnv): MailgunConfig {
   return {
-    apiKey: requiredEnv("MAILGUN_API_KEY"),
-    domain: requiredEnv("MAILGUN_DOMAIN"),
-    from: requiredEnv("MAILGUN_FROM"),
-    region: parseMailgunRegion(),
+    apiKey: requiredEnv("MAILGUN_API_KEY", runtimeEnv),
+    domain: requiredEnv("MAILGUN_DOMAIN", runtimeEnv),
+    from: requiredEnv("MAILGUN_FROM", runtimeEnv),
+    region: parseMailgunRegion(runtimeEnv),
   };
 }
 
-export async function sendMailgunMessage(input: SendMailInput): Promise<void> {
-  const config = getConfig();
+export async function sendMailgunMessage(input: SendMailInput, options: { env?: RuntimeEnv } = {}): Promise<void> {
+  const config = getConfig(options.env);
   const apiHost = config.region === "eu" ? "api.eu.mailgun.net" : "api.mailgun.net";
   const endpoint = `https://${apiHost}/v3/${config.domain}/messages`;
 
