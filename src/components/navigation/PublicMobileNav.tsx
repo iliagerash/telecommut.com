@@ -111,7 +111,7 @@ export default function PublicMobileNav({ initialUserType = "guest" }: PublicMob
           {showEmployerLinks ? (
             <>
               <SheetClose asChild>
-                <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/search/jobs">
+                <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/jobs/create">
                   Post a job
                 </a>
               </SheetClose>
@@ -149,7 +149,7 @@ export default function PublicMobileNav({ initialUserType = "guest" }: PublicMob
               ) : null}
               {userType === "employer" ? (
                 <SheetClose asChild>
-                  <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/search/jobs">
+                  <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/jobs/list">
                     My jobs
                   </a>
                 </SheetClose>

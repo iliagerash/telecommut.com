@@ -117,7 +117,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
         ) : null}
         {showEmployerLinks ? (
           <>
-            <a className="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/search/jobs">
+            <a className="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/app/jobs/create">
               Post a job
             </a>
             <a className="rounded-full border border-primary-foreground/30 px-3 py-1.5 hover:bg-primary-foreground/10" href="/resumes">
@@ -149,7 +149,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
                 </a>
               ) : null}
               {userType === "employer" ? (
-                <a className="block rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/search/jobs">
+                <a className="block rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/app/jobs/list">
                   My jobs
                 </a>
               ) : null}

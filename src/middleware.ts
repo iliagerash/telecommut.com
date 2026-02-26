@@ -68,6 +68,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set("x-request-id", requestId);
     return response;
   } catch (error) {
+    if (error instanceof Response) {
+      error.headers.set("x-request-id", requestId);
+      return error;
+    }
+
     logError("request.failed", {
       requestId,
       method: context.request.method,

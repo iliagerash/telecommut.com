@@ -1,0 +1,113 @@
+---
+import { and, asc, eq } from "drizzle-orm";
+
+import { getAuth } from "@/auth";
+import JobEditorForm from "@/components/jobs/JobEditorForm.astro";
+import { getRequestDb } from "@/db/request";
+import { authUsers, categories, contracts, countries, countryGroups, jobs } from "@/db/schema";
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
+
+export const prerender = false;
+
+const session = await getAuth(Astro.locals).api.getSession({
+  headers: Astro.request.headers,
+});
+if (!session?.session?.id || !session.user?.id) {
+  return Astro.redirect(`/login?next=${encodeURIComponent(Astro.url.pathname)}`, 302);
+}
+
+const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);
+if (viewerRole === "candidate") {
+  return Astro.redirect("/403", 302);
+}
+
+const jobId = Number.parseInt(String(Astro.params.id ?? ""), 10);
+if (!Number.isFinite(jobId) || jobId <= 0) {
+  throw new Response("Not found", { status: 404 });
+}
+
+const db = getRequestDb(Astro.locals);
+const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, String(session.user.id))).limit(1);
+const [job] = await db
+  .select()
+  .from(jobs)
+  .where(and(eq(jobs.id, jobId), eq(jobs.userId, String(session.user.id))))
+  .limit(1);
+
+if (!job) {
+  throw new Response("Not found", { status: 404 });
+}
+
+const [categoryRowsRaw, countryRowsRaw, contractRowsRaw, countryGroupRowsRaw] = await Promise.all([
+  db.select().from(categories).orderBy(asc(categories.title)),
+  db.select().from(countries).orderBy(asc(countries.weight), asc(countries.name)),
+  db.select().from(contracts).orderBy(asc(contracts.id)),
+  db.select().from(countryGroups).orderBy(asc(countryGroups.weight), asc(countryGroups.id)),
+]);
+const categoryRows = categoryRowsRaw.map((row) => ({ id: row.id, label: row.title }));
+const countryRows = countryRowsRaw.map((row) => ({ id: row.id, label: row.name }));
+const contractRows = contractRowsRaw.map((row) => ({ value: row.code, label: row.title }));
+const countryGroupRows = countryGroupRowsRaw.map((row) => ({ id: row.id, label: row.name }));
+const preferredCurrencyOrder = ["USD", "CAD", "EUR", "GBP"];
+const allCurrencies = Array.from(new Set(countryRowsRaw.map((item) => (item.currency ?? "").trim().toUpperCase()).filter(Boolean))).sort();
+const majorCurrencies = preferredCurrencyOrder.filter((code) => allCurrencies.includes(code));
+const otherCurrencies = allCurrencies.filter((code) => !preferredCurrencyOrder.includes(code));
+const currencies = [...majorCurrencies, ...otherCurrencies];
+const hasCurrencySeparator = majorCurrencies.length > 0 && otherCurrencies.length > 0;
+
+const countryGroupsValue = (job.countryGroups ?? "").trim();
+const countryGroupIds = countryGroupsValue && countryGroupsValue !== "0"
+  ? countryGroupsValue.split(",").map((item) => item.trim()).filter(Boolean)
+  : [];
+const countryGroupsMode: "all" | "employer" | "regions" = countryGroupsValue === "0"
+  ? "employer"
+  : countryGroupIds.length > 0
+    ? "regions"
+    : "all";
+
+const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
+const successText = (Astro.url.searchParams.get("success") ?? "").trim();
+const userImage = String(profileUser?.image ?? session.user.image ?? "").trim();
+---
+
+<PublicLayout title="Edit Job" description="Edit your remote job post." robots="noindex,nofollow" noAds={true}>
+  <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
+    <h1 class="text-3xl font-semibold tracking-tight">Edit Job</h1>
+    <JobEditorForm
+      action="/api/jobs/update"
+      submitLabel="Update"
+      returnTo={`/app/jobs/edit/${job.id}`}
+      userEmail={session.user.email ?? ""}
+      userImage={userImage}
+      currencies={currencies.length > 0 ? currencies : ["USD"]}
+      hasCurrencySeparator={hasCurrencySeparator}
+      majorCurrencyCount={majorCurrencies.length}
+      categories={categoryRows}
+      countries={countryRows}
+      contracts={contractRows}
+      countryGroups={countryGroupRows}
+      errorText={errorText}
+      successText={successText}
+      hiddenFields={{
+        job_id: String(job.id),
+      }}
+      values={{
+        companyName: job.companyName ?? "",
+        position: job.position ?? "",
+        categoryId: String(job.categoryId),
+        countryId: String(job.countryId),
+        salaryMin: job.salaryMin > 0 ? String(job.salaryMin) : "",
+        salaryMax: job.salaryMax > 0 ? String(job.salaryMax) : "",
+        salaryPeriod: (job.salaryPeriod ?? "hour").toLowerCase(),
+        currency: (job.currency ?? currencies[0] ?? "USD").toUpperCase(),
+        contractCode: job.contractCode ?? contractRows[0]?.value ?? "full_time",
+        skills: job.skills ?? "",
+        description: job.description ?? "",
+        applyText: job.applyText ?? "",
+        countryGroupsMode,
+        countryGroupIds,
+      }}
+    />
+  </section>
+</PublicLayout>
