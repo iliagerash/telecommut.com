@@ -4,9 +4,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("admin page scaffolds", () => {
-  it("has dashboard and table routes", () => {
+  it("has table and ops routes", () => {
     const expectedFiles = [
-      "src/pages/admin/dashboard.astro",
       "src/pages/admin/jobs.astro",
       "src/pages/admin/resumes.astro",
       "src/pages/admin/users.astro",
