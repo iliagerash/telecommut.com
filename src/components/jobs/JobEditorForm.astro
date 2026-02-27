@@ -32,6 +32,7 @@ type Props = {
   returnTo: string;
   userEmail: string;
   userImage: string;
+  profileName?: string;
   currencies: string[];
   categories: Option[];
   countries: Option[];
@@ -51,6 +52,7 @@ const {
   returnTo,
   userEmail,
   userImage,
+  profileName = "",
   currencies,
   categories,
   countries,
@@ -83,33 +85,44 @@ const {
   <section class="rounded-2xl border bg-background p-4">
     <h2 class="text-lg font-semibold">Company data</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-[96px_1fr] md:items-center">
+    {
+      userImage ? (
+        <img
+          src={userImage}
+          alt=""
+          class="size-24 rounded-xl border object-cover"
+        />
+      ) : (
+        <div class="size-24 rounded-xl border bg-muted" aria-hidden="true"></div>
+      )
+    }
+    <div class="space-y-2 text-sm">
+      <p>
+        <strong>Name:</strong> {profileName ? profileName : "set one in Edit profile"}
+      </p>
+      <p class="text-sm">
+        Email: <a class="text-blue-700 underline" href={`mailto:${userEmail}`}>{userEmail}</a>
+      </p>
       {
-        userImage ? (
-          <img
-            src={userImage}
-            alt=""
-            class="size-24 rounded-xl border object-cover"
-          />
-        ) : (
-          <div class="size-24 rounded-xl border bg-muted" aria-hidden="true"></div>
+        userImage ? null : (
+          <p class="text-sm text-muted-foreground">
+            No profile image yet. Upload one in Edit profile.
+          </p>
         )
       }
-      <div class="space-y-3">
-        <p class="text-sm">
-          Email: <a class="text-blue-700 underline" href={`mailto:${userEmail}`}>{userEmail}</a>
-        </p>
-        <div>
-          <label class="mb-1 block text-sm font-medium" for="company_name">Company name *</label>
-          <input
-            id="company_name"
-            name="company_name"
-            type="text"
-            required
-            value={values.companyName}
-            class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
-          />
-        </div>
-      </div>
+      <a class="text-blue-600 underline" href="/app/profile">Edit profile</a>
+    </div>
+    </div>
+    <div class="mt-4">
+      <label class="mb-1 block text-sm font-medium" for="company_name">Company name *</label>
+      <input
+        id="company_name"
+        name="company_name"
+        type="text"
+        required
+        value={values.companyName}
+        class="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+      />
     </div>
   </section>
 

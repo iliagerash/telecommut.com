@@ -78,6 +78,7 @@ const userImage = String(profileUser?.image ?? session.user.image ?? "").trim();
       action="/api/jobs/update"
       submitLabel="Update"
       returnTo={`/app/jobs/edit/${job.id}`}
+      profileName={profileUser?.companyName ?? ""}
       userEmail={session.user.email ?? ""}
       userImage={userImage}
       currencies={currencies.length > 0 ? currencies : ["USD"]}

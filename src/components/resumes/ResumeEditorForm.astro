@@ -80,13 +80,22 @@ const {
       )
     }
     <div class="space-y-2 text-sm">
-      {profileName ? <p><strong>Name:</strong> {profileName}</p> : null}
+      <p>
+        <strong>Name:</strong> {profileName ? profileName : "set one in Edit profile"}
+      </p>
       {profileEmail ? (
         <p>
           <strong>Email:</strong> <a class="text-blue-600 underline" href={`mailto:${profileEmail}`}>{profileEmail}</a>
         </p>
       ) : null}
       {profilePhone ? <p><strong>Phone:</strong> {profilePhone}</p> : null}
+      {
+        profileImage ? null : (
+          <p class="text-sm text-muted-foreground">
+            No profile image yet. Upload one in Edit profile.
+          </p>
+        )
+      }
       <a class="text-blue-600 underline" href="/app/profile">Edit profile</a>
     </div>
   </div>
