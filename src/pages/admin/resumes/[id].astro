@@ -33,10 +33,10 @@ const owner = row.auth_users;
 const category = row.categories;
 const skills = (resume.skills ?? "").split(",").map((item) => item.trim()).filter(Boolean);
 
-function formatDate(value: string | null): string {
+function formatDate(value: Date | string | null): string {
   if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
   return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 }
 ---

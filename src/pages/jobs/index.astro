@@ -136,9 +136,9 @@ function formatSalary(min: number | null, max: number | null, currency: string |
   return `${parts.join(" ")}${unit}`;
 }
 
-function relativeDate(dateValue: string | null): string {
+function relativeDate(dateValue: Date | string | null): string {
   if (!dateValue) return "Recently";
-  const date = new Date(dateValue);
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
   if (Number.isNaN(date.getTime())) return "Recently";
 
   const deltaSeconds = Math.round((date.getTime() - Date.now()) / 1000);

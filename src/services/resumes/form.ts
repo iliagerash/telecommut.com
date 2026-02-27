@@ -112,8 +112,8 @@ export function parseResumeForm(formData: FormData): { payload: ResumeFormPayloa
   };
 }
 
-export function resumeNow(): string {
-  return new Date().toISOString().slice(0, 19).replace("T", " ");
+export function resumeNow(): Date {
+  return new Date();
 }
 
 export function resolveRelativeReturnTo(rawPath: string | null, fallbackPath: string): string {

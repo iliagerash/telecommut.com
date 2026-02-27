@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "e2f9aef3-6c5d-4607-9b47-07e7855a909e",
+  "id": "2a8d54e8-3984-4ad3-8378-5a483a8c75e9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "app_meta": {
@@ -30,7 +30,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -38,7 +38,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -405,7 +405,7 @@
         },
         "deleted_at": {
           "name": "deleted_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -433,7 +433,7 @@
         },
         "trial_ends_at": {
           "name": "trial_ends_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -591,14 +591,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -621,21 +621,21 @@
         },
         "crawled_at": {
           "name": "crawled_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "bing_crawled_at": {
           "name": "bing_crawled_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "submitted_at": {
           "name": "submitted_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -751,7 +751,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -796,14 +796,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -863,14 +863,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -923,14 +923,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1060,14 +1060,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1114,7 +1114,7 @@
         },
         "expired_at": {
           "name": "expired_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1245,14 +1245,14 @@
         },
         "published": {
           "name": "published",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "expires": {
           "name": "expires",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1305,7 +1305,7 @@
         },
         "google_crawled_at": {
           "name": "google_crawled_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1320,21 +1320,21 @@
         },
         "bing_crawled_at": {
           "name": "bing_crawled_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -1449,14 +1449,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -1517,21 +1517,21 @@
         },
         "crawled_at": {
           "name": "crawled_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "bing_crawled_at": {
           "name": "bing_crawled_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "submitted_at": {
           "name": "submitted_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1597,14 +1597,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1685,28 +1685,28 @@
         },
         "trial_ends_at": {
           "name": "trial_ends_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "ends_at": {
           "name": "ends_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

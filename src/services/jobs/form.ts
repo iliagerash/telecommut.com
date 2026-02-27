@@ -169,14 +169,14 @@ export function parseJobForm(formData: FormData): { payload: JobFormPayload | nu
   };
 }
 
-export function jobNow(): string {
-  return new Date().toISOString().slice(0, 19).replace("T", " ");
+export function jobNow(): Date {
+  return new Date();
 }
 
-export function jobExpiresInDays(days: number): string {
+export function jobExpiresInDays(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 19).replace("T", " ");
+  return date;
 }
 
 export function resolveRelativeReturnTo(rawPath: string | null, fallbackPath: string): string {

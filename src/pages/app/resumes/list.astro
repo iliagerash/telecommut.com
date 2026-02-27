@@ -63,9 +63,9 @@ function excerpt(input: string | null, maxWords = 40): string {
   return `${words.slice(0, maxWords).join(" ")}...`;
 }
 
-function relativeDate(dateValue: string | null): string {
+function relativeDate(dateValue: Date | string | null): string {
   if (!dateValue) return "Recently";
-  const date = new Date(dateValue);
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
   if (Number.isNaN(date.getTime())) return "Recently";
 
   const deltaSeconds = Math.round((date.getTime() - Date.now()) / 1000);

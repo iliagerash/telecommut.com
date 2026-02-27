@@ -2,8 +2,8 @@ CREATE TABLE `app_meta` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`key` varchar(191) NOT NULL,
 	`value` text NOT NULL,
-	`created_at` text NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` text NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`created_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT `app_meta_id` PRIMARY KEY(`id`),
 	CONSTRAINT `app_meta_key_unique` UNIQUE(`key`)
 );
@@ -58,11 +58,11 @@ CREATE TABLE `auth_users` (
 	`company_logo` text NOT NULL DEFAULT (''),
 	`subscribe` int NOT NULL DEFAULT 0,
 	`subscribe_partners` int NOT NULL DEFAULT 0,
-	`deleted_at` text,
+	`deleted_at` timestamp(0),
 	`stripe_id` text,
 	`pm_type` text,
 	`pm_last_four` text,
-	`trial_ends_at` text,
+	`trial_ends_at` timestamp(0),
 	`created_at` timestamp(0) NOT NULL,
 	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `auth_users_id` PRIMARY KEY(`id`),
@@ -87,13 +87,13 @@ CREATE TABLE `categories` (
 	`page_text` text NOT NULL DEFAULT (''),
 	`meta_title` text NOT NULL DEFAULT (''),
 	`icon` text NOT NULL DEFAULT ('fa-check-circle'),
-	`created_at` text NOT NULL,
-	`updated_at` text NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	`coverage_state` text NOT NULL DEFAULT (''),
 	`inspection_url` text NOT NULL DEFAULT (''),
-	`crawled_at` text,
-	`bing_crawled_at` text,
-	`submitted_at` text,
+	`crawled_at` timestamp(0),
+	`bing_crawled_at` timestamp(0),
+	`submitted_at` timestamp(0),
 	CONSTRAINT `categories_id` PRIMARY KEY(`id`),
 	CONSTRAINT `categories_slug_unique` UNIQUE(`slug`)
 );
@@ -111,7 +111,7 @@ CREATE TABLE `cloudflare_events` (
 	`user_agent` text,
 	`status` int,
 	`rule_id` text,
-	`created_at` text NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
 	CONSTRAINT `cloudflare_events_ray_name` PRIMARY KEY(`ray_name`)
 );
 --> statement-breakpoint
@@ -119,8 +119,8 @@ CREATE TABLE `contracts` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`code` text NOT NULL,
 	`title` text NOT NULL,
-	`created_at` text,
-	`updated_at` text,
+	`created_at` timestamp(0),
+	`updated_at` timestamp(0),
 	CONSTRAINT `contracts_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -130,8 +130,8 @@ CREATE TABLE `countries` (
 	`currency` text NOT NULL,
 	`code` text NOT NULL,
 	`weight` int NOT NULL DEFAULT 100,
-	`created_at` text NOT NULL,
-	`updated_at` text NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `countries_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -140,8 +140,8 @@ CREATE TABLE `country_groups` (
 	`name` text NOT NULL,
 	`countries` text NOT NULL,
 	`weight` int NOT NULL DEFAULT 100,
-	`created_at` text,
-	`updated_at` text,
+	`created_at` timestamp(0),
+	`updated_at` timestamp(0),
 	CONSTRAINT `country_groups_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -162,8 +162,8 @@ CREATE TABLE `job_logos` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`external_company_id` int NOT NULL,
 	`company_logo` text NOT NULL,
-	`created_at` text,
-	`updated_at` text,
+	`created_at` timestamp(0),
+	`updated_at` timestamp(0),
 	CONSTRAINT `job_logos_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -171,7 +171,7 @@ CREATE TABLE `job_removals` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`category_id` int NOT NULL DEFAULT 0,
 	`position` text NOT NULL DEFAULT (''),
-	`expired_at` text,
+	`expired_at` timestamp(0),
 	`indexed` int NOT NULL DEFAULT 0,
 	CONSTRAINT `job_removals_id` PRIMARY KEY(`id`)
 );
@@ -190,19 +190,19 @@ CREATE TABLE `jobs` (
 	`salary_max` double NOT NULL DEFAULT 0,
 	`currency` text NOT NULL DEFAULT ('USD'),
 	`salary_period` text NOT NULL DEFAULT ('hour'),
-	`published` text NOT NULL,
-	`expires` text,
+	`published` timestamp(0) NOT NULL,
+	`expires` timestamp(0),
 	`skills` text NOT NULL DEFAULT (''),
 	`description` text NOT NULL,
 	`apply_text` text NOT NULL,
 	`contract_code` text NOT NULL DEFAULT ('full_time'),
 	`status` int NOT NULL DEFAULT 1,
 	`google_crawled` int NOT NULL DEFAULT 0,
-	`google_crawled_at` text,
+	`google_crawled_at` timestamp(0),
 	`bing_crawled` int NOT NULL DEFAULT 0,
-	`bing_crawled_at` text,
-	`created_at` text NOT NULL,
-	`updated_at` text NOT NULL,
+	`bing_crawled_at` timestamp(0),
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `jobs_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -219,8 +219,8 @@ CREATE TABLE `resumes` (
 	`skills` text NOT NULL DEFAULT (''),
 	`contract_code` text NOT NULL DEFAULT ('full_time'),
 	`status` int NOT NULL DEFAULT 1,
-	`created_at` text NOT NULL,
-	`updated_at` text NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `resumes_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -230,9 +230,9 @@ CREATE TABLE `seo_pages` (
 	`title` text NOT NULL,
 	`coverage_state` text NOT NULL DEFAULT (''),
 	`inspection_url` text NOT NULL DEFAULT (''),
-	`crawled_at` text,
-	`bing_crawled_at` text,
-	`submitted_at` text,
+	`crawled_at` timestamp(0),
+	`bing_crawled_at` timestamp(0),
+	`submitted_at` timestamp(0),
 	CONSTRAINT `seo_pages_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
@@ -243,8 +243,8 @@ CREATE TABLE `subscription_items` (
 	`stripe_product` text NOT NULL,
 	`stripe_price` text NOT NULL,
 	`quantity` int,
-	`created_at` text,
-	`updated_at` text,
+	`created_at` timestamp(0),
+	`updated_at` timestamp(0),
 	CONSTRAINT `subscription_items_id` PRIMARY KEY(`id`),
 	CONSTRAINT `subscription_items_stripe_id_unique` UNIQUE(`stripe_id`)
 );
@@ -257,10 +257,10 @@ CREATE TABLE `subscriptions` (
 	`stripe_status` text NOT NULL,
 	`stripe_price` text,
 	`quantity` int,
-	`trial_ends_at` text,
-	`ends_at` text,
-	`created_at` text,
-	`updated_at` text,
+	`trial_ends_at` timestamp(0),
+	`ends_at` timestamp(0),
+	`created_at` timestamp(0),
+	`updated_at` timestamp(0),
 	CONSTRAINT `subscriptions_id` PRIMARY KEY(`id`),
 	CONSTRAINT `subscriptions_stripe_id_unique` UNIQUE(`stripe_id`)
 );

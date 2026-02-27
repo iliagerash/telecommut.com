@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const db = getRequestDb(locals);
   await db
     .update(jobs)
-    .set({ status: 1, updatedAt: new Date().toISOString() })
+    .set({ status: 1, updatedAt: new Date() })
     .where(inArray(jobs.id, ids));
 
   return new Response(null, {

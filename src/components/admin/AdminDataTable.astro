@@ -7,7 +7,7 @@ interface Column {
 interface Props {
   title: string;
   columns: Column[];
-  rows: Array<Record<string, string | number | null>>;
+  rows: Array<Record<string, string | number | Date | null>>;
   prevHref?: string;
   nextHref?: string;
 }

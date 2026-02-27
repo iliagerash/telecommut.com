@@ -66,7 +66,7 @@ export type ApplyModerationResult = {
   found: boolean;
   beforeStatus: number | null;
   afterStatus: number | null;
-  updatedAt: string | null;
+  updatedAt: Date | null;
   sideEffects: string[];
 };
 
@@ -93,7 +93,7 @@ export async function applyModerationAction(
 ): Promise<ApplyModerationResult> {
   const db = options.db ?? getDb();
   const decision = buildModerationDecision(action);
-  const now = new Date().toISOString();
+  const now = new Date();
 
   if (entity === "jobs") {
     const existing = await db

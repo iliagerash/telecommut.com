@@ -5,8 +5,8 @@ export const appMeta = mysqlTable("app_meta", {
   id: int("id").autoincrement().primaryKey(),
   key: varchar("key", { length: 191 }).notNull().unique(),
   value: text("value").notNull(),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const authUsers = mysqlTable(
@@ -30,11 +30,11 @@ export const authUsers = mysqlTable(
     companyLogo: text("company_logo").notNull().default(""),
     subscribe: int("subscribe").notNull().default(0),
     subscribePartners: int("subscribe_partners").notNull().default(0),
-    deletedAt: text("deleted_at"),
+    deletedAt: timestamp("deleted_at", { mode: "date", fsp: 0 }),
     stripeId: text("stripe_id"),
     pmType: text("pm_type"),
     pmLastFour: text("pm_last_four"),
-    trialEndsAt: text("trial_ends_at"),
+    trialEndsAt: timestamp("trial_ends_at", { mode: "date", fsp: 0 }),
     createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
   },
@@ -99,13 +99,13 @@ export const categories = mysqlTable("categories", {
   pageText: text("page_text").notNull().default(""),
   metaTitle: text("meta_title").notNull().default(""),
   icon: text("icon").notNull().default("fa-check-circle"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
   coverageState: text("coverage_state").notNull().default(""),
   inspectionUrl: text("inspection_url").notNull().default(""),
-  crawledAt: text("crawled_at"),
-  bingCrawledAt: text("bing_crawled_at"),
-  submittedAt: text("submitted_at"),
+  crawledAt: timestamp("crawled_at", { mode: "date", fsp: 0 }),
+  bingCrawledAt: timestamp("bing_crawled_at", { mode: "date", fsp: 0 }),
+  submittedAt: timestamp("submitted_at", { mode: "date", fsp: 0 }),
 }, (table) => [
   uniqueIndex("categories_slug_unique").on(table.slug),
 ]);
@@ -116,8 +116,8 @@ export const countries = mysqlTable("countries", {
   currency: text("currency").notNull(),
   code: text("code").notNull(),
   weight: int("weight").notNull().default(100),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
 });
 
 export const countryGroups = mysqlTable("country_groups", {
@@ -125,16 +125,16 @@ export const countryGroups = mysqlTable("country_groups", {
   name: text("name").notNull(),
   countries: text("countries").notNull(),
   weight: int("weight").notNull().default(100),
-  createdAt: text("created_at"),
-  updatedAt: text("updated_at"),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }),
 });
 
 export const contracts = mysqlTable("contracts", {
   id: int("id").autoincrement().primaryKey(),
   code: text("code").notNull(),
   title: text("title").notNull(),
-  createdAt: text("created_at"),
-  updatedAt: text("updated_at"),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }),
 });
 
 export const jobs = mysqlTable("jobs", {
@@ -151,19 +151,19 @@ export const jobs = mysqlTable("jobs", {
   salaryMax: double("salary_max").notNull().default(0),
   currency: text("currency").notNull().default("USD"),
   salaryPeriod: text("salary_period").notNull().default("hour"),
-  published: text("published").notNull(),
-  expires: text("expires"),
+  published: timestamp("published", { mode: "date", fsp: 0 }).notNull(),
+  expires: timestamp("expires", { mode: "date", fsp: 0 }),
   skills: text("skills").notNull().default(""),
   description: text("description").notNull(),
   applyText: text("apply_text").notNull(),
   contractCode: text("contract_code").notNull().default("full_time"),
   status: int("status").notNull().default(1),
   googleCrawled: int("google_crawled").notNull().default(0),
-  googleCrawledAt: text("google_crawled_at"),
+  googleCrawledAt: timestamp("google_crawled_at", { mode: "date", fsp: 0 }),
   bingCrawled: int("bing_crawled").notNull().default(0),
-  bingCrawledAt: text("bing_crawled_at"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  bingCrawledAt: timestamp("bing_crawled_at", { mode: "date", fsp: 0 }),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
 });
 
 export const resumes = mysqlTable("resumes", {
@@ -179,8 +179,8 @@ export const resumes = mysqlTable("resumes", {
   skills: text("skills").notNull().default(""),
   contractCode: text("contract_code").notNull().default("full_time"),
   status: int("status").notNull().default(1),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
 });
 
 export const seoPages = mysqlTable("seo_pages", {
@@ -189,16 +189,16 @@ export const seoPages = mysqlTable("seo_pages", {
   title: text("title").notNull(),
   coverageState: text("coverage_state").notNull().default(""),
   inspectionUrl: text("inspection_url").notNull().default(""),
-  crawledAt: text("crawled_at"),
-  bingCrawledAt: text("bing_crawled_at"),
-  submittedAt: text("submitted_at"),
+  crawledAt: timestamp("crawled_at", { mode: "date", fsp: 0 }),
+  bingCrawledAt: timestamp("bing_crawled_at", { mode: "date", fsp: 0 }),
+  submittedAt: timestamp("submitted_at", { mode: "date", fsp: 0 }),
 });
 
 export const jobRemovals = mysqlTable("job_removals", {
   id: int("id").autoincrement().primaryKey(),
   categoryId: int("category_id").notNull().default(0),
   position: text("position").notNull().default(""),
-  expiredAt: text("expired_at"),
+  expiredAt: timestamp("expired_at", { mode: "date", fsp: 0 }),
   indexed: int("indexed").notNull().default(0),
 });
 
@@ -206,8 +206,8 @@ export const jobLogos = mysqlTable("job_logos", {
   id: int("id").autoincrement().primaryKey(),
   externalCompanyId: int("external_company_id").notNull(),
   companyLogo: text("company_logo").notNull(),
-  createdAt: text("created_at"),
-  updatedAt: text("updated_at"),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }),
 });
 
 export const cloudflareEvents = mysqlTable("cloudflare_events", {
@@ -223,7 +223,7 @@ export const cloudflareEvents = mysqlTable("cloudflare_events", {
   userAgent: text("user_agent"),
   status: int("status"),
   ruleId: text("rule_id"),
-  createdAt: text("created_at").notNull(),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
 });
 
 export const directTraffic = mysqlTable(
@@ -253,10 +253,10 @@ export const subscriptions = mysqlTable(
     stripeStatus: text("stripe_status").notNull(),
     stripePrice: text("stripe_price"),
     quantity: int("quantity"),
-    trialEndsAt: text("trial_ends_at"),
-    endsAt: text("ends_at"),
-    createdAt: text("created_at"),
-    updatedAt: text("updated_at"),
+    trialEndsAt: timestamp("trial_ends_at", { mode: "date", fsp: 0 }),
+    endsAt: timestamp("ends_at", { mode: "date", fsp: 0 }),
+    createdAt: timestamp("created_at", { mode: "date", fsp: 0 }),
+    updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }),
   },
   (table) => [
     uniqueIndex("subscriptions_stripe_id_unique").on(table.stripeId),
@@ -272,8 +272,8 @@ export const subscriptionItems = mysqlTable(
     stripeProduct: text("stripe_product").notNull(),
     stripePrice: text("stripe_price").notNull(),
     quantity: int("quantity"),
-    createdAt: text("created_at"),
-    updatedAt: text("updated_at"),
+    createdAt: timestamp("created_at", { mode: "date", fsp: 0 }),
+    updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }),
   },
   (table) => [
     uniqueIndex("subscription_items_stripe_id_unique").on(table.stripeId),
