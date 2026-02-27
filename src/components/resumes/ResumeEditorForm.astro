@@ -1,4 +1,6 @@
 ---
+import RichTextField from "@/components/editor/RichTextField";
+
 type Option = {
   id: number;
   label: string;
@@ -219,13 +221,13 @@ const {
 
       <div>
         <label class="mb-1 block text-sm font-medium" for="description">CV text *</label>
-        <textarea
+        <RichTextField
+          client:load
           id="description"
           name="description"
-          rows="10"
-          required
-          class="w-full rounded-xl border bg-background px-3 py-2 text-sm"
-        >{values.description}</textarea>
+          initialValue={values.description}
+          required={true}
+        />
       </div>
     </div>
   </section>
