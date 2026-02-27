@@ -45,7 +45,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
           requiredRoles: allowedRoles,
         });
 
-        return context.redirect("/403", 302);
+        return context.redirect("/errors/403", 302);
       }
     }
 

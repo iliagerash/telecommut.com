@@ -17,7 +17,7 @@ if (!session?.session?.id || !session.user?.id) {
 }
 
 if (resolveNormalizedUserRoleFromRecord(session.user) === "employer") {
-  return Astro.redirect("/403", 302);
+  return Astro.redirect("/errors/403", 302);
 }
 
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 20);

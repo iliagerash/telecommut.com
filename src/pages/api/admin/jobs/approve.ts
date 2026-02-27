@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   if (resolveNormalizedUserRoleFromRecord(session.user) !== "admin") {
-    return new Response(null, { status: 302, headers: { location: "/403" } });
+    return new Response(null, { status: 302, headers: { location: "/errors/403" } });
   }
 
   const formData = await request.formData();

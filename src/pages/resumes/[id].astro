@@ -43,7 +43,7 @@ if (notFound) {
 const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);
 const isOwner = !notFound && rows[0].resumes.userId === Number(session.user.id);
 if (viewerRole === "candidate" && !isOwner) {
-  return Astro.redirect("/403", 302);
+  return Astro.redirect("/errors/403", 302);
 }
 
 const resume = rows[0]?.resumes ?? null;

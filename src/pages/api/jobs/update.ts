@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (resolveNormalizedUserRoleFromRecord(session.user) === "candidate") {
     return new Response(null, {
       status: 302,
-      headers: { location: "/403" },
+      headers: { location: "/errors/403" },
     });
   }
 
@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!existingJob) {
     return new Response(null, {
       status: 302,
-      headers: { location: "/404" },
+      headers: { location: "/errors/404" },
     });
   }
 

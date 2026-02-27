@@ -60,8 +60,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const roleFolder = storedRole === "candidate" ? "images/candidates" : "images/employers";
 
   const timestamp = Date.now();
-  const randomPart = crypto.randomUUID().replaceAll("-", "");
-  const key = `${roleFolder}/${userId}-${timestamp}-${randomPart}.${extension}`;
+  const key = `${roleFolder}/${userId}-${timestamp}.${extension}`;
   const filePath = resolveMediaFilePath(key);
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, Buffer.from(await file.arrayBuffer()));

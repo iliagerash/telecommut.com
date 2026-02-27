@@ -18,7 +18,7 @@ if (!session?.session?.id || !session.user) {
 
 const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);
 if (viewerRole === "candidate") {
-  return Astro.redirect("/403", 302);
+  return Astro.redirect("/errors/403", 302);
 }
 
 const db = getRequestDb(Astro.locals);
