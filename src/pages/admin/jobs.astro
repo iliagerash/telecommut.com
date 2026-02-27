@@ -1,49 +1,108 @@
 ---
-import { desc } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 
-import AdminDataTable from "@/components/admin/AdminDataTable.astro";
 import { getRequestDb } from "@/db/request";
-import { jobs } from "@/db/schema";
+import { authUsers, categories, jobs } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
 
 export const prerender = false;
 
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
-
 const db = getRequestDb(Astro.locals);
-const columns = [
-  { key: "id", label: "ID" },
-  { key: "position", label: "Position" },
-  { key: "status", label: "Status" },
-  { key: "updatedAt", label: "Updated" },
-];
-
 const rowsRaw = await db
   .select()
   .from(jobs)
-  .orderBy(desc(jobs.id))
+  .leftJoin(authUsers, eq(jobs.userId, authUsers.id))
+  .leftJoin(categories, eq(jobs.categoryId, categories.id))
+  .where(and(eq(jobs.status, 0), gt(jobs.userId, 1)))
+  .orderBy(desc(jobs.updatedAt), desc(jobs.id))
   .limit(pagination.pageSize + 1)
   .offset(pagination.offset);
 
 const hasNext = rowsRaw.length > pagination.pageSize;
-const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
-  id: row.id ?? "-",
-  position: row.position ?? "-",
-  status: row.status ?? "-",
-  updatedAt: row.updatedAt ?? "-",
-}));
-
+const rows = rowsRaw.slice(0, pagination.pageSize);
 const prevHref = pagination.page > 1 ? `/admin/jobs?page=${pagination.page - 1}` : undefined;
 const nextHref = hasNext ? `/admin/jobs?page=${pagination.page + 1}` : undefined;
+const successText = (Astro.url.searchParams.get("success") ?? "").trim();
+const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
 ---
 
-<AdminLayout title="Jobs" description="Admin jobs table scaffold.">
+<AdminLayout title="Jobs" description="Admin pending jobs queue.">
   <section class="mb-5">
     <h2 class="mt-2 text-3xl font-semibold tracking-tight">Jobs</h2>
-    <p class="mt-2 text-sm text-muted-foreground">
-      Review job lifecycle state, publication updates, and moderation-driven changes.
-    </p>
   </section>
-  <AdminDataTable title="Jobs" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+
+  {successText ? <p class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{successText}</p> : null}
+  {errorText ? <p class="mb-4 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{errorText}</p> : null}
+
+  <section class="glass-panel rounded-2xl border p-4 shadow-sm md:p-5">
+    <form id="jobs-approve-form" action="/api/admin/jobs/approve" method="POST"></form>
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <h3 class="text-xl font-semibold tracking-tight">Pending jobs</h3>
+      <button form="jobs-approve-form" type="submit" class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
+        Approve selected
+      </button>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border bg-card">
+      <table class="min-w-full text-sm">
+          <thead class="bg-muted/40">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium">#</th>
+              <th class="px-4 py-3 text-left font-medium">Date</th>
+              <th class="px-4 py-3 text-left font-medium">Position</th>
+              <th class="px-4 py-3 text-left font-medium">Company</th>
+              <th class="px-4 py-3 text-left font-medium">Category</th>
+              <th class="px-4 py-3 text-left font-medium">Ban</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rows.map((row) => (
+                <tr class="border-t hover:bg-muted/30">
+                  <td class="px-4 py-3 align-top">
+                    <label class="inline-flex items-center gap-2">
+                      <input form="jobs-approve-form" type="checkbox" name="job_ids" value={String(row.jobs.id)} />
+                      <span>{row.jobs.id}</span>
+                    </label>
+                  </td>
+                  <td class="px-4 py-3 align-top whitespace-nowrap">{row.jobs.updatedAt ?? "-"}</td>
+                  <td class="px-4 py-3 align-top">
+                    <a class="underline" href={`/admin/jobs/${row.jobs.id}`} target="_blank" rel="noreferrer">{row.jobs.position ?? "-"}</a>
+                  </td>
+                  <td class="px-4 py-3 align-top">
+                    <div class="flex items-center gap-2">
+                      {(row.auth_users?.image ?? "").trim() ? (
+                        <img src={row.auth_users?.image ?? ""} alt="" class="size-8 rounded-full border object-cover" />
+                      ) : null}
+                      <span>{row.jobs.companyName ?? "-"}</span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 align-top">{row.categories?.title ?? "-"}</td>
+                  <td class="px-4 py-3 align-top">
+                    <form action="/api/admin/users/ban" method="POST">
+                      <input type="hidden" name="user_id" value={row.jobs.userId} />
+                      <input type="hidden" name="return_to" value={Astro.url.pathname + Astro.url.search} />
+                      <button
+                        type="submit"
+                        class="text-red-700 underline"
+                        onclick="return window.confirm('Ban user and remove related data?');"
+                      >
+                        X
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+    </div>
+
+    <nav class="mt-4 flex items-center gap-3 text-sm">
+      {prevHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={prevHref}>Previous</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Previous</span>}
+      {nextHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={nextHref}>Next</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Next</span>}
+    </nav>
+  </section>
 </AdminLayout>

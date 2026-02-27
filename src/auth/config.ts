@@ -1,9 +1,9 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, generateId } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import bcrypt from "bcryptjs";
 
 import { getDb } from "@/db/runtime";
 import * as schema from "@/db/schema";
-import { createPasswordHasher } from "@/auth/password";
 import {
   resetPasswordTemplate,
   sendMailgunMessage,
@@ -78,9 +78,7 @@ function parsePositiveIntEnv(name: string, defaultValue: number, runtimeEnv?: Ru
 export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: RuntimeEnv } = {}) {
   const runtimeEnv = options.env;
   const appName = "Telecommut";
-  const passwordHasher = createPasswordHasher({
-    iterations: parsePositiveIntEnv("BETTER_AUTH_PASSWORD_ITERATIONS", 6000, runtimeEnv),
-  });
+  const bcryptRounds = parsePositiveIntEnv("BETTER_AUTH_BCRYPT_ROUNDS", 10, runtimeEnv);
   const requireEmailVerification = parseBooleanEnv(
     "BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION",
     true,
@@ -98,6 +96,12 @@ export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: Runti
       schema,
       camelCase: true,
     }),
+    advanced: {
+      database: {
+        generateId: ({ model, size }: { model: string; size?: number }) =>
+          model === "user" ? false : generateId(size),
+      },
+    },
     user: {
       modelName: "authUsers",
       additionalFields: {
@@ -142,8 +146,11 @@ export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: Runti
       minPasswordLength: 8,
       maxPasswordLength: 128,
       password: {
-        hash: passwordHasher.hash,
-        verify: passwordHasher.verify,
+        hash: async (password: string): Promise<string> => bcrypt.hash(password, bcryptRounds),
+        verify: async ({ hash, password }: { hash: string; password: string }): Promise<boolean> => {
+          const normalizedHash = hash.startsWith("$2y$") ? `$2b$${hash.slice(4)}` : hash;
+          return bcrypt.compare(password, normalizedHash);
+        },
       },
       resetPasswordTokenExpiresIn: parsePositiveIntEnv(
         "BETTER_AUTH_RESET_TOKEN_TTL_SECONDS",

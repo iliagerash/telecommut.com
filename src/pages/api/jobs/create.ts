@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const now = jobNow();
   await db.insert(jobs).values({
-    userId: String(session.user.id),
+    userId: Number(session.user.id),
     companyName: payload.companyName,
     position: payload.position,
     categoryId: payload.categoryId,

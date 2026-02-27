@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const updated = await db
     .update(resumes)
     .set({ updatedAt: resumeNow() })
-    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, String(session.user.id))))
+    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))))
     .returning();
   if (updated.length === 0) {
     return new Response(null, {

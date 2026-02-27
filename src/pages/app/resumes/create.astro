@@ -20,7 +20,7 @@ if (resolveNormalizedUserRoleFromRecord(session.user) === "employer") {
 }
 
 const db = getRequestDb(Astro.locals);
-const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, String(session.user.id))).limit(1);
+const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, Number(session.user.id))).limit(1);
 const [categoryRowsRaw, countryRowsRaw, contractRowsRaw] = await Promise.all([
   db.select().from(categories).orderBy(asc(categories.title)),
   db.select().from(countries).orderBy(asc(countries.weight), asc(countries.name)),

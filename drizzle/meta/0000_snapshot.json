@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e24a71c3-b3b5-428e-bd8a-de29a397eed4",
+  "id": "f790795b-454d-4d83-9f37-716252f3aa71",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "app_meta": {
@@ -71,7 +71,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -181,7 +181,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -248,7 +248,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
@@ -296,14 +296,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "password": {
-          "name": "password",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "''"
         },
         "remember_token": {
           "name": "remember_token",
@@ -1071,11 +1063,11 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'1'"
+          "default": 1
         },
         "category_id": {
           "name": "category_id",
@@ -1276,11 +1268,11 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'1'"
+          "default": 1
         },
         "category_id": {
           "name": "category_id",
@@ -1533,7 +1525,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false

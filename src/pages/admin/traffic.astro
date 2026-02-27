@@ -41,9 +41,6 @@ const nextHref = hasNext ? `/admin/traffic?page=${pagination.page + 1}` : undefi
 <AdminLayout title="Traffic" description="Admin traffic module scaffold.">
   <section class="mb-5">
     <h2 class="mt-2 text-3xl font-semibold tracking-tight">Traffic</h2>
-    <p class="mt-2 text-sm text-muted-foreground">
-      Inspect daily traffic snapshots and request-volume signals from the edge.
-    </p>
   </section>
   <AdminDataTable title="Traffic" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
 </AdminLayout>

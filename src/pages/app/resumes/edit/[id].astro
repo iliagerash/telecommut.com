@@ -25,11 +25,11 @@ if (!Number.isFinite(resumeId) || resumeId <= 0) {
 }
 
 const db = getRequestDb(Astro.locals);
-const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, String(session.user.id))).limit(1);
+const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, Number(session.user.id))).limit(1);
 const [resume] = await db
   .select()
   .from(resumes)
-  .where(and(eq(resumes.id, resumeId), eq(resumes.userId, String(session.user.id))))
+  .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))))
   .limit(1);
 if (!resume) {
   throw new Response("Not found", { status: 404 });

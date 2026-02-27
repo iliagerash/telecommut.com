@@ -28,11 +28,11 @@ if (!Number.isFinite(jobId) || jobId <= 0) {
 }
 
 const db = getRequestDb(Astro.locals);
-const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, String(session.user.id))).limit(1);
+const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, Number(session.user.id))).limit(1);
 const [job] = await db
   .select()
   .from(jobs)
-  .where(and(eq(jobs.id, jobId), eq(jobs.userId, String(session.user.id))))
+  .where(and(eq(jobs.id, jobId), eq(jobs.userId, Number(session.user.id))))
   .limit(1);
 
 if (!job) {

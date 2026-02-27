@@ -1,50 +1,97 @@
 ---
-import { desc } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 
-import AdminDataTable from "@/components/admin/AdminDataTable.astro";
 import { getRequestDb } from "@/db/request";
-import { authUsers } from "@/db/schema";
+import { authUsers, jobs } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
-import { resolveNormalizedUserRoleFromRoleColumn } from "@/services/users/role-adapter";
 
 export const prerender = false;
 
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
-
 const db = getRequestDb(Astro.locals);
-const columns = [
-  { key: "id", label: "ID" },
-  { key: "email", label: "Email" },
-  { key: "role", label: "Role" },
-  { key: "updatedAt", label: "Updated" },
-];
 
 const rowsRaw = await db
   .select()
   .from(authUsers)
-  .orderBy(desc(authUsers.createdAt))
+  .where(and(gt(authUsers.id, 2), eq(authUsers.role, "employer")))
+  .orderBy(desc(authUsers.updatedAt))
   .limit(pagination.pageSize + 1)
   .offset(pagination.offset);
 
 const hasNext = rowsRaw.length > pagination.pageSize;
-const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
-  id: row.id ?? "-",
-  email: row.email ?? "-",
-  role: resolveNormalizedUserRoleFromRoleColumn(row) ?? "-",
-  updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : "-",
-}));
-
+const rows = rowsRaw.slice(0, pagination.pageSize);
+const jobCounts = new Map<number, number>();
+await Promise.all(
+  rows.map(async (row) => {
+    const countRows = await db.select().from(jobs).where(eq(jobs.userId, row.id));
+    jobCounts.set(row.id, countRows.length);
+  }),
+);
 const prevHref = pagination.page > 1 ? `/admin/users?page=${pagination.page - 1}` : undefined;
 const nextHref = hasNext ? `/admin/users?page=${pagination.page + 1}` : undefined;
+const successText = (Astro.url.searchParams.get("success") ?? "").trim();
+const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
 ---
 
-<AdminLayout title="Users" description="Admin users table scaffold.">
+<AdminLayout title="Employers" description="Admin employers table.">
   <section class="mb-5">
-    <h2 class="mt-2 text-3xl font-semibold tracking-tight">Users</h2>
-    <p class="mt-2 text-sm text-muted-foreground">
-      Role-normalized user records with latest account updates and audit-ready pagination.
-    </p>
+    <h2 class="mt-2 text-3xl font-semibold tracking-tight">Employers</h2>
   </section>
-  <AdminDataTable title="Users" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+
+  {successText ? <p class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{successText}</p> : null}
+  {errorText ? <p class="mb-4 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{errorText}</p> : null}
+
+  <section class="glass-panel rounded-2xl border p-4 shadow-sm md:p-5">
+    <div class="overflow-x-auto rounded-xl border bg-card">
+      <table class="min-w-full text-sm">
+        <thead class="bg-muted/40">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium">#</th>
+            <th class="px-4 py-3 text-left font-medium">Date</th>
+            <th class="px-4 py-3 text-left font-medium">Email</th>
+            <th class="px-4 py-3 text-left font-medium">Company</th>
+            <th class="px-4 py-3 text-left font-medium">Jobs</th>
+            <th class="px-4 py-3 text-left font-medium">Ban</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((row) => (
+              <tr class="border-t hover:bg-muted/30">
+                <td class="px-4 py-3 align-top">{row.id}</td>
+                <td class="px-4 py-3 align-top whitespace-nowrap">{String(row.updatedAt ?? "-")}</td>
+                <td class="px-4 py-3 align-top">{row.email ?? "-"}</td>
+                <td class="px-4 py-3 align-top">
+                  <div class="flex items-center gap-2">
+                    {(row.image ?? "").trim() ? <img src={row.image ?? ""} alt="" class="size-8 rounded-full border object-cover" /> : null}
+                    <span>{row.companyName ?? "-"}</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 align-top">{jobCounts.get(row.id) ?? 0}</td>
+                <td class="px-4 py-3 align-top">
+                  <form action="/api/admin/users/ban" method="POST">
+                    <input type="hidden" name="user_id" value={row.id} />
+                    <input type="hidden" name="return_to" value={Astro.url.pathname + Astro.url.search} />
+                    <button
+                      type="submit"
+                      class="text-red-700 underline"
+                      onclick="return window.confirm('Ban user and remove related data?');"
+                    >
+                      X
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="mt-4 flex items-center gap-3 text-sm">
+      {prevHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={prevHref}>Previous</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Previous</span>}
+      {nextHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={nextHref}>Next</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Next</span>}
+    </nav>
+  </section>
 </AdminLayout>

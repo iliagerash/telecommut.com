@@ -132,9 +132,9 @@ let detail:
       categoryTitle: string | null;
       categorySlug: string | null;
       countryName: string | null;
-      ownerEmail: string | null;
-      ownerPhone: string | null;
-      ownerUserId: string;
+    ownerEmail: string | null;
+    ownerPhone: string | null;
+    ownerUserId: number;
     } = null;
 
 if (row.length === 0) {
@@ -178,7 +178,7 @@ const isMissingNotFound = !detail && notFoundStatus === 404;
 const isExpiredByDate = detail ? parseDate(detail.expires).getTime() < Date.now() : true;
 const isPubliclyActive = detail ? (detail.status ?? 0) === 1 && !isExpiredByDate : false;
 const viewerRole = resolveNormalizedUserRoleFromRecord(session?.user);
-const isOwner = Boolean(detail && session?.user?.id && String(session.user.id) === detail.ownerUserId);
+const isOwner = Boolean(detail && session?.user?.id && Number(session.user.id) === detail.ownerUserId);
 const isAdmin = viewerRole === "admin";
 const canViewPendingAsOwner = Boolean(detail && (detail.status ?? 0) !== 1 && !isExpiredByDate && (isOwner || isAdmin));
 const canViewDetail = Boolean(detail && (isPubliclyActive || canViewPendingAsOwner));

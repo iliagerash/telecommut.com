@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  const userId = String(session.user.id);
+  const userId = Number(session.user.id);
   const email = String(session.user.email ?? "").trim().toLowerCase();
   const db = getRequestDb(locals);
   const runtimeEnv = (locals as RuntimeLocals).runtime?.env;

@@ -27,7 +27,7 @@ const rows = await db
   .from(resumes)
   .leftJoin(categories, eq(resumes.categoryId, categories.id))
   .leftJoin(authUsers, eq(resumes.userId, authUsers.id))
-  .where(and(eq(resumes.userId, String(session.user.id))))
+  .where(and(eq(resumes.userId, Number(session.user.id))))
   .orderBy(desc(resumes.updatedAt), desc(resumes.id))
   .limit(pagination.pageSize + 1)
   .offset(pagination.offset);

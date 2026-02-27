@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const [existingResume] = await db
     .select()
     .from(resumes)
-    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, String(session.user.id))))
+    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))))
     .limit(1);
   if (!existingResume) {
     return new Response(null, {
@@ -85,7 +85,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       description: payload.description,
       updatedAt: resumeNow(),
     })
-    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, String(session.user.id))));
+    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))));
 
   return new Response(null, {
     status: 303,

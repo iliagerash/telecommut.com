@@ -29,7 +29,7 @@ const rows = await db
   .select()
   .from(jobs)
   .leftJoin(categories, eq(jobs.categoryId, categories.id))
-  .where(and(eq(jobs.userId, String(session.user.id))))
+  .where(and(eq(jobs.userId, Number(session.user.id))))
   .orderBy(desc(jobs.updatedAt), desc(jobs.id))
   .limit(pagination.pageSize + 1)
   .offset(pagination.offset);

@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  const userId = String(session.user.id);
+  const userId = Number(session.user.id);
   const db = getRequestDb(locals);
   const [existingUser] = await db.select().from(authUsers).where(eq(authUsers.id, userId)).limit(1);
 

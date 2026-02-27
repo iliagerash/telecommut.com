@@ -9,7 +9,7 @@ CREATE TABLE `app_meta` (
 CREATE UNIQUE INDEX `app_meta_key_unique` ON `app_meta` (`key`);--> statement-breakpoint
 CREATE TABLE `auth_accounts` (
 	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
+	`user_id` integer NOT NULL,
 	`account_id` text NOT NULL,
 	`provider_id` text NOT NULL,
 	`access_token` text,
@@ -26,7 +26,7 @@ CREATE TABLE `auth_accounts` (
 CREATE UNIQUE INDEX `auth_accounts_provider_account_unique` ON `auth_accounts` (`provider_id`,`account_id`);--> statement-breakpoint
 CREATE TABLE `auth_sessions` (
 	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
+	`user_id` integer NOT NULL,
 	`token` text NOT NULL,
 	`expires_at` integer NOT NULL,
 	`ip_address` text,
@@ -37,14 +37,13 @@ CREATE TABLE `auth_sessions` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `auth_sessions_token_unique` ON `auth_sessions` (`token`);--> statement-breakpoint
 CREATE TABLE `auth_users` (
-	`id` text PRIMARY KEY NOT NULL,
+	`id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`email` text NOT NULL,
 	`role` text DEFAULT 'candidate' NOT NULL,
 	`email_verified` integer DEFAULT false NOT NULL,
 	`email_verified_at` text,
 	`image` text,
-	`password` text DEFAULT '' NOT NULL,
 	`remember_token` text,
 	`candidate_name` text DEFAULT '' NOT NULL,
 	`candidate_phone` text DEFAULT '' NOT NULL,
@@ -166,7 +165,7 @@ CREATE TABLE `job_removals` (
 --> statement-breakpoint
 CREATE TABLE `jobs` (
 	`id` integer PRIMARY KEY NOT NULL,
-	`user_id` text DEFAULT '1' NOT NULL,
+	`user_id` integer DEFAULT 1 NOT NULL,
 	`category_id` integer NOT NULL,
 	`country_id` integer NOT NULL,
 	`country_groups` text DEFAULT '' NOT NULL,
@@ -195,7 +194,7 @@ CREATE TABLE `jobs` (
 --> statement-breakpoint
 CREATE TABLE `resumes` (
 	`id` integer PRIMARY KEY NOT NULL,
-	`user_id` text DEFAULT '1' NOT NULL,
+	`user_id` integer DEFAULT 1 NOT NULL,
 	`category_id` integer NOT NULL,
 	`country_id` integer NOT NULL,
 	`position` text NOT NULL,
@@ -235,7 +234,7 @@ CREATE TABLE `subscription_items` (
 CREATE UNIQUE INDEX `subscription_items_stripe_id_unique` ON `subscription_items` (`stripe_id`);--> statement-breakpoint
 CREATE TABLE `subscriptions` (
 	`id` integer PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
+	`user_id` integer NOT NULL,
 	`type` text NOT NULL,
 	`stripe_id` text NOT NULL,
 	`stripe_status` text NOT NULL,

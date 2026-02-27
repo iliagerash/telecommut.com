@@ -19,15 +19,16 @@ if (!session?.session?.id || !session.user) {
 
 const user = session.user;
 const db = getRequestDb(Astro.locals);
-const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, user.id)).limit(1);
+const sessionUserId = Number(user.id);
+const [profileUser] = await db.select().from(authUsers).where(eq(authUsers.id, sessionUserId)).limit(1);
 const storedRoleRaw = String(profileUser?.role ?? user.role ?? "candidate").trim().toLowerCase();
 const storedRole = storedRoleRaw === "admin" || storedRoleRaw === "employer" || storedRoleRaw === "candidate"
   ? storedRoleRaw
   : "candidate";
 const editableRole = storedRole === "employer" ? "employer" : "candidate";
 const [existingJob, existingResume] = await Promise.all([
-  db.select().from(jobs).where(eq(jobs.userId, user.id)).limit(1),
-  db.select().from(resumes).where(eq(resumes.userId, user.id)).limit(1),
+  db.select().from(jobs).where(eq(jobs.userId, sessionUserId)).limit(1),
+  db.select().from(resumes).where(eq(resumes.userId, sessionUserId)).limit(1),
 ]);
 const canChangeRole = storedRole === "candidate"
   ? existingResume.length === 0

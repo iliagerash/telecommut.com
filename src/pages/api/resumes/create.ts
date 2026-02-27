@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const now = resumeNow();
   await db.insert(resumes).values({
-    userId: String(session.user.id),
+    userId: Number(session.user.id),
     position: payload.position,
     categoryId: payload.categoryId,
     countryId: payload.countryId,

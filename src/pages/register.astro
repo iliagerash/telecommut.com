@@ -121,11 +121,6 @@ import { socialImages } from "@/lib/social-images";
       else status.classList.add("text-muted-foreground");
     }
 
-    function deriveName(email) {
-      const local = email.split("@")[0] ?? "";
-      return local.trim() || "User";
-    }
-
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!submit || !status || !(form instanceof HTMLFormElement)) return;
@@ -166,7 +161,7 @@ import { socialImages } from "@/lib/social-images";
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            name: deriveName(email),
+            name: email,
             email,
             password,
             role: role === "employer" ? "employer" : "candidate",

@@ -1,49 +1,99 @@
 ---
-import { desc } from "drizzle-orm";
+import { desc, eq, gt } from "drizzle-orm";
 
-import AdminDataTable from "@/components/admin/AdminDataTable.astro";
 import { getRequestDb } from "@/db/request";
-import { resumes } from "@/db/schema";
+import { authUsers, categories, resumes } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/admin/AdminLayout.astro";
 
 export const prerender = false;
 
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
-
 const db = getRequestDb(Astro.locals);
-const columns = [
-  { key: "id", label: "ID" },
-  { key: "position", label: "Position" },
-  { key: "visibility", label: "Visibility" },
-  { key: "updatedAt", label: "Updated" },
-];
-
 const rowsRaw = await db
   .select()
   .from(resumes)
-  .orderBy(desc(resumes.id))
+  .leftJoin(authUsers, eq(resumes.userId, authUsers.id))
+  .leftJoin(categories, eq(resumes.categoryId, categories.id))
+  .where(gt(resumes.userId, 1))
+  .orderBy(desc(resumes.updatedAt), desc(resumes.id))
   .limit(pagination.pageSize + 1)
   .offset(pagination.offset);
 
 const hasNext = rowsRaw.length > pagination.pageSize;
-const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
-  id: row.id ?? "-",
-  position: row.position ?? "-",
-  visibility: row.status === 1 ? "visible" : "hidden",
-  updatedAt: row.updatedAt ?? "-",
-}));
-
+const rows = rowsRaw.slice(0, pagination.pageSize);
 const prevHref = pagination.page > 1 ? `/admin/resumes?page=${pagination.page - 1}` : undefined;
 const nextHref = hasNext ? `/admin/resumes?page=${pagination.page + 1}` : undefined;
+const successText = (Astro.url.searchParams.get("success") ?? "").trim();
+const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
 ---
 
-<AdminLayout title="Resumes" description="Admin resumes table scaffold.">
+<AdminLayout title="Resumes" description="Admin resumes table.">
   <section class="mb-5">
     <h2 class="mt-2 text-3xl font-semibold tracking-tight">Resumes</h2>
-    <p class="mt-2 text-sm text-muted-foreground">
-      Track resume visibility and content freshness across profile updates.
-    </p>
   </section>
-  <AdminDataTable title="Resumes" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+
+  {successText ? <p class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{successText}</p> : null}
+  {errorText ? <p class="mb-4 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{errorText}</p> : null}
+
+  <section class="glass-panel rounded-2xl border p-4 shadow-sm md:p-5">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <h3 class="text-xl font-semibold tracking-tight">All resumes</h3>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border bg-card">
+      <table class="min-w-full text-sm">
+        <thead class="bg-muted/40">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium">#</th>
+            <th class="px-4 py-3 text-left font-medium">Date</th>
+            <th class="px-4 py-3 text-left font-medium">Position</th>
+            <th class="px-4 py-3 text-left font-medium">Name</th>
+            <th class="px-4 py-3 text-left font-medium">Category</th>
+            <th class="px-4 py-3 text-left font-medium">Ban</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((row) => (
+              <tr class="border-t hover:bg-muted/30">
+                <td class="px-4 py-3 align-top">{row.resumes.id}</td>
+                <td class="px-4 py-3 align-top whitespace-nowrap">{row.resumes.updatedAt ?? "-"}</td>
+                <td class="px-4 py-3 align-top">
+                  <a class="underline" href={`/admin/resumes/${row.resumes.id}`} target="_blank" rel="noreferrer">{row.resumes.position ?? "-"}</a>
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <div class="flex items-center gap-2">
+                    {(row.auth_users?.image ?? "").trim() ? (
+                      <img src={row.auth_users?.image ?? ""} alt="" class="size-8 rounded-full border object-cover" />
+                    ) : null}
+                    <span>{row.auth_users?.candidateName ?? "-"}</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 align-top">{row.categories?.title ?? "-"}</td>
+                <td class="px-4 py-3 align-top">
+                  <form action="/api/admin/users/ban" method="POST">
+                    <input type="hidden" name="user_id" value={row.resumes.userId} />
+                    <input type="hidden" name="return_to" value={Astro.url.pathname + Astro.url.search} />
+                    <button
+                      type="submit"
+                      class="text-red-700 underline"
+                      onclick="return window.confirm('Ban user and remove related data?');"
+                    >
+                      X
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="mt-4 flex items-center gap-3 text-sm">
+      {prevHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={prevHref}>Previous</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Previous</span>}
+      {nextHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={nextHref}>Next</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Next</span>}
+    </nav>
+  </section>
 </AdminLayout>

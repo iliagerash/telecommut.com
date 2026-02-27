@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const db = getRequestDb(locals);
   const deleted = await db
     .delete(resumes)
-    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, String(session.user.id))))
+    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))))
     .returning();
   if (deleted.length === 0) {
     return new Response(null, {

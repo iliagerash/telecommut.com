@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const subscribePartners = isChecked(payload.subscribePartners) ? 1 : 0;
 
   const db = getRequestDb(locals);
-  const userId = String(session.user.id);
+  const userId = Number(session.user.id);
   const [existingUser] = await db.select().from(authUsers).where(eq(authUsers.id, userId)).limit(1);
   if (!existingUser) {
     return new Response(JSON.stringify({ message: "User not found." }), {

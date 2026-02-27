@@ -12,14 +12,13 @@ export const appMeta = sqliteTable("app_meta", {
 export const authUsers = sqliteTable(
   "auth_users",
   {
-    id: text("id").primaryKey(),
+    id: integer("id").primaryKey(),
     name: text("name").notNull(),
     email: text("email").notNull(),
     role: text("role").notNull().default("candidate"),
     emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
     emailVerifiedAt: text("email_verified_at"),
     image: text("image"),
-    password: text("password").notNull().default(""),
     rememberToken: text("remember_token"),
     candidateName: text("candidate_name").notNull().default(""),
     candidatePhone: text("candidate_phone").notNull().default(""),
@@ -48,7 +47,7 @@ export const authSessions = sqliteTable(
   "auth_sessions",
   {
     id: text("id").primaryKey(),
-    userId: text("user_id").notNull(),
+    userId: integer("user_id").notNull(),
     token: text("token").notNull(),
     expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
     ipAddress: text("ip_address"),
@@ -65,7 +64,7 @@ export const authAccounts = sqliteTable(
   "auth_accounts",
   {
     id: text("id").primaryKey(),
-    userId: text("user_id").notNull(),
+    userId: integer("user_id").notNull(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
     accessToken: text("access_token"),
@@ -140,7 +139,7 @@ export const contracts = sqliteTable("contracts", {
 
 export const jobs = sqliteTable("jobs", {
   id: integer("id").primaryKey(),
-  userId: text("user_id").notNull().default("1"),
+  userId: integer("user_id").notNull().default(1),
   categoryId: integer("category_id").notNull(),
   countryId: integer("country_id").notNull(),
   countryGroups: text("country_groups").notNull().default(""),
@@ -169,7 +168,7 @@ export const jobs = sqliteTable("jobs", {
 
 export const resumes = sqliteTable("resumes", {
   id: integer("id").primaryKey(),
-  userId: text("user_id").notNull().default("1"),
+  userId: integer("user_id").notNull().default(1),
   categoryId: integer("category_id").notNull(),
   countryId: integer("country_id").notNull(),
   position: text("position").notNull(),
@@ -248,7 +247,7 @@ export const subscriptions = sqliteTable(
   "subscriptions",
   {
     id: integer("id").primaryKey(),
-    userId: text("user_id").notNull(),
+    userId: integer("user_id").notNull(),
     type: text("type").notNull(),
     stripeId: text("stripe_id").notNull(),
     stripeStatus: text("stripe_status").notNull(),
