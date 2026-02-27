@@ -7,7 +7,7 @@ import process from "node:process";
 import dotenv from "dotenv";
 import mysql from "mysql2/promise";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env"), quiet: true });
 
 const TABLE_MAP = [
   ["users", "auth_users"],
@@ -486,7 +486,6 @@ function buildUpsertSql(tableName, columns, rowCount) {
 
 async function* fetchBatched(connection, tableName, batchSize, orderBy) {
   let offset = 0;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const [rows] = await connection.query(
       `SELECT * FROM ${quoteIdent(tableName)} ORDER BY ${quoteIdent(orderBy)} LIMIT ${Number(batchSize)} OFFSET ${Number(offset)}`,

@@ -7,6 +7,7 @@ dist/
 .local/
 public/images/candidates/
 public/images/employers/
+public/*.xml
 
 # dependencies
 node_modules/
@@ -22,6 +23,7 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+google_indexing.json
 
 # macOS-specific files
 .DS_Store

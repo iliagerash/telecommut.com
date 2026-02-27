@@ -1,0 +1,1 @@
+ALTER TABLE `direct_traffic` MODIFY COLUMN `traffic_date` date NOT NULL;

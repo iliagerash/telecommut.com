@@ -8,6 +8,13 @@
       "when": 1772199765843,
       "tag": "0000_salty_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1772213198795,
+      "tag": "0001_natural_switch",
+      "breakpoints": true
     }
   ]
 }

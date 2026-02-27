@@ -93,17 +93,23 @@ function normalizeCountryGroups(formData: FormData): string {
 
   const selectedRegionIds: string[] = [];
   for (const [key, rawValue] of formData.entries()) {
-    if (!key.startsWith("country_groups_arr[")) {
+    if (key === "country_groups_arr[]") {
+      const parsedId = parseId(trimText(rawValue));
+      if (parsedId) {
+        selectedRegionIds.push(String(parsedId));
+      }
       continue;
     }
 
-    if (trimText(rawValue) !== "1") {
-      continue;
-    }
+    if (key.startsWith("country_groups_arr[")) {
+      if (trimText(rawValue) !== "1") {
+        continue;
+      }
 
-    const match = key.match(/^country_groups_arr\[(\d+)\]$/);
-    if (match?.[1]) {
-      selectedRegionIds.push(match[1]);
+      const match = key.match(/^country_groups_arr\[(\d+)\]$/);
+      if (match?.[1]) {
+        selectedRegionIds.push(match[1]);
+      }
     }
   }
 
