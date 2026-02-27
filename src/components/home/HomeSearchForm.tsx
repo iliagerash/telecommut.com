@@ -46,7 +46,7 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
 
         const nextSuggestions = payload.filter((item): item is string => typeof item === "string");
         setSuggestions(nextSuggestions);
-        setOpen(nextSuggestions.length > 0);
+        setOpen((currentOpen) => currentOpen && nextSuggestions.length > 0);
       } finally {
         if (current === requestSeq.current) {
           setIsLoading(false);
@@ -93,7 +93,11 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
           aria-label="Search position"
           autoComplete="off"
           className="h-11 w-full rounded-xl border bg-background px-3 text-sm"
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            const nextValue = event.target.value;
+            setQuery(nextValue);
+            setOpen(nextValue.trim().length >= 3);
+          }}
           onFocus={() => {
             if (trimmedQuery.length >= 3 && suggestions.length > 0) {
               setOpen(true);
