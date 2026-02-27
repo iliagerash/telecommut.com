@@ -1,18 +1,13 @@
 import type { APIRoute } from "astro";
+import { unlink } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 
 import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { authUsers } from "@/db/schema";
-import { extractMediaKeyFromUrl } from "@/services/profile/images";
+import { extractMediaKeyFromUrl, resolveMediaFilePath } from "@/services/profile/images";
 
 export const prerender = false;
-
-type RuntimeLocals = App.Locals & {
-  runtime?: {
-    env?: AppRuntime;
-  };
-};
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const auth = getAuth(locals);
@@ -24,22 +19,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  const runtimeEnv = (locals as RuntimeLocals).runtime?.env;
-  const bucket = runtimeEnv?.R2_BUCKET;
-  if (!bucket) {
-    return new Response(JSON.stringify({ message: "R2 bucket binding is not available." }), {
-      status: 500,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
   const userId = Number(session.user.id);
   const db = getRequestDb(locals);
   const [existingUser] = await db.select().from(authUsers).where(eq(authUsers.id, userId)).limit(1);
 
   const previousKey = extractMediaKeyFromUrl(existingUser?.image);
   if (previousKey) {
-    await bucket.delete(previousKey).catch(() => undefined);
+    const previousPath = resolveMediaFilePath(previousKey);
+    await unlink(previousPath).catch(() => undefined);
   }
 
   await db

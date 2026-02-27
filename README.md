@@ -7,7 +7,7 @@ Astro + React app for Telecommut.
 - Astro + React islands
 - TailwindCSS + shadcn/ui
 - Drizzle ORM (MySQL)
-- Cloudflare Workers adapter
+- Astro Node adapter
 
 ## Quick Start
 
@@ -32,4 +32,4 @@ npm run dev
 ## Notes
 
 - `DATABASE_URL` is required for DB operations.
-- `wrangler.jsonc` contains your D1/KV/R2 bindings for deployment.
+- User profile images are stored in `public/media`.

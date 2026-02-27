@@ -1,4 +1,7 @@
-const MEDIA_PREFIX = "/media/";
+import path from "node:path";
+
+const IMAGE_PREFIXES = ["/images/candidates/", "/images/employers/"] as const;
+const PUBLIC_ROOT = path.resolve(process.cwd(), "public");
 
 function encodePathSegments(input: string): string {
   return input
@@ -8,7 +11,22 @@ function encodePathSegments(input: string): string {
 }
 
 export function buildMediaUrlFromKey(key: string): string {
-  return `${MEDIA_PREFIX}${encodePathSegments(key)}`;
+  const encoded = encodePathSegments(key);
+  return encoded.startsWith("/") ? encoded : `/${encoded}`;
+}
+
+export function resolveMediaFilePath(key: string): string {
+  const normalized = key
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .join("/");
+
+  if (!normalized || normalized.includes("..") || normalized.includes("\\")) {
+    throw new Error("Invalid media key");
+  }
+
+  return path.join(PUBLIC_ROOT, normalized);
 }
 
 export function extractMediaKeyFromUrl(value: string | null | undefined): string | null {
@@ -17,23 +35,32 @@ export function extractMediaKeyFromUrl(value: string | null | undefined): string
   }
 
   const normalized = value.trim();
-  if (!normalized.startsWith(MEDIA_PREFIX)) {
-    return null;
+  let pathname = normalized;
+  if (pathname.startsWith("http://") || pathname.startsWith("https://")) {
+    try {
+      pathname = new URL(pathname).pathname;
+    } catch {
+      return null;
+    }
   }
 
-  const encodedKey = normalized.slice(MEDIA_PREFIX.length);
-  if (!encodedKey) {
-    return null;
-  }
+  const matchingPrefix = IMAGE_PREFIXES.find((prefix) => pathname.startsWith(prefix));
+  if (matchingPrefix) {
+    const encodedKey = pathname.slice(1);
+    if (!encodedKey) {
+      return null;
+    }
 
-  try {
-    return encodedKey
-      .split("/")
-      .map((segment) => decodeURIComponent(segment))
-      .join("/");
-  } catch {
-    return null;
+    try {
+      return encodedKey
+        .split("/")
+        .map((segment) => decodeURIComponent(segment))
+        .join("/");
+    } catch {
+      return null;
+    }
   }
+  return null;
 }
 
 export function resolveImageExtension(contentType: string): string | null {

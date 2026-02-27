@@ -4,7 +4,7 @@ export const allowedCommands = [
   "weekly",
   "analyze",
   "seo",
-  "cloudflare",
+  "edge_traffic",
   "submit",
   "reindex",
   "google_time",
@@ -29,7 +29,7 @@ const schedulableCommands = new Set<JobCommand>([
   "weekly",
   "analyze",
   "seo",
-  "cloudflare",
+  "edge_traffic",
   "process_dedupe",
   "sitemap_ping",
 ]);

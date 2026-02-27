@@ -1,20 +1,21 @@
 import type { APIRoute } from "astro";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { eq } from "drizzle-orm";
 
 import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { authUsers } from "@/db/schema";
-import { buildMediaUrlFromKey, extractMediaKeyFromUrl, resolveImageExtension } from "@/services/profile/images";
+import {
+  buildMediaUrlFromKey,
+  extractMediaKeyFromUrl,
+  resolveImageExtension,
+  resolveMediaFilePath,
+} from "@/services/profile/images";
 
 export const prerender = false;
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-
-type RuntimeLocals = App.Locals & {
-  runtime?: {
-    env?: AppRuntime;
-  };
-};
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const auth = getAuth(locals);
@@ -22,15 +23,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!session?.session?.id || !session.user?.id) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  const runtimeEnv = (locals as RuntimeLocals).runtime?.env;
-  const bucket = runtimeEnv?.R2_BUCKET;
-  if (!bucket) {
-    return new Response(JSON.stringify({ message: "R2 bucket binding is not available." }), {
-      status: 500,
       headers: { "content-type": "application/json" },
     });
   }
@@ -64,20 +56,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const db = getRequestDb(locals);
   const [existingUser] = await db.select().from(authUsers).where(eq(authUsers.id, userId)).limit(1);
   const previousKey = extractMediaKeyFromUrl(existingUser?.image);
+  const storedRole = String(existingUser?.role ?? session.user.role ?? "").trim().toLowerCase();
+  const roleFolder = storedRole === "candidate" ? "images/candidates" : "images/employers";
 
   const timestamp = Date.now();
   const randomPart = crypto.randomUUID().replaceAll("-", "");
-  const key = `profiles/${userId}/${timestamp}-${randomPart}.${extension}`;
-
-  await bucket.put(key, await file.arrayBuffer(), {
-    httpMetadata: {
-      contentType,
-      cacheControl: "public, max-age=31536000, immutable",
-    },
-  });
+  const key = `${roleFolder}/${userId}-${timestamp}-${randomPart}.${extension}`;
+  const filePath = resolveMediaFilePath(key);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, Buffer.from(await file.arrayBuffer()));
 
   if (previousKey && previousKey !== key) {
-    await bucket.delete(previousKey).catch(() => undefined);
+    const previousPath = resolveMediaFilePath(previousKey);
+    await unlink(previousPath).catch(() => undefined);
   }
 
   const imageUrl = buildMediaUrlFromKey(key);

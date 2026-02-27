@@ -10,7 +10,23 @@ export type LogContext = {
   [key: string]: unknown;
 };
 
+function shouldWrite(level: LogLevel): boolean {
+  if (level === "error") {
+    return true;
+  }
+
+  if (level === "warn") {
+    return true;
+  }
+
+  return import.meta.env.DEV;
+}
+
 function write(level: LogLevel, message: string, context: LogContext = {}) {
+  if (!shouldWrite(level)) {
+    return;
+  }
+
   const payload = {
     level,
     message,

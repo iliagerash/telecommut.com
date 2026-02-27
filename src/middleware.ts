@@ -6,8 +6,6 @@ import { getAuth } from "@/auth";
 import { getAllowedRolesForPath, hasRoleAccess, resolveUserRoleFromRecord } from "@/auth/authorization";
 import { logError, logInfo } from "@/services/observability/logger";
 
-const shouldLogInfo = process.env.npm_lifecycle_event !== "build";
-
 async function getSession(request: Request, locals: App.Locals) {
   try {
     const auth = getAuth(locals);
@@ -40,14 +38,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
       const role = resolveUserRoleFromRecord(userRecord);
 
       if (!hasRoleAccess(context.url.pathname, role)) {
-        if (shouldLogInfo) {
-          logInfo("request.forbidden", {
-            requestId,
-            path: context.url.pathname,
-            role,
-            requiredRoles: allowedRoles,
-          });
-        }
+        logInfo("request.forbidden", {
+          requestId,
+          path: context.url.pathname,
+          role,
+          requiredRoles: allowedRoles,
+        });
 
         return context.redirect("/403", 302);
       }
@@ -55,15 +51,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const response = await next();
 
-    if (shouldLogInfo) {
-      logInfo("request.completed", {
-        requestId,
-        method: context.request.method,
-        path: context.url.pathname,
-        status: response.status,
-        durationMs: Date.now() - start,
-      });
-    }
+    logInfo("request.completed", {
+      requestId,
+      method: context.request.method,
+      path: context.url.pathname,
+      status: response.status,
+      durationMs: Date.now() - start,
+    });
 
     response.headers.set("x-request-id", requestId);
     return response;
