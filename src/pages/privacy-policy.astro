@@ -1,7 +1,6 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { toAbsoluteUrl } from "@/lib/seo";
-import { socialImages } from "@/lib/social-images";
 
 const privacyJsonLd = {
   "@context": "https://schema.org",
@@ -39,7 +38,6 @@ const privacyJsonLd = {
   description="Privacy policy for Telecommut users."
   canonicalPath="/privacy-policy"
   robots="noindex,nofollow"
-  socialImagePath={socialImages.legal}
   jsonLd={privacyJsonLd}
 >
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">

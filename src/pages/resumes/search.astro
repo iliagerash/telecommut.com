@@ -8,7 +8,6 @@ import { authUsers, categories, contracts, countries, resumes } from "@/db/schem
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { buildPaginationState } from "@/lib/pagination";
 import { toAbsoluteUrl } from "@/lib/seo";
-import { socialImages } from "@/lib/social-images";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
@@ -155,7 +154,6 @@ function relativeDate(dateValue: string | null): string {
   title={pageTitle}
   description="Browse candidate resumes by position, category, and country."
   canonicalPath={canonicalPath}
-  socialImagePath={socialImages.resumes}
   robots="noindex,nofollow"
   prevPath={prevPage ? buildPageHref(prevPage) : undefined}
   nextPath={nextPage ? buildPageHref(nextPage) : undefined}

@@ -1,6 +1,5 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
-import { socialImages } from "@/lib/social-images";
 
 const token = Astro.url.searchParams.get("token");
 if (token) {
@@ -22,7 +21,6 @@ const email = Astro.url.searchParams.get("email") ?? "";
   title="Verify Email"
   description="Verify your Telecommut account email address."
   robots="noindex,nofollow"
-  socialImagePath={socialImages.home}
 >
   <section class="glass-panel mx-auto w-full max-w-xl rounded-3xl border p-6 shadow-sm md:p-8">
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Verify your email</h1>

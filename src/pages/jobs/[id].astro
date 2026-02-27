@@ -7,7 +7,6 @@ import { authUsers, categories, contracts, countries, countryGroups, jobRemovals
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { formatDescriptionHtml } from "@/lib/description";
 import { toAbsoluteUrl } from "@/lib/seo";
-import { socialImages } from "@/lib/social-images";
 import { evaluateJobHttpSemantics, type JobState } from "@/services/crawler/http-semantics";
 import { Badge } from "@/components/ui/badge";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
@@ -307,7 +306,6 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
   title={pageTitle}
   description={pageDescription}
   canonicalPath={canonicalPath}
-  socialImagePath={socialImages.jobs}
   robots={robots}
   noAds
   jsonLd={jsonLd}

@@ -30,7 +30,7 @@ const {
   robots = "index,follow",
   prevPath,
   nextPath,
-  socialImagePath = "/brand/og-default.png",
+  socialImagePath = "/brand.jpg",
   jsonLd,
   noAds = false,
 } = Astro.props;
@@ -65,10 +65,10 @@ if (!Astro.isPrerendered) {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/brand/logo-mark.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
@@ -80,11 +80,7 @@ if (!Astro.isPrerendered) {
     <meta property="og:title" content={`${title} | Telecommut`} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={socialImageHref} />
-    <meta property="og:image:type" content="image/png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={`${title} | Telecommut`} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={socialImageHref} />
+    <meta property="og:image:type" content="image/jpeg" />
     <link rel="canonical" href={canonicalHref} />
     {prevHref ? <link rel="prev" href={prevHref} /> : null}
     {nextHref ? <link rel="next" href={nextHref} /> : null}
@@ -115,7 +111,7 @@ if (!Astro.isPrerendered) {
       <header class="relative z-[80] border-b bg-primary/95 text-primary-foreground shadow-sm">
         <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-4">
           <a href="/" class="flex items-center gap-3 text-sm font-semibold tracking-[0.14em] uppercase">
-            <img src="/brand/logo-mark.svg" alt="" width="26" height="26" loading="eager" />
+            <img src="/logo.png" alt="" width="26" height="26" loading="eager" />
             Telecommut
           </a>
           <PublicDesktopNav client:load initialUserType={initialUserType} />

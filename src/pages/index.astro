@@ -4,7 +4,6 @@ import { desc, eq } from "drizzle-orm";
 import { getRequestDb } from "@/db/request";
 import { categories, contracts, countries, countryGroups, jobs } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
-import { socialImages } from "@/lib/social-images";
 import { toAbsoluteUrl } from "@/lib/seo";
 import AdMiddle from "@/components/ads/AdMiddle.astro";
 import AdTop from "@/components/ads/AdTop.astro";
@@ -172,7 +171,7 @@ const homepageJsonLd = {
       "@type": "Organization",
       name: "Telecommut",
       url: toAbsoluteUrl("/"),
-      logo: toAbsoluteUrl("/brand/logo-mark.png"),
+      logo: toAbsoluteUrl("/logo.png"),
     },
     {
       "@type": "WebPage",
@@ -195,7 +194,6 @@ const homepageJsonLd = {
   description={homepageDescription}
   keywords="remote jobs, work from home jobs, remote software jobs, remote design jobs, distributed teams"
   canonicalPath="/"
-  socialImagePath={socialImages.home}
   jsonLd={homepageJsonLd}
 >
   <div class="space-y-8">

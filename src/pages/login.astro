@@ -1,6 +1,5 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
-import { socialImages } from "@/lib/social-images";
 
 const next = Astro.url.searchParams.get("next") ?? "";
 ---
@@ -9,7 +8,6 @@ const next = Astro.url.searchParams.get("next") ?? "";
   title="Login"
   description="Login to Telecommut."
   robots="noindex,nofollow"
-  socialImagePath={socialImages.home}
 >
   <section class="glass-panel mx-auto w-full max-w-xl rounded-3xl border p-6 shadow-sm md:p-8">
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Login</h1>

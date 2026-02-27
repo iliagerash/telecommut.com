@@ -5,7 +5,6 @@ import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { categories, countries } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
-import { socialImages } from "@/lib/social-images";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
@@ -32,7 +31,6 @@ const countryRows = await db.select().from(countries).orderBy(asc(countries.weig
   title="Candidate Search"
   description="Search candidate resumes by position, category, and country."
   canonicalPath="/resumes"
-  socialImagePath={socialImages.resumes}
   robots="noindex,nofollow"
   noAds={true}
 >

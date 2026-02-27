@@ -26,6 +26,33 @@ const prevHref = pagination.page > 1 ? `/admin/jobs?page=${pagination.page - 1}`
 const nextHref = hasNext ? `/admin/jobs?page=${pagination.page + 1}` : undefined;
 const successText = (Astro.url.searchParams.get("success") ?? "").trim();
 const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
+const selectAllScript = `
+const selectAll = document.getElementById("jobs-select-all");
+const rowCheckboxes = Array.from(document.querySelectorAll(".job-row-checkbox"));
+
+if (selectAll instanceof HTMLInputElement && rowCheckboxes.length > 0) {
+  const typedCheckboxes = rowCheckboxes.filter((item) => item instanceof HTMLInputElement);
+
+  const syncHeaderState = () => {
+    const checkedCount = typedCheckboxes.filter((item) => item.checked).length;
+    selectAll.checked = checkedCount === typedCheckboxes.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < typedCheckboxes.length;
+  };
+
+  selectAll.addEventListener("change", () => {
+    typedCheckboxes.forEach((item) => {
+      item.checked = selectAll.checked;
+    });
+    selectAll.indeterminate = false;
+  });
+
+  typedCheckboxes.forEach((item) => {
+    item.addEventListener("change", syncHeaderState);
+  });
+
+  syncHeaderState();
+}
+`;
 ---
 
 <AdminLayout title="Jobs" description="Admin pending jobs queue.">
@@ -49,7 +76,12 @@ const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
       <table class="min-w-full text-sm">
           <thead class="bg-muted/40">
             <tr>
-              <th class="px-4 py-3 text-left font-medium">#</th>
+              <th class="px-4 py-3 text-left font-medium">
+                <label class="inline-flex items-center gap-2">
+                  <input id="jobs-select-all" type="checkbox" />
+                  <span>#</span>
+                </label>
+              </th>
               <th class="px-4 py-3 text-left font-medium">Date</th>
               <th class="px-4 py-3 text-left font-medium">Position</th>
               <th class="px-4 py-3 text-left font-medium">Company</th>
@@ -63,7 +95,7 @@ const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
                 <tr class="border-t hover:bg-muted/30">
                   <td class="px-4 py-3 align-top">
                     <label class="inline-flex items-center gap-2">
-                      <input form="jobs-approve-form" type="checkbox" name="job_ids" value={String(row.jobs.id)} />
+                      <input class="job-row-checkbox" form="jobs-approve-form" type="checkbox" name="job_ids" value={String(row.jobs.id)} />
                       <span>{row.jobs.id}</span>
                     </label>
                   </td>
@@ -105,4 +137,6 @@ const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
       {nextHref ? <a class="rounded-full border px-4 py-2 font-semibold hover:bg-secondary" href={nextHref}>Next</a> : <span class="rounded-full border px-4 py-2 text-muted-foreground">Next</span>}
     </nav>
   </section>
+
+  <script is:inline set:html={selectAllScript}></script>
 </AdminLayout>

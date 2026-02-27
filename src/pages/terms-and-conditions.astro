@@ -1,7 +1,6 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { toAbsoluteUrl } from "@/lib/seo";
-import { socialImages } from "@/lib/social-images";
 
 const termsJsonLd = {
   "@context": "https://schema.org",
@@ -38,7 +37,6 @@ const termsJsonLd = {
   title="Terms and Conditions"
   description="Terms and conditions for using Telecommut."
   canonicalPath="/terms-and-conditions"
-  socialImagePath={socialImages.legal}
   jsonLd={termsJsonLd}
 >
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">

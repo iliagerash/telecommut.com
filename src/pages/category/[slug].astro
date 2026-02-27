@@ -9,7 +9,6 @@ import { categories, contracts, countries, countryGroups, jobs } from "@/db/sche
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { buildPaginationState } from "@/lib/pagination";
 import { toAbsoluteUrl } from "@/lib/seo";
-import { socialImages } from "@/lib/social-images";
 
 export const prerender = false;
 
@@ -190,7 +189,6 @@ const itemListElements = items.slice(0, 10).map((job, index) => ({
   title={metaTitle}
   description={metaDescription}
   canonicalPath={canonicalPath}
-  socialImagePath={socialImages.jobs}
   prevPath={prevPage ? buildPageHref(prevPage) : undefined}
   nextPath={nextPage ? buildPageHref(nextPage) : undefined}
   noAds={noAds}

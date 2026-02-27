@@ -7,7 +7,6 @@ import { getRequestDb } from "@/db/request";
 import { authUsers, categories, contracts, countries, resumes } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { formatDescriptionHtml } from "@/lib/description";
-import { socialImages } from "@/lib/social-images";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
@@ -95,7 +94,6 @@ const countryName = country?.name ?? "Unspecified";
 <PublicLayout
   title={notFound ? "Resume not found" : `${resume?.position ?? "Resume"} (${resume?.id ?? parsedId})`}
   description={notFound ? "Resume not found." : `${resume?.position ?? "Resume"} resume in ${categoryTitle}.`}
-  socialImagePath={socialImages.resumes}
   canonicalPath={Astro.url.pathname}
   robots="noindex,nofollow"
   noAds

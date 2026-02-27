@@ -1,7 +1,6 @@
 ---
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { toAbsoluteUrl } from "@/lib/seo";
-import { socialImages } from "@/lib/social-images";
 
 const helpJsonLd = {
   "@context": "https://schema.org",
@@ -61,7 +60,6 @@ const helpJsonLd = {
   description="Frequently asked questions."
   robots="noindex,nofollow"
   canonicalPath="/help"
-  socialImagePath={socialImages.help}
   jsonLd={helpJsonLd}
 >
   <section class="glass-panel rounded-3xl border p-6 shadow-sm md:p-8">
