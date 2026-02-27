@@ -1,17 +1,17 @@
 import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
-const localSqlitePath = process.env.LOCAL_SQLITE_PATH?.trim();
-if (!localSqlitePath) {
-  throw new Error("LOCAL_SQLITE_PATH is required for drizzle-kit.");
+const mysqlUrl = process.env.DATABASE_URL?.trim();
+if (!mysqlUrl) {
+  throw new Error("DATABASE_URL is required for drizzle-kit.");
 }
 
 export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
-  dialect: "sqlite",
+  dialect: "mysql",
   dbCredentials: {
-    url: localSqlitePath,
+    url: mysqlUrl,
   },
   strict: true,
   verbose: true,

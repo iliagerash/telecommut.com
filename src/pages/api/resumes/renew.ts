@@ -39,9 +39,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const updated = await db
     .update(resumes)
     .set({ updatedAt: resumeNow() })
-    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))))
-    .returning();
-  if (updated.length === 0) {
+    .where(and(eq(resumes.id, resumeId), eq(resumes.userId, Number(session.user.id))));
+  if (((updated as { affectedRows?: number }).affectedRows ?? 0) === 0) {
     return new Response(null, {
       status: 303,
       headers: { location: appendNotice(returnTo, "error", "Resume not found.") },

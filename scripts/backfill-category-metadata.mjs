@@ -1,19 +1,18 @@
-import Database from "better-sqlite3";
 import path from "node:path";
 import dotenv from "dotenv";
+import mysql from "mysql2/promise";
 
 dotenv.config({ path: path.resolve(".env") });
 
-function resolveSqlitePath() {
-  const configuredPath = process.env.LOCAL_SQLITE_PATH?.trim();
-  if (!configuredPath) {
-    throw new Error("LOCAL_SQLITE_PATH is required for category backfill.");
+function requiredDatabaseUrl() {
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required for category backfill.");
   }
-  return path.resolve(configuredPath);
+  return databaseUrl;
 }
 
-const sqlitePath = resolveSqlitePath();
-const db = new Database(sqlitePath);
+const databaseUrl = requiredDatabaseUrl();
 
 const titleDescriptions = new Map([
   [
@@ -198,13 +197,18 @@ function slugify(input) {
     .replace(/-{2,}/g, "-");
 }
 
-const rows = db
-  .prepare("SELECT id, title, slug, description, page_text, meta_title, icon FROM categories ORDER BY id ASC")
-  .all();
+const pool = mysql.createPool({
+  uri: databaseUrl,
+  connectionLimit: 5,
+});
 
-if (rows.length === 0) {
+const [rows] = await pool.execute(
+  "SELECT id, title, slug, description, page_text, meta_title, icon FROM categories ORDER BY id ASC",
+);
+
+if (!Array.isArray(rows) || rows.length === 0) {
   throw new Error(
-    `No categories rows found in ${sqlitePath}. Set LOCAL_SQLITE_PATH to the database used by the app and rerun.`,
+    `No categories rows found in target database. Set DATABASE_URL to the app database and rerun.`,
   );
 }
 
@@ -214,41 +218,39 @@ const used = new Set(
     .filter(Boolean),
 );
 
-const updateStmt = db.prepare(
-  "UPDATE categories SET slug = ?, description = ?, page_text = ?, meta_title = ?, icon = ? WHERE id = ?",
-);
+for (const row of rows) {
+  const title = String(row.title ?? "").trim();
+  let slug = String(row.slug ?? "").trim().toLowerCase();
+  const description = String(row.description ?? "").trim();
+  const pageText = String(row.page_text ?? "").trim();
+  const metaTitle = String(row.meta_title ?? "").trim();
+  const icon = String(row.icon ?? "").trim();
 
-db.transaction(() => {
-  for (const row of rows) {
-    const title = String(row.title ?? "").trim();
-    let slug = String(row.slug ?? "").trim().toLowerCase();
-    const description = String(row.description ?? "").trim();
-    const pageText = String(row.page_text ?? "").trim();
-    const metaTitle = String(row.meta_title ?? "").trim();
-    const icon = String(row.icon ?? "").trim();
-
-    if (!slug) {
-      let base = slugify(title);
-      if (!base) {
-        base = `category-${row.id}`;
-      }
-
-      slug = base;
-      let suffix = 2;
-      while (used.has(slug)) {
-        slug = `${base}-${suffix}`;
-        suffix += 1;
-      }
-      used.add(slug);
+  if (!slug) {
+    let base = slugify(title);
+    if (!base) {
+      base = `category-${row.id}`;
     }
 
-    const nextDescription = description || titleDescriptions.get(title) || `Remote jobs in ${title}.`;
-    const nextPageText = pageText || titlePageText.get(title) || `Browse remote opportunities in ${title}.`;
-    const nextMetaTitle = metaTitle || titleMetaTitles.get(title) || `Remote ${title} Jobs`;
-    const nextIcon = legacyToLucideIcon.get(icon) || icon || "CircleCheckBig";
-
-    updateStmt.run(slug, nextDescription, nextPageText, nextMetaTitle, nextIcon, row.id);
+    slug = base;
+    let suffix = 2;
+    while (used.has(slug)) {
+      slug = `${base}-${suffix}`;
+      suffix += 1;
+    }
+    used.add(slug);
   }
-})();
 
-console.log(`category metadata backfill complete (${rows.length} rows) for ${sqlitePath}`);
+  const nextDescription = description || titleDescriptions.get(title) || `Remote jobs in ${title}.`;
+  const nextPageText = pageText || titlePageText.get(title) || `Browse remote opportunities in ${title}.`;
+  const nextMetaTitle = metaTitle || titleMetaTitles.get(title) || `Remote ${title} Jobs`;
+  const nextIcon = legacyToLucideIcon.get(icon) || icon || "CircleCheckBig";
+
+  await pool.execute(
+    "UPDATE categories SET slug = ?, description = ?, page_text = ?, meta_title = ?, icon = ? WHERE id = ?",
+    [slug, nextDescription, nextPageText, nextMetaTitle, nextIcon, row.id],
+  );
+}
+
+await pool.end();
+console.log(`category metadata backfill complete (${rows.length} rows) for DATABASE_URL target`);

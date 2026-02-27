@@ -39,10 +39,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const db = getRequestDb(locals);
   const deleted = await db
     .delete(jobs)
-    .where(and(eq(jobs.id, jobId), eq(jobs.userId, Number(session.user.id))))
-    .returning();
+    .where(and(eq(jobs.id, jobId), eq(jobs.userId, Number(session.user.id))));
 
-  if (deleted.length === 0) {
+  if (((deleted as { affectedRows?: number }).affectedRows ?? 0) === 0) {
     return new Response(null, {
       status: 303,
       headers: { location: appendNotice(returnTo, "error", "Job not found.") },

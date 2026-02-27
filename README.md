@@ -6,7 +6,7 @@ Astro + React app for Telecommut.
 
 - Astro + React islands
 - TailwindCSS + shadcn/ui
-- Drizzle ORM (SQLite locally, D1 remotely)
+- Drizzle ORM (MySQL)
 - Cloudflare Workers adapter
 
 ## Quick Start
@@ -14,8 +14,7 @@ Astro + React app for Telecommut.
 ```bash
 npm install
 cp .env.example .env
-bash ./scripts/reset-local-db.sh
-npm run db:migrate:local
+npm run db:migrate
 npm run dev
 ```
 
@@ -27,12 +26,10 @@ npm run dev
 - `npm run lint` - ESLint
 - `npm run test` - Vitest
 - `npm run db:generate` - generate SQL migrations from schema
-- `npm run db:migrate:local` - apply migrations to `LOCAL_SQLITE_PATH`
-- `npm run db:migrate:remote` - apply migrations to remote D1
-- `npm run db:backfill:categories:local` - backfill category metadata in local DB
-- `npm run db:backfill:categories:remote` - backfill category metadata in remote D1
+- `npm run db:migrate` - apply migrations to `DATABASE_URL`
+- `npm run db:backfill:categories` - backfill category metadata in MySQL DB
 
 ## Notes
 
-- `LOCAL_SQLITE_PATH` is required for local DB operations.
+- `DATABASE_URL` is required for DB operations.
 - `wrangler.jsonc` contains your D1/KV/R2 bindings for deployment.

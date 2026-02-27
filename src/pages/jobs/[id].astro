@@ -198,6 +198,16 @@ if (isMissingNotFound) {
     Astro.request,
   );
 
+  if (semantics.status === 304) {
+    const headers = new Headers();
+    headers.set("etag", semantics.etag);
+    headers.set("last-modified", semantics.lastModified);
+    headers.set("cache-control", semantics.cacheControl);
+    headers.set("x-robots-tag", semantics.robots);
+    headers.set("x-telecommut-job-state", state);
+    throw new Response(null, { status: 304, headers });
+  }
+
   Astro.response.status = semantics.status;
   Astro.response.headers.set("etag", semantics.etag);
   Astro.response.headers.set("last-modified", semantics.lastModified);

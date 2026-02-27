@@ -46,10 +46,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const decision = buildModerationDecision(action);
   const runtimeDb = getRequestDb(locals);
-  const runtimeEnv = (locals as { runtime?: { env?: AppRuntime } }).runtime?.env;
   const applyResult = await applyModerationAction("resumes", entityId, action, {
-    d1: runtimeEnv?.DB,
-    client: runtimeEnv?.DB ? "d1" : "sqlite",
     db: runtimeDb,
   });
 

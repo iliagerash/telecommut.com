@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     .update(authUsers)
     .set({
       image: "",
-      updatedAt: new Date(),
+      updatedAt: Date.now(),
     })
     .where(eq(authUsers.id, userId));
 

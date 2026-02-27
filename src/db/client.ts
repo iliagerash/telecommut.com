@@ -1,26 +1,24 @@
-import Database from "better-sqlite3";
-import { drizzle as drizzleD1 } from "drizzle-orm/d1";
-import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
+import mysql from "mysql2/promise";
+import { drizzle } from "drizzle-orm/mysql2";
 
 import * as schema from "@/db/schema";
 
-export function createD1Client(d1: D1Database) {
-  return drizzleD1(d1, { schema });
-}
-
-function requiredLocalSqlitePath() {
+function requiredDatabaseUrl() {
   const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-  const value = (process.env.LOCAL_SQLITE_PATH ?? viteEnv?.LOCAL_SQLITE_PATH ?? "").trim();
+  const value = (process.env.DATABASE_URL ?? viteEnv?.DATABASE_URL ?? "").trim();
   if (!value) {
-    throw new Error("LOCAL_SQLITE_PATH is required for local SQLite client.");
+    throw new Error("DATABASE_URL is required for MySQL client.");
   }
   return value;
 }
 
-export function createSqliteClient(filePath = requiredLocalSqlitePath()) {
-  const sqlite = new Database(filePath, { fileMustExist: true });
-  return drizzleSqlite(sqlite, { schema });
+export function createMysqlClient(connectionString = requiredDatabaseUrl()) {
+  const pool = mysql.createPool({
+    uri: connectionString,
+    connectionLimit: 10,
+  });
+
+  return drizzle(pool, { schema, mode: "default" });
 }
 
-export type D1Client = ReturnType<typeof createD1Client>;
-export type SqliteClient = ReturnType<typeof createSqliteClient>;
+export type MysqlClient = ReturnType<typeof createMysqlClient>;

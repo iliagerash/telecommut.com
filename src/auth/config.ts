@@ -92,7 +92,7 @@ export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: Runti
     secret: requiredEnv("BETTER_AUTH_SECRET", runtimeEnv),
     trustedOrigins: parseTrustedOrigins(runtimeEnv),
     database: drizzleAdapter(db, {
-      provider: "sqlite",
+      provider: "mysql",
       schema,
       camelCase: true,
     }),

@@ -1,12 +1,12 @@
 {
   "version": "7",
-  "dialect": "sqlite",
+  "dialect": "mysql",
   "entries": [
     {
       "idx": 0,
-      "version": "6",
-      "when": 1772168437456,
-      "tag": "0000_medical_ultimates",
+      "version": "5",
+      "when": 1772186226498,
+      "tag": "0000_bumpy_wolf_cub",
       "breakpoints": true
     }
   ]
