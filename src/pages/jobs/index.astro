@@ -25,6 +25,13 @@ const categoryRowsRaw = await db.select().from(categories).orderBy(categories.ti
 const countryGroupRowsRaw = await db.select().from(countryGroups);
 const countryGroupRows = countryGroupRowsRaw.map((row) => ({ id: row.id, name: row.name }));
 
+if (!query && categoryId !== null) {
+  const categorySegment = categoryRowsRaw.find((row) => row.id === categoryId)?.slug?.trim();
+  if (categorySegment) {
+    return Astro.redirect(`/category/${encodeURIComponent(categorySegment)}`, 307);
+  }
+}
+
 const whereClauses = [eq(jobs.status, 1)];
 if (query) {
   whereClauses.push(sql`lower(${jobs.position}) like ${`%${query.toLowerCase()}%`}`);
@@ -86,7 +93,7 @@ const pageDescription = query
     : "Browse and search jobs.";
 
 function buildPageHref(page: number): string {
-  const url = new URL("/search/jobs", Astro.url);
+  const url = new URL("/jobs", Astro.url);
   if (query) {
     url.searchParams.set("q", query);
   }
@@ -190,7 +197,7 @@ const resultSummary = totalResults > 0
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: toAbsoluteUrl("/") },
-          { "@type": "ListItem", position: 2, name: "Job Search", item: toAbsoluteUrl("/search/jobs") },
+          { "@type": "ListItem", position: 2, name: "Job Search", item: toAbsoluteUrl("/jobs") },
         ],
       },
     ],

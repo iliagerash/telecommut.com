@@ -34,7 +34,7 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
     const current = ++requestSeq.current;
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/autocomplete/position?term=${encodeURIComponent(trimmedQuery)}&type=jobs`);
+        const response = await fetch(`/api/autocomplete/position?term=${encodeURIComponent(trimmedQuery)}&type=jobs`);
         if (!response.ok) {
           return;
         }

@@ -15,7 +15,7 @@ const session = await getAuth(Astro.locals).api.getSession({
 });
 
 if (!session?.session?.id || !session.user?.id) {
-  return Astro.redirect("/login?next=/app/jobs/create", 302);
+  return Astro.redirect("/auth/login?next=/app/jobs/create", 302);
 }
 
 const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);

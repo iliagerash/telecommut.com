@@ -16,12 +16,12 @@ CREATE TABLE `auth_accounts` (
 	`access_token` text,
 	`refresh_token` text,
 	`id_token` text,
-	`access_token_expires_at` bigint,
-	`refresh_token_expires_at` bigint,
+	`access_token_expires_at` timestamp(0),
+	`refresh_token_expires_at` timestamp(0),
 	`scope` text,
 	`password` text,
-	`created_at` bigint NOT NULL,
-	`updated_at` bigint NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `auth_accounts_id` PRIMARY KEY(`id`),
 	CONSTRAINT `auth_accounts_provider_account_unique` UNIQUE(`provider_id`,`account_id`)
 );
@@ -30,11 +30,11 @@ CREATE TABLE `auth_sessions` (
 	`id` varchar(191) NOT NULL,
 	`user_id` int NOT NULL,
 	`token` varchar(255) NOT NULL,
-	`expires_at` bigint NOT NULL,
+	`expires_at` timestamp(0) NOT NULL,
 	`ip_address` text,
 	`user_agent` text,
-	`created_at` bigint NOT NULL,
-	`updated_at` bigint NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `auth_sessions_id` PRIMARY KEY(`id`),
 	CONSTRAINT `auth_sessions_token_unique` UNIQUE(`token`)
 );
@@ -45,7 +45,7 @@ CREATE TABLE `auth_users` (
 	`email` varchar(191) NOT NULL,
 	`role` text NOT NULL DEFAULT ('candidate'),
 	`email_verified` boolean NOT NULL DEFAULT false,
-	`email_verified_at` text,
+	`email_verified_at` timestamp(0),
 	`image` text,
 	`remember_token` text,
 	`candidate_name` text NOT NULL DEFAULT (''),
@@ -63,8 +63,8 @@ CREATE TABLE `auth_users` (
 	`pm_type` text,
 	`pm_last_four` text,
 	`trial_ends_at` text,
-	`created_at` bigint NOT NULL,
-	`updated_at` bigint NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `auth_users_id` PRIMARY KEY(`id`),
 	CONSTRAINT `auth_users_email_unique` UNIQUE(`email`)
 );
@@ -73,9 +73,9 @@ CREATE TABLE `auth_verifications` (
 	`id` varchar(191) NOT NULL,
 	`identifier` varchar(191) NOT NULL,
 	`value` varchar(255) NOT NULL,
-	`expires_at` bigint NOT NULL,
-	`created_at` bigint NOT NULL,
-	`updated_at` bigint NOT NULL,
+	`expires_at` timestamp(0) NOT NULL,
+	`created_at` timestamp(0) NOT NULL,
+	`updated_at` timestamp(0) NOT NULL,
 	CONSTRAINT `auth_verifications_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint

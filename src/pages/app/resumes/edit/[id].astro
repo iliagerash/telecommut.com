@@ -12,7 +12,7 @@ export const prerender = false;
 
 const session = await getAuth(Astro.locals).api.getSession({ headers: Astro.request.headers });
 if (!session?.session?.id || !session.user?.id) {
-  return Astro.redirect(`/login?next=${encodeURIComponent(Astro.url.pathname)}`, 302);
+  return Astro.redirect(`/auth/login?next=${encodeURIComponent(Astro.url.pathname)}`, 302);
 }
 
 if (resolveNormalizedUserRoleFromRecord(session.user) === "employer") {

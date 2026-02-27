@@ -139,7 +139,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       companyDescription: nextRole === "employer" ? companyDescription : "",
       subscribe,
       subscribePartners,
-      updatedAt: Date.now(),
+      updatedAt: new Date(),
     })
     .where(eq(authUsers.id, userId));
 

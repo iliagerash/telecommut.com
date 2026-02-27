@@ -25,7 +25,7 @@ type PublicDesktopNavProps = {
 export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDesktopNavProps) {
   const [userType, setUserType] = useState<HeaderUserType>(initialUserType);
   const [isReady, setIsReady] = useState(initialUserType !== "guest");
-  const [loginHref, setLoginHref] = useState("/login");
+  const [loginHref, setLoginHref] = useState("/auth/login");
   const profileMenuRef = useRef<HTMLDetailsElement | null>(null);
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
 
   useEffect(() => {
     const next = `${window.location.pathname}${window.location.search}`;
-    setLoginHref(`/login?next=${encodeURIComponent(next)}`);
+    setLoginHref(`/auth/login?next=${encodeURIComponent(next)}`);
   }, []);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
             <a className="rounded-full bg-background px-4 py-1.5 font-semibold text-foreground hover:opacity-90" href={loginHref}>
               Login
             </a>
-            <a className="rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10" href="/register">
+            <a className="rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10" href="/auth/register">
               Register
             </a>
           </>

@@ -162,8 +162,8 @@ const homepageJsonLd = {
       name: "Telecommut",
       url: toAbsoluteUrl("/"),
       potentialAction: {
-        "@type": "SearchAction",
-        target: `${toAbsoluteUrl("/search/jobs")}?q={search_term_string}`,
+      "@type": "SearchAction",
+        target: `${toAbsoluteUrl("/jobs")}?q={search_term_string}`,
         "query-input": "required name=search_term_string",
       },
     },

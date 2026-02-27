@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "e118c956-62f5-4d49-b62e-e00987235ed6",
+  "id": "e2f9aef3-6c5d-4607-9b47-07e7855a909e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "app_meta": {
@@ -119,14 +119,14 @@
         },
         "access_token_expires_at": {
           "name": "access_token_expires_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "refresh_token_expires_at": {
           "name": "refresh_token_expires_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -147,14 +147,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -208,7 +208,7 @@
         },
         "expires_at": {
           "name": "expires_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -229,14 +229,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -305,7 +305,7 @@
         },
         "email_verified_at": {
           "name": "email_verified_at",
-          "type": "text",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -440,14 +440,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -500,21 +500,21 @@
         },
         "expires_at": {
           "name": "expires_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "bigint",
+          "type": "timestamp(0)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false

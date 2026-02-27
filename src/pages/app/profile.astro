@@ -14,7 +14,7 @@ const session = await getAuth(Astro.locals).api.getSession({
 });
 
 if (!session?.session?.id || !session.user) {
-  return Astro.redirect("/login?next=/app/profile", 302);
+  return Astro.redirect("/auth/login?next=/app/profile", 302);
 }
 
 const user = session.user;

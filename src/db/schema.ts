@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, double, int, mysqlTable, text, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { boolean, double, int, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 export const appMeta = mysqlTable("app_meta", {
   id: int("id").autoincrement().primaryKey(),
@@ -17,7 +17,7 @@ export const authUsers = mysqlTable(
     email: varchar("email", { length: 191 }).notNull(),
     role: text("role").notNull().default("candidate"),
     emailVerified: boolean("email_verified").notNull().default(false),
-    emailVerifiedAt: text("email_verified_at"),
+    emailVerifiedAt: timestamp("email_verified_at", { mode: "date", fsp: 0 }),
     image: text("image"),
     rememberToken: text("remember_token"),
     candidateName: text("candidate_name").notNull().default(""),
@@ -35,8 +35,8 @@ export const authUsers = mysqlTable(
     pmType: text("pm_type"),
     pmLastFour: text("pm_last_four"),
     trialEndsAt: text("trial_ends_at"),
-    createdAt: bigint("created_at", { mode: "number" }).notNull(),
-    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
   },
   (table) => [
     uniqueIndex("auth_users_email_unique").on(table.email),
@@ -49,11 +49,11 @@ export const authSessions = mysqlTable(
     id: varchar("id", { length: 191 }).primaryKey(),
     userId: int("user_id").notNull(),
     token: varchar("token", { length: 255 }).notNull(),
-    expiresAt: bigint("expires_at", { mode: "number" }).notNull(),
+    expiresAt: timestamp("expires_at", { mode: "date", fsp: 0 }).notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    createdAt: bigint("created_at", { mode: "number" }).notNull(),
-    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
   },
   (table) => [
     uniqueIndex("auth_sessions_token_unique").on(table.token),
@@ -70,12 +70,12 @@ export const authAccounts = mysqlTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    accessTokenExpiresAt: bigint("access_token_expires_at", { mode: "number" }),
-    refreshTokenExpiresAt: bigint("refresh_token_expires_at", { mode: "number" }),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { mode: "date", fsp: 0 }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { mode: "date", fsp: 0 }),
     scope: text("scope"),
     password: text("password"),
-    createdAt: bigint("created_at", { mode: "number" }).notNull(),
-    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
   },
   (table) => [
     uniqueIndex("auth_accounts_provider_account_unique").on(table.providerId, table.accountId),
@@ -86,9 +86,9 @@ export const authVerifications = mysqlTable("auth_verifications", {
   id: varchar("id", { length: 191 }).primaryKey(),
   identifier: varchar("identifier", { length: 191 }).notNull(),
   value: varchar("value", { length: 255 }).notNull(),
-  expiresAt: bigint("expires_at", { mode: "number" }).notNull(),
-  createdAt: bigint("created_at", { mode: "number" }).notNull(),
-  updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date", fsp: 0 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date", fsp: 0 }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 0 }).notNull(),
 });
 
 export const categories = mysqlTable("categories", {

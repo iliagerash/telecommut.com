@@ -90,7 +90,7 @@ import PublicLayout from "@/layouts/PublicLayout.astro";
 
       try {
         const encodedEmail = encodeURIComponent(email);
-        const redirectTo = `${window.location.origin}/reset-password?email=${encodedEmail}`;
+        const redirectTo = `${window.location.origin}/auth/reset-password?email=${encodedEmail}`;
         const response = await fetch("/api/auth/request-password-reset", {
           method: "POST",
           headers: { "content-type": "application/json" },

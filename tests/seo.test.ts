@@ -9,7 +9,7 @@ describe("seo helpers", () => {
 
   it("builds absolute URLs from configured origin", () => {
     vi.stubEnv("PUBLIC_APP_URL", "https://telecommut.example");
-    expect(toAbsoluteUrl("/search/jobs?page=2")).toBe("https://telecommut.example/search/jobs?page=2");
+    expect(toAbsoluteUrl("/jobs?page=2")).toBe("https://telecommut.example/jobs?page=2");
   });
 
   it("passes absolute URL through unchanged", () => {

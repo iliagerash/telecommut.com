@@ -11,7 +11,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request, locals }) => {
   const session = await getAuth(locals).api.getSession({ headers: request.headers });
   if (!session?.session?.id || !session.user?.id) {
-    return new Response(null, { status: 302, headers: { location: "/login?next=/admin/users" } });
+    return new Response(null, { status: 302, headers: { location: "/auth/login?next=/admin/users" } });
   }
 
   if (resolveNormalizedUserRoleFromRecord(session.user) !== "admin") {

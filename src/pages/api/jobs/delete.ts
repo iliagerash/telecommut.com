@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!session?.session?.id || !session.user?.id) {
     return new Response(null, {
       status: 302,
-      headers: { location: "/login?next=/app/jobs/list" },
+      headers: { location: "/auth/login?next=/app/jobs/list" },
     });
   }
 

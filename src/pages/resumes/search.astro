@@ -16,7 +16,7 @@ const session = await getAuth(Astro.locals).api.getSession({
   headers: Astro.request.headers,
 });
 if (!session?.session?.id || !session.user) {
-  return Astro.redirect(`/login?next=${encodeURIComponent(`/resumes/search${Astro.url.search}`)}`, 302);
+  return Astro.redirect(`/auth/login?next=${encodeURIComponent(`/resumes/search${Astro.url.search}`)}`, 302);
 }
 
 const viewerRole = resolveNormalizedUserRoleFromRecord(session.user);

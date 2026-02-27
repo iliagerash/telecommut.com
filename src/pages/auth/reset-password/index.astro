@@ -67,7 +67,7 @@ const email = (Astro.url.searchParams.get("email") ?? "").trim();
     </form>
 
     <div id="request-new-link-wrap" class="mt-6 hidden">
-      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/password/reset">
+      <a class="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary" href="/auth/password/reset">
         Request new link
       </a>
     </div>
@@ -176,7 +176,7 @@ const email = (Astro.url.searchParams.get("email") ?? "").trim();
         }
 
         window.setTimeout(() => {
-          window.location.href = "/login";
+          window.location.href = "/auth/login";
         }, 900);
       } catch {
         setStatus("Unable to complete request. Please try again.", "error");

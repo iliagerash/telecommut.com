@@ -337,7 +337,7 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
         }
         <div class="mt-4 flex flex-wrap gap-3">
           <a class="rounded-full border px-4 py-2 text-sm font-medium hover:bg-secondary" href="/">Back Home</a>
-          <a class="rounded-full border px-4 py-2 text-sm font-medium hover:bg-secondary" href="/resumes/create">Post a resume</a>
+          <a class="rounded-full border px-4 py-2 text-sm font-medium hover:bg-secondary" href="/app/resumes/create">Post a resume</a>
         </div>
       </section>
     ) : (
@@ -406,14 +406,14 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
               <p class="mt-3 text-sm text-muted-foreground [&_a]:text-blue-600 [&_a]:underline" set:html={applyHtml} />
             ) : (
               <p class="mt-3 text-sm text-red-700">
-                To apply for this job you need to <a class="text-blue-600 underline" href="/login">login</a>. If you don&apos;t have an account yet, please{" "}
-                <a class="text-blue-600 underline" href="/register">register</a>.
+                To apply for this job you need to <a class="text-blue-600 underline" href="/auth/login">login</a>. If you don&apos;t have an account yet, please{" "}
+                <a class="text-blue-600 underline" href="/auth/register">register</a>.
               </p>
             )
           }
           <a
             class="mt-4 inline-flex rounded-full bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900"
-            href="/resumes/create"
+            href="/app/resumes/create"
           >
             Post a resume
           </a>

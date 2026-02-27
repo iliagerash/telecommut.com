@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 function setupAuthEnv() {
   vi.stubEnv("BETTER_AUTH_SECRET", "test-secret-value");
-  vi.stubEnv("BETTER_AUTH_URL", "http://127.0.0.1:8787");
-  vi.stubEnv("BETTER_AUTH_TRUSTED_ORIGINS", "http://127.0.0.1:8787");
+  vi.stubEnv("BETTER_AUTH_URL", "http://127.0.0.1:4321");
+  vi.stubEnv("BETTER_AUTH_TRUSTED_ORIGINS", "http://127.0.0.1:4321");
   vi.stubEnv("BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION", "false");
   vi.stubEnv("BETTER_AUTH_VERIFY_TOKEN_TTL_SECONDS", "3600");
   vi.stubEnv("BETTER_AUTH_RESET_TOKEN_TTL_SECONDS", "3600");
@@ -57,17 +57,17 @@ describe("auth routes", () => {
     const email = `user-${Date.now()}@example.com`;
 
     const response = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-up/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-up/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           name: "Test User",
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787",
+          callbackURL: "http://127.0.0.1:4321",
         }),
       }),
     );
@@ -81,28 +81,28 @@ describe("auth routes", () => {
     const email = `signin-${Date.now()}@example.com`;
 
     const signUpResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-up/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-up/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           name: "Test User",
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787",
+          callbackURL: "http://127.0.0.1:4321",
         }),
       }),
     );
     expect(signUpResponse.status).toBe(200);
 
     const signInResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-in/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-in/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           email,
@@ -124,32 +124,32 @@ describe("auth routes", () => {
     const email = `resend-${Date.now()}@example.com`;
 
     const signUpResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-up/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-up/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           name: "Resend User",
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+          callbackURL: "http://127.0.0.1:4321/auth/verify-email?status=verified",
         }),
       }),
     );
     expect(signUpResponse.status).toBe(200);
 
     const resendResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/send-verification-email", {
+      new Request("http://127.0.0.1:4321/api/auth/send-verification-email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           email,
-          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+          callbackURL: "http://127.0.0.1:4321/auth/verify-email?status=verified",
         }),
       }),
     );
@@ -164,17 +164,17 @@ describe("auth routes", () => {
     const email = `verify-${Date.now()}@example.com`;
 
     const signUpResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-up/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-up/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           name: "Verify User",
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+          callbackURL: "http://127.0.0.1:4321/auth/verify-email?status=verified",
         }),
       }),
     );
@@ -182,16 +182,16 @@ describe("auth routes", () => {
     expect(sendMailgunMessage).toHaveBeenCalledTimes(1);
 
     const deniedSignInResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-in/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-in/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787/verify-email?status=verified",
+          callbackURL: "http://127.0.0.1:4321/auth/verify-email?status=verified",
         }),
       }),
     );
@@ -201,29 +201,29 @@ describe("auth routes", () => {
     const token = extractVerificationTokenFromMailMock(firstMailCall);
     const verifyResponse = await auth.handler(
       new Request(
-        `http://127.0.0.1:8787/api/auth/verify-email?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent("http://127.0.0.1:8787/verify-email?status=verified")}`,
+        `http://127.0.0.1:4321/api/auth/verify-email?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent("http://127.0.0.1:4321/auth/verify-email?status=verified")}`,
         {
           method: "GET",
           headers: {
-            origin: "http://127.0.0.1:8787",
+            origin: "http://127.0.0.1:4321",
           },
         },
       ),
     );
     expect(verifyResponse.status).toBe(302);
-    expect(verifyResponse.headers.get("location")).toContain("/verify-email?status=verified");
+    expect(verifyResponse.headers.get("location")).toContain("/auth/verify-email?status=verified");
 
     const signInResponse = await auth.handler(
-      new Request("http://127.0.0.1:8787/api/auth/sign-in/email", {
+      new Request("http://127.0.0.1:4321/api/auth/sign-in/email", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://127.0.0.1:8787",
+          origin: "http://127.0.0.1:4321",
         },
         body: JSON.stringify({
           email,
           password: "StrongPass123!",
-          callbackURL: "http://127.0.0.1:8787/app/profile",
+          callbackURL: "http://127.0.0.1:4321/app/profile",
         }),
       }),
     );

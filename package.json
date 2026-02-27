@@ -15,7 +15,6 @@
     "ci:check": "npm run typecheck && npm run lint && npm run test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:backfill:categories": "node scripts/backfill-category-metadata.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

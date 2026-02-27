@@ -1,0 +1,18 @@
+---
+export const prerender = false;
+
+const token = (Astro.params.token ?? "").trim();
+if (!token) {
+  return Astro.redirect("/auth/password/reset", 302);
+}
+
+const target = new URL("/auth/reset-password", Astro.url.origin);
+target.searchParams.set("token", token);
+
+const callbackURL = (Astro.url.searchParams.get("callbackURL") ?? "").trim();
+if (callbackURL) {
+  target.searchParams.set("callbackURL", callbackURL);
+}
+
+return Astro.redirect(target.toString(), 302);
+---

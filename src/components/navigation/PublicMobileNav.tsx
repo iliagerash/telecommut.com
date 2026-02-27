@@ -28,7 +28,7 @@ type PublicMobileNavProps = {
 export default function PublicMobileNav({ initialUserType = "guest" }: PublicMobileNavProps) {
   const [userType, setUserType] = useState<HeaderUserType>(initialUserType);
   const [isReady, setIsReady] = useState(initialUserType !== "guest");
-  const [loginHref, setLoginHref] = useState("/login");
+  const [loginHref, setLoginHref] = useState("/auth/login");
 
   async function loadSession(settledInitialUserType: HeaderUserType) {
     try {
@@ -69,7 +69,7 @@ export default function PublicMobileNav({ initialUserType = "guest" }: PublicMob
 
   useEffect(() => {
     const next = `${window.location.pathname}${window.location.search}`;
-    setLoginHref(`/login?next=${encodeURIComponent(next)}`);
+    setLoginHref(`/auth/login?next=${encodeURIComponent(next)}`);
   }, []);
 
   const showPostResume = useMemo(() => shouldShowPostResume(userType), [userType]);
@@ -133,7 +133,7 @@ export default function PublicMobileNav({ initialUserType = "guest" }: PublicMob
                 </a>
               </SheetClose>
               <SheetClose asChild>
-                <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/register">
+                <a className="rounded-lg px-3 py-2 hover:bg-primary-foreground/10" href="/auth/register">
                   Register
                 </a>
               </SheetClose>

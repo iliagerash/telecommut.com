@@ -27,9 +27,8 @@ npm run dev
 - `npm run test` - Vitest
 - `npm run db:generate` - generate SQL migrations from schema
 - `npm run db:migrate` - apply migrations to `DATABASE_URL`
-- `npm run db:backfill:categories` - backfill category metadata in MySQL DB
 
 ## Notes
 
 - `DATABASE_URL` is required for DB operations.
-- User profile images are stored in `public/media`.
+- User profile images are stored in `public/images`.

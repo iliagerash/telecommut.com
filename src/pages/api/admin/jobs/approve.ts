@@ -18,7 +18,7 @@ function parseIds(formData: FormData): number[] {
 export const POST: APIRoute = async ({ request, locals }) => {
   const session = await getAuth(locals).api.getSession({ headers: request.headers });
   if (!session?.session?.id || !session.user?.id) {
-    return new Response(null, { status: 302, headers: { location: "/login?next=/admin/jobs" } });
+    return new Response(null, { status: 302, headers: { location: "/auth/login?next=/admin/jobs" } });
   }
 
   if (resolveNormalizedUserRoleFromRecord(session.user) !== "admin") {

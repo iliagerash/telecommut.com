@@ -12,7 +12,7 @@ const next = Astro.url.searchParams.get("next") ?? "";
   <section class="glass-panel mx-auto w-full max-w-xl rounded-3xl border p-6 shadow-sm md:p-8">
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Login</h1>
     <p class="mt-3 text-muted-foreground">
-      Don't have an account yet? <a class="underline" href="/register">Register</a> and verify your email to get started.
+      Don't have an account yet? <a class="underline" href="/auth/register">Register</a> and verify your email to get started.
     </p>
 
     <form id="login-form" class="mt-4 space-y-3" data-next={next}>
@@ -54,7 +54,7 @@ const next = Astro.url.searchParams.get("next") ?? "";
         >
           Login
         </button>
-        <a class="rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-secondary" href="/password/reset">
+        <a class="rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-secondary" href="/auth/password/reset">
           Forgot Password?
         </a>
         <p id="login-status" class="text-sm text-muted-foreground" role="status" aria-live="polite"></p>
@@ -70,7 +70,7 @@ const next = Astro.url.searchParams.get("next") ?? "";
     const emailInput = document.getElementById("auth-email");
     const passwordInput = document.getElementById("auth-password");
 
-    const authPathPrefixes = ["/login", "/register", "/verify-email", "/password/reset", "/reset-password"];
+    const authPathPrefixes = ["/auth/login", "/auth/register", "/auth/verify-email", "/auth/password/reset", "/auth/reset-password"];
 
     function isAuthPath(pathname) {
       return authPathPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

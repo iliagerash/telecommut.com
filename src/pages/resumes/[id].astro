@@ -19,7 +19,7 @@ const session = await getAuth(Astro.locals).api.getSession({
   headers: Astro.request.headers,
 });
 if (!session?.session?.id || !session.user) {
-  return Astro.redirect(`/login?next=${encodeURIComponent(Astro.url.pathname)}`, 302);
+  return Astro.redirect(`/auth/login?next=${encodeURIComponent(Astro.url.pathname)}`, 302);
 }
 
 const db = getRequestDb(Astro.locals);
