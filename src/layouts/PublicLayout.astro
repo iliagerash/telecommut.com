@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import AdBottom from "@/components/ads/AdBottom.astro";
+import AdHeader from "@/components/ads/AdHeader.astro";
 import PublicDesktopNav from "@/components/navigation/PublicDesktopNav";
 import PublicMobileNav from "@/components/navigation/PublicMobileNav";
 import { getAuth } from "@/auth";
@@ -42,6 +43,12 @@ const socialImageHref = toAbsoluteUrl(socialImagePath);
 const showAds = ["1", "true", "yes", "on"].includes(
   String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
 );
+const gaMeasurementId =
+  String(import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? "").trim() || "G-XMPKNZB4FX";
+const gaBootstrapScript = `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${gaMeasurementId.replace(/'/g, "\\'")}');`;
 let initialUserType: HeaderUserType = "guest";
 if (!Astro.isPrerendered) {
   try {
@@ -83,15 +90,18 @@ if (!Astro.isPrerendered) {
     {nextHref ? <link rel="next" href={nextHref} /> : null}
     {jsonLdString ? <script is:inline type="application/ld+json" set:html={jsonLdString} /> : null}
     {
-      showAds && !noAds ? (
-        <script
-          is:inline
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2736122797193888"
-          crossorigin="anonymous"
-        ></script>
+      showAds ? (
+        <>
+          <script
+            is:inline
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`}
+          ></script>
+          <script is:inline set:html={gaBootstrapScript} />
+        </>
       ) : null
     }
+    {showAds && !noAds ? <AdHeader /> : null}
     <title>{title} | Telecommut</title>
   </head>
   <body>

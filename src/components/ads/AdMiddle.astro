@@ -2,23 +2,23 @@
 const showAds = ["1", "true", "yes", "on"].includes(
   String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
 );
+const adSnippet = `<!-- telecommut.com middle -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-2736122797193888"
+     data-ad-slot="3381327568"
+     data-ad-format="horizontal"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>`;
 ---
 
 {
   showAds ? (
     <div class="row no-gutters">
       <div class="col col-12 py-4 text-center">
-        <ins
-          class="adsbygoogle"
-          style="display:block"
-          data-ad-client="ca-pub-2736122797193888"
-          data-ad-slot="3381327568"
-          data-ad-format="horizontal"
-          data-full-width-responsive="true"
-        ></ins>
-        <script is:inline>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
+        <Fragment set:html={adSnippet} />
       </div>
     </div>
   ) : null
