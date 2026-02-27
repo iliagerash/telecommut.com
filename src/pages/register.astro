@@ -134,6 +134,8 @@ import { socialImages } from "@/lib/social-images";
       const password = String(formData.get("password") ?? "");
       const passwordConfirmation = String(formData.get("passwordConfirmation") ?? "");
       const role = String(formData.get("role") ?? "candidate").trim().toLowerCase();
+      const subscribe = formData.has("subscribe") ? 1 : 0;
+      const subscribePartners = formData.has("subscribe_partners") ? 1 : 0;
       if (!email) {
         setInputError(emailInput);
         setStatus("Email address is required.", "error");
@@ -165,6 +167,8 @@ import { socialImages } from "@/lib/social-images";
             email,
             password,
             role: role === "employer" ? "employer" : "candidate",
+            subscribe,
+            subscribePartners,
             callbackURL: verifyCallbackUrl,
           }),
         });

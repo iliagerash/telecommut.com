@@ -110,6 +110,16 @@ export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: Runti
           defaultValue: "candidate",
           input: true,
         },
+        subscribe: {
+          type: "number",
+          defaultValue: 0,
+          input: true,
+        },
+        subscribePartners: {
+          type: "number",
+          defaultValue: 0,
+          input: true,
+        },
       },
     },
     session: {
