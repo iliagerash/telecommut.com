@@ -1,5 +1,6 @@
 ---
 import RichTextField from "@/components/editor/RichTextField";
+import { resolveCandidateImage } from "@/lib/image-fallback";
 
 type Option = {
   id: number;
@@ -62,6 +63,8 @@ const {
   successText = "",
   hiddenFields = {},
 } = Astro.props;
+const hasCustomProfileImage = Boolean(profileImage?.trim());
+const profileImageSrc = resolveCandidateImage(profileImage);
 ---
 
 {
@@ -75,11 +78,7 @@ const {
   <h2 class="text-lg font-semibold">Profile data</h2>
   <div class="mt-4 grid gap-4 md:grid-cols-[96px_1fr] md:items-center">
     {
-      profileImage ? (
-        <img src={profileImage} alt="" class="size-24 rounded-xl border object-cover" />
-      ) : (
-        <div class="size-24 rounded-xl border bg-muted" aria-hidden="true"></div>
-      )
+      <img src={profileImageSrc} alt="" class="size-24 rounded-xl border object-cover" />
     }
     <div class="space-y-2 text-sm">
       <p>
@@ -92,7 +91,7 @@ const {
       ) : null}
       {profilePhone ? <p><strong>Phone:</strong> {profilePhone}</p> : null}
       {
-        profileImage ? null : (
+        hasCustomProfileImage ? null : (
           <p class="text-sm text-muted-foreground">
             No profile image yet. Upload one in Edit profile.
           </p>

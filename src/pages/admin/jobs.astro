@@ -5,6 +5,7 @@ import { getRequestDb } from "@/db/request";
 import { authUsers, categories, jobs } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/AdminLayout.astro";
+import { resolveEmployerImage } from "@/lib/image-fallback";
 
 export const prerender = false;
 
@@ -105,9 +106,13 @@ if (selectAll instanceof HTMLInputElement && rowCheckboxes.length > 0) {
                   </td>
                   <td class="px-4 py-3 align-top">
                     <div class="flex items-center gap-2">
-                      {(row.auth_users?.image ?? "").trim() ? (
-                        <img src={row.auth_users?.image ?? ""} alt="" class="size-8 rounded-full border object-cover" />
-                      ) : null}
+                      {
+                        <img
+                          src={resolveEmployerImage(row.jobs.userId === 1 ? row.jobs.companyLogo : row.auth_users?.image)}
+                          alt=""
+                          class="size-8 rounded-full border object-cover"
+                        />
+                      }
                       <span>{row.jobs.companyName ?? "-"}</span>
                     </div>
                   </td>

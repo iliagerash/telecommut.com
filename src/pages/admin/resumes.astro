@@ -5,6 +5,7 @@ import { getRequestDb } from "@/db/request";
 import { authUsers, categories, resumes } from "@/db/schema";
 import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/AdminLayout.astro";
+import { resolveCandidateImage } from "@/lib/image-fallback";
 
 export const prerender = false;
 
@@ -64,9 +65,7 @@ const errorText = (Astro.url.searchParams.get("error") ?? "").trim();
                 </td>
                 <td class="px-4 py-3 align-top">
                   <div class="flex items-center gap-2">
-                    {(row.auth_users?.image ?? "").trim() ? (
-                      <img src={row.auth_users?.image ?? ""} alt="" class="size-8 rounded-full border object-cover" />
-                    ) : null}
+                    <img src={resolveCandidateImage(row.auth_users?.image)} alt="" class="size-8 rounded-full border object-cover" />
                     <span>{row.auth_users?.candidateName ?? "-"}</span>
                   </div>
                 </td>

@@ -10,6 +10,7 @@ import AdTop from "@/components/ads/AdTop.astro";
 import { Badge } from "@/components/ui/badge";
 import HomeSearchForm from "@/components/home/HomeSearchForm";
 import CategoryIcon from "@/components/home/CategoryIcon";
+import { resolveEmployerImage } from "@/lib/image-fallback";
 
 export const prerender = false;
 
@@ -39,8 +40,10 @@ for (const row of activeJobRows) {
 
 const recentJobs = recentJobRows.map((row) => ({
   id: row.jobs.id,
+  userId: row.jobs.userId,
   position: row.jobs.position,
   companyName: row.jobs.companyName,
+  companyLogo: row.jobs.companyLogo,
   salaryMin: row.jobs.salaryMin,
   salaryMax: row.jobs.salaryMax,
   currency: row.jobs.currency,
@@ -230,7 +233,14 @@ const homepageJsonLd = {
                   }
                   <article class="glass-panel rounded-2xl border p-5 shadow-sm">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                      <div>
+                      <div class="flex items-start gap-3">
+                        <img
+                          src={resolveEmployerImage(job.userId === 1 ? job.companyLogo : "")}
+                          alt=""
+                          loading="lazy"
+                          class="size-10 rounded-full border object-cover"
+                        />
+                        <div>
                         <a class="text-2xl font-semibold tracking-tight hover:underline" href={`/jobs/${job.id}`}>
                           {job.position}
                         </a>
@@ -242,6 +252,7 @@ const homepageJsonLd = {
                             </Badge>
                           ) : null
                         }
+                        </div>
                       </div>
                     </div>
                     <p class="mt-4 text-sm text-muted-foreground">{excerpt(job.description)}</p>

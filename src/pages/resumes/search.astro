@@ -8,6 +8,7 @@ import { authUsers, categories, contracts, countries, resumes } from "@/db/schem
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { buildPaginationState } from "@/lib/pagination";
 import { toAbsoluteUrl } from "@/lib/seo";
+import { resolveCandidateImage } from "@/lib/image-fallback";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
@@ -204,16 +205,12 @@ function relativeDate(dateValue: Date | string | null): string {
               <article class="glass-panel rounded-2xl border p-5 shadow-sm">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="flex items-start gap-3">
-                    {
-                      resume.candidatePhoto ? (
-                        <img
-                          src={resume.candidatePhoto}
-                          alt=""
-                          loading="lazy"
-                          class="size-14 rounded-full border object-cover"
-                        />
-                      ) : null
-                    }
+                    <img
+                      src={resolveCandidateImage(resume.candidatePhoto)}
+                      alt=""
+                      loading="lazy"
+                      class="size-14 rounded-full border object-cover"
+                    />
                     <div>
                       <a class="block text-2xl font-semibold tracking-tight hover:underline" href={`/resumes/${resume.id}`}>
                         {resume.position}

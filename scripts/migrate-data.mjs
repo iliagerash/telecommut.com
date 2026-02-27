@@ -252,17 +252,95 @@ function normalizeRole(role, legacyType) {
   return "candidate";
 }
 
+function remapLegacyUserId(value) {
+  const id = Number(value);
+  if (!Number.isFinite(id)) {
+    return null;
+  }
+
+  // Legacy special users:
+  // 0 = admin, 1 = employer, 2 = candidate
+  // Keep employer as-is, skip candidate (handled separately), remap admin 0 -> 2.
+  if (id === 0) {
+    return 2;
+  }
+
+  return id;
+}
+
+function shouldSkipLegacyUserId(value) {
+  const id = Number(value);
+  if (!Number.isFinite(id)) {
+    return true;
+  }
+
+  // Skip importing legacy special candidate user.
+  if (id === 2) {
+    return true;
+  }
+
+  return false;
+}
+
 function deriveName(row) {
   const email = typeof row.email === "string" ? row.email.trim() : "";
   if (email) return email;
   return "User";
 }
 
-function deriveImage(row) {
-  for (const key of ["candidate_photo", "company_logo"]) {
-    const value = typeof row[key] === "string" ? row[key].trim() : "";
-    if (value) return value;
+function normalizeCompanyLogoPath(value) {
+  if (typeof value !== "string") {
+    return value ?? null;
   }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://")
+  ) {
+    return trimmed;
+  }
+
+  return `/images/employers/${trimmed}`;
+}
+
+function normalizeCandidatePhotoPath(value) {
+  if (typeof value !== "string") {
+    return value ?? null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://")
+  ) {
+    return trimmed;
+  }
+
+  return `/images/candidates/${trimmed}`;
+}
+
+function deriveImage(row) {
+  const candidate = normalizeCandidatePhotoPath(row.candidate_photo);
+  if (typeof candidate === "string" && candidate.trim()) {
+    return candidate.trim();
+  }
+
+  const company = normalizeCompanyLogoPath(row.company_logo);
+  if (typeof company === "string" && company.trim()) {
+    return company.trim();
+  }
+
   return null;
 }
 
@@ -329,13 +407,19 @@ function normalizeRow(sourceTable, targetTable, row, columns) {
   for (const column of columns) {
     if (NUMERIC_USER_ID_TABLES.has(sourceTable) && column === "user_id") {
       const value = row.user_id;
-      out.user_id = value === null || value === undefined || value === "" ? null : Number(value);
+      const remapped = remapLegacyUserId(value);
+      out.user_id = remapped;
       continue;
     }
 
     if (sourceTable === "users") {
       if (column === "id") {
-        const id = Number(row.id);
+        if (shouldSkipLegacyUserId(row.id)) {
+          out.id = null;
+          continue;
+        }
+
+        const id = remapLegacyUserId(row.id);
         out.id = Number.isFinite(id) && id > 0 ? id : null;
         continue;
       }
@@ -367,6 +451,16 @@ function normalizeRow(sourceTable, targetTable, row, columns) {
         out.updated_at = toMysqlDatetime(row.updated_at);
         continue;
       }
+    }
+
+    if (column === "company_logo") {
+      out[column] = normalizeCompanyLogoPath(row[column]);
+      continue;
+    }
+
+    if (column === "candidate_photo") {
+      out[column] = normalizeCandidatePhotoPath(row[column]);
+      continue;
     }
 
     out[column] = row[column] ?? null;
@@ -520,7 +614,9 @@ async function migrateAuthAccounts({ sourceConn, targetConn, targetDbName, dryRu
       const legacyPassword = typeof row.password === "string" ? row.password.trim() : "";
       if (!legacyPassword) continue;
 
-      const userId = Number(row.id);
+      if (shouldSkipLegacyUserId(row.id)) continue;
+
+      const userId = remapLegacyUserId(row.id);
       if (!Number.isFinite(userId) || userId <= 0 || !existingIds.has(userId)) continue;
 
       report.source_rows += 1;

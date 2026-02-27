@@ -7,6 +7,7 @@ import { authUsers, categories, contracts, countries, countryGroups, jobRemovals
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { formatDescriptionHtml } from "@/lib/description";
 import { toAbsoluteUrl } from "@/lib/seo";
+import { resolveEmployerImage } from "@/lib/image-fallback";
 import { evaluateJobHttpSemantics, type JobState } from "@/services/crawler/http-semantics";
 import { Badge } from "@/components/ui/badge";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
@@ -131,6 +132,8 @@ let detail:
       categoryTitle: string | null;
       categorySlug: string | null;
       countryName: string | null;
+      companyLogo: string | null;
+      ownerImage: string | null;
     ownerEmail: string | null;
     ownerPhone: string | null;
     ownerUserId: number;
@@ -166,6 +169,8 @@ if (row.length === 0) {
     categoryTitle: row[0].categories?.title ?? null,
     categorySlug: row[0].categories?.slug ?? null,
     countryName: row[0].countries?.name ?? null,
+    companyLogo: (job.companyLogo ?? "").trim() || null,
+    ownerImage: (row[0].auth_users?.image ?? "").trim() || null,
     ownerEmail: row[0].auth_users?.email ?? null,
     ownerPhone: row[0].auth_users?.companyPhone ?? row[0].auth_users?.candidatePhone ?? null,
     ownerUserId: job.userId,
@@ -181,6 +186,9 @@ const isOwner = Boolean(detail && session?.user?.id && Number(session.user.id) =
 const isAdmin = viewerRole === "admin";
 const canViewPendingAsOwner = Boolean(detail && (detail.status ?? 0) !== 1 && !isExpiredByDate && (isOwner || isAdmin));
 const canViewDetail = Boolean(detail && (isPubliclyActive || canViewPendingAsOwner));
+const displayCompanyImage = detail
+  ? resolveEmployerImage(detail.ownerUserId === 1 ? detail.companyLogo : detail.ownerImage)
+  : resolveEmployerImage("");
 
 const state: JobState = detail ? (canViewDetail ? "active" : "expired") : "removed";
 if (isMissingNotFound) {
@@ -260,8 +268,10 @@ const relatedRows = detail
 const relatedJobs = relatedRows
   .map((item) => ({
     id: item.jobs.id,
+    userId: item.jobs.userId,
     position: item.jobs.position,
     companyName: item.jobs.companyName,
+    companyLogo: item.jobs.companyLogo,
     description: excerpt(item.jobs.description),
     salary: formatSalary(item.jobs.salaryMin, item.jobs.salaryMax, item.jobs.currency, item.jobs.salaryPeriod),
     contractTitle: item.contracts?.title ?? "Contract not specified",
@@ -360,8 +370,22 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
             <span class="mx-2">-&gt;</span>
             <span>{detail.position}</span>
           </nav>
-          <h1 class="text-4xl font-semibold tracking-tight">{detail.position}</h1>
-          <p class="mt-2 text-sm text-muted-foreground">{detail.companyName || "Unknown company"}</p>
+          <div class="flex items-start gap-4">
+            {
+              displayCompanyImage ? (
+                <img
+                  src={displayCompanyImage}
+                  alt=""
+                  loading="lazy"
+                  class="h-16 w-16 rounded-full border object-cover"
+                />
+              ) : null
+            }
+            <div>
+              <h1 class="text-4xl font-semibold tracking-tight">{detail.position}</h1>
+              <p class="mt-2 text-sm text-muted-foreground">{detail.companyName || "Unknown company"}</p>
+            </div>
+          </div>
 
           <div class="mt-4 flex flex-wrap gap-2 text-xs">
             <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">
@@ -427,10 +451,20 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
                 {
                   relatedJobs.map((job) => (
                     <article class="glass-panel rounded-2xl border p-5 shadow-sm">
-                      <a class="text-2xl font-semibold tracking-tight hover:underline" href={`/jobs/${job.id}`}>
-                        {job.position}
-                      </a>
-                      <p class="mt-1 text-sm text-muted-foreground">{job.companyName || "Unknown company"}</p>
+                      <div class="flex items-start gap-3">
+                        <img
+                          src={resolveEmployerImage(job.userId === 1 ? job.companyLogo : "")}
+                          alt=""
+                          loading="lazy"
+                          class="size-10 rounded-full border object-cover"
+                        />
+                        <div>
+                          <a class="text-2xl font-semibold tracking-tight hover:underline" href={`/jobs/${job.id}`}>
+                            {job.position}
+                          </a>
+                          <p class="mt-1 text-sm text-muted-foreground">{job.companyName || "Unknown company"}</p>
+                        </div>
+                      </div>
                       <p class="mt-4 text-sm text-muted-foreground">{job.description}</p>
                       <div class="mt-5 flex flex-wrap gap-2 text-xs">
                         <Badge className="bg-sky-100 text-sky-900 hover:bg-sky-100">{job.contractTitle}</Badge>

@@ -9,6 +9,7 @@ import { categories, contracts, countries, countryGroups, jobs } from "@/db/sche
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { buildPaginationState } from "@/lib/pagination";
 import { toAbsoluteUrl } from "@/lib/seo";
+import { resolveEmployerImage } from "@/lib/image-fallback";
 
 export const prerender = false;
 
@@ -56,8 +57,10 @@ const allMatchingRows = await db.select().from(jobs).where(and(...whereClauses))
 const totalResults = allMatchingRows.length;
 const items = resultRows.slice(0, pagination.pageSize).map((row) => ({
   id: row.jobs.id,
+  userId: row.jobs.userId,
   position: row.jobs.position,
   companyName: row.jobs.companyName,
+  companyLogo: row.jobs.companyLogo,
   salaryMin: row.jobs.salaryMin,
   salaryMax: row.jobs.salaryMax,
   currency: row.jobs.currency,
@@ -241,7 +244,14 @@ const resultSummary = totalResults > 0
                 }
                 <article class="glass-panel rounded-2xl border p-5 shadow-sm">
                   <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
+                    <div class="flex items-start gap-3">
+                      <img
+                        src={resolveEmployerImage(job.userId === 1 ? job.companyLogo : "")}
+                        alt=""
+                        loading="lazy"
+                        class="size-10 rounded-full border object-cover"
+                      />
+                      <div>
                       <a class="text-2xl font-semibold tracking-tight hover:underline" href={`/jobs/${job.id}`}>
                         {job.position}
                       </a>
@@ -253,6 +263,7 @@ const resultSummary = totalResults > 0
                           </Badge>
                         ) : null
                       }
+                      </div>
                     </div>
                   </div>
 

@@ -120,6 +120,16 @@ export function createAuth(options: { db?: ReturnType<typeof getDb>; env?: Runti
           defaultValue: 0,
           input: true,
         },
+        candidatePhoto: {
+          type: "string",
+          defaultValue: "",
+          input: false,
+        },
+        companyLogo: {
+          type: "string",
+          defaultValue: "",
+          input: false,
+        },
       },
     },
     session: {

@@ -7,11 +7,15 @@ import {
   shouldShowPostResume,
   type HeaderUserType,
 } from "@/components/navigation/public-nav";
+import { resolveCandidateImage, resolveEmployerImage } from "@/lib/image-fallback";
 
 type AuthSessionUser = {
   id?: string;
   role?: string;
   type?: string;
+  image?: string | null;
+  candidatePhoto?: string | null;
+  companyLogo?: string | null;
 };
 
 type AuthSessionPayload = {
@@ -26,6 +30,13 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
   const [userType, setUserType] = useState<HeaderUserType>(initialUserType);
   const [isReady, setIsReady] = useState(initialUserType !== "guest");
   const [loginHref, setLoginHref] = useState("/auth/login");
+  const [accountImage, setAccountImage] = useState(
+    initialUserType === "candidate"
+      ? resolveCandidateImage("")
+      : initialUserType === "employer"
+        ? resolveEmployerImage("")
+        : "",
+  );
   const profileMenuRef = useRef<HTMLDetailsElement | null>(null);
 
   useEffect(() => {
@@ -50,11 +61,27 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
 
         const payload = (await response.json()) as AuthSessionPayload;
         if (!cancelled) {
-          setUserType(normalizeHeaderUserType(payload?.user ?? null));
+          const resolvedUserType = normalizeHeaderUserType(payload?.user ?? null);
+          setUserType(resolvedUserType);
+
+          const rolePhoto = resolvedUserType === "candidate"
+            ? (payload?.user?.candidatePhoto ?? "")
+            : resolvedUserType === "employer"
+              ? (payload?.user?.companyLogo ?? "")
+              : "";
+          const fallback = payload?.user?.image ?? "";
+          const merged = String(rolePhoto || fallback).trim();
+          const nextImage = resolvedUserType === "candidate"
+            ? resolveCandidateImage(merged)
+            : resolvedUserType === "employer"
+              ? resolveEmployerImage(merged)
+              : merged;
+          setAccountImage(nextImage);
         }
       } catch {
         if (!cancelled) {
           setUserType(initialUserType);
+          setAccountImage("");
         }
       } finally {
         if (!cancelled) {
@@ -130,7 +157,7 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
       <div className="ml-auto hidden items-center gap-2 text-sm md:flex">
         {!isReady || userType === "guest" ? (
           <>
-            <a className="rounded-full bg-background px-4 py-1.5 font-semibold text-foreground hover:opacity-90" href={loginHref}>
+            <a className="rounded-full bg-gray-200 px-4 py-1.5 font-semibold text-foreground hover:bg-gray-300" href={loginHref}>
               Login
             </a>
             <a className="rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10" href="/auth/register">
@@ -139,8 +166,13 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
           </>
         ) : (
           <details ref={profileMenuRef} className="group relative">
-            <summary className="list-none cursor-pointer rounded-full border border-primary-foreground/40 px-4 py-1.5 hover:bg-primary-foreground/10">
-              Account
+            <summary className="list-none inline-flex h-9 cursor-pointer items-center rounded-full border border-primary-foreground/40 pl-1 pr-3 leading-none hover:bg-primary-foreground/10">
+              {
+                accountImage ? (
+                  <img src={accountImage} alt="" className="mr-2 size-7 rounded-full object-cover" />
+                ) : null
+              }
+              <span className="leading-none">Account</span>
             </summary>
             <div className="absolute right-0 z-50 mt-2 w-52 rounded-xl border border-primary-foreground/20 bg-primary p-2 shadow-lg">
               {userType === "candidate" ? (

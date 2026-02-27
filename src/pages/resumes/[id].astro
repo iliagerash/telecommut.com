@@ -7,6 +7,7 @@ import { getRequestDb } from "@/db/request";
 import { authUsers, categories, contracts, countries, resumes } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { formatDescriptionHtml } from "@/lib/description";
+import { resolveCandidateImage } from "@/lib/image-fallback";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
@@ -86,7 +87,7 @@ const skills = ((resume?.skills ?? ""))
 const candidateName = (user?.candidateName ?? "").trim();
 const candidateEmail = (user?.email ?? "").trim();
 const candidatePhone = (user?.candidatePhone ?? "").trim();
-const candidateImage = (user?.image ?? "").trim();
+const candidateImage = resolveCandidateImage(user?.image ?? "");
 const categoryTitle = category?.title ?? "Uncategorized";
 const countryName = country?.name ?? "Unspecified";
 ---
@@ -121,16 +122,12 @@ const countryName = country?.name ?? "Unspecified";
           </nav>
 
           <div class="flex flex-wrap items-start gap-4">
-            {
-              candidateImage ? (
-                <img
-                  src={candidateImage}
-                  alt=""
-                  class="h-20 w-20 rounded-full border object-cover"
-                  loading="lazy"
-                />
-              ) : null
-            }
+            <img
+              src={candidateImage}
+              alt=""
+              class="h-20 w-20 rounded-full border object-cover"
+              loading="lazy"
+            />
             <div class="min-w-[260px] flex-1">
               <h1 class="text-4xl font-semibold tracking-tight">{resume?.position}</h1>
               {candidateName ? <p class="mt-2 text-sm text-muted-foreground">{candidateName}</p> : null}

@@ -1,5 +1,6 @@
 ---
 import RichTextField from "@/components/editor/RichTextField";
+import { resolveEmployerImage } from "@/lib/image-fallback";
 
 type Option = {
   id: number;
@@ -67,6 +68,8 @@ const {
   successText = "",
   hiddenFields = {},
 } = Astro.props;
+const hasCustomUserImage = Boolean(userImage?.trim());
+const userImageSrc = resolveEmployerImage(userImage);
 ---
 
 {
@@ -88,15 +91,11 @@ const {
     <h2 class="text-lg font-semibold">Company data</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-[96px_1fr] md:items-center">
     {
-      userImage ? (
-        <img
-          src={userImage}
-          alt=""
-          class="size-24 rounded-xl border object-cover"
-        />
-      ) : (
-        <div class="size-24 rounded-xl border bg-muted" aria-hidden="true"></div>
-      )
+      <img
+        src={userImageSrc}
+        alt=""
+        class="size-24 rounded-xl border object-cover"
+      />
     }
     <div class="space-y-2 text-sm">
       <p>
@@ -106,7 +105,7 @@ const {
         Email: <a class="text-blue-700 underline" href={`mailto:${userEmail}`}>{userEmail}</a>
       </p>
       {
-        userImage ? null : (
+        hasCustomUserImage ? null : (
           <p class="text-sm text-muted-foreground">
             No profile image yet. Upload one in Edit profile.
           </p>
