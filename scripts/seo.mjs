@@ -106,14 +106,18 @@ function toMysqlDatetime(input) {
 
 function parseMicrosoftDate(dateString) {
   if (!dateString) return null;
-  const match = String(dateString).match(/\/Date\((\d+)([+-]\d+)?\)\//);
+  const match = String(dateString).match(/\/Date\((-?\d+)([+-]\d+)?\)\//);
   if (match?.[1]) {
     const timestampMs = Number.parseInt(match[1], 10);
     if (Number.isFinite(timestampMs)) {
+      // Bing may return .NET min-date sentinel for unknown crawl date.
+      if (timestampMs <= 0) {
+        return null;
+      }
       return toMysqlDatetime(timestampMs);
     }
   }
-  return dateString;
+  return null;
 }
 
 async function resolveGoogleServiceJsonPath() {
