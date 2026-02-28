@@ -10,18 +10,21 @@ import { resolveCandidateImage, resolveEmployerImage } from "@/lib/image-fallbac
 
 type PublicDesktopNavProps = {
   initialUserType?: HeaderUserType;
+  initialUserImage?: string;
 };
 
-export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDesktopNavProps) {
+export default function PublicDesktopNav({ initialUserType = "guest", initialUserImage = "" }: PublicDesktopNavProps) {
   const [userType] = useState<HeaderUserType>(initialUserType);
   const [isReady] = useState(true);
   const [loginHref, setLoginHref] = useState("/auth/login");
   const [accountImage] = useState(
     initialUserType === "candidate"
-      ? resolveCandidateImage("")
+      ? resolveCandidateImage(initialUserImage)
       : initialUserType === "employer"
-        ? resolveEmployerImage("")
-        : "",
+        ? resolveEmployerImage(initialUserImage)
+        : initialUserType === "admin"
+          ? resolveCandidateImage(initialUserImage)
+          : "",
   );
   const profileMenuRef = useRef<HTMLDetailsElement | null>(null);
 

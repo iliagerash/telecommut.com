@@ -12,6 +12,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTi
 
 type PublicMobileNavProps = {
   initialUserType?: HeaderUserType;
+  initialUserImage?: string;
 };
 
 export default function PublicMobileNav({ initialUserType = "guest" }: PublicMobileNavProps) {

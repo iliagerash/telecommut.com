@@ -50,14 +50,17 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${gaMeasurementId.replace(/'/g, "\\'")}');`;
 let initialUserType: HeaderUserType = "guest";
+let initialUserImage = "";
 if (!Astro.isPrerendered) {
   try {
     const session = await getAuth(Astro.locals).api.getSession({
       headers: Astro.request.headers,
     });
     initialUserType = normalizeHeaderUserType(session?.user ?? null);
+    initialUserImage = typeof session?.user?.image === "string" ? session.user.image.trim() : "";
   } catch {
     initialUserType = "guest";
+    initialUserImage = "";
   }
 }
 ---
@@ -114,9 +117,9 @@ if (!Astro.isPrerendered) {
             <img src="/logo.png" alt="" width="26" height="26" loading="eager" />
             Telecommut
           </a>
-          <PublicDesktopNav client:load initialUserType={initialUserType} />
+          <PublicDesktopNav client:load initialUserType={initialUserType} initialUserImage={initialUserImage} />
           <div class="ml-auto md:hidden">
-            <PublicMobileNav client:load initialUserType={initialUserType} />
+            <PublicMobileNav client:load initialUserType={initialUserType} initialUserImage={initialUserImage} />
           </div>
         </div>
       </header>
