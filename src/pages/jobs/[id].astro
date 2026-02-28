@@ -1,6 +1,8 @@
 ---
 import { and, desc, eq } from "drizzle-orm";
 
+import AdMiddle from "@/components/ads/AdMiddle.astro";
+import AdTop from "@/components/ads/AdTop.astro";
 import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { authUsers, categories, contracts, countries, countryGroups, jobRemovals, jobs } from "@/db/schema";
@@ -409,6 +411,8 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
             Hiring from: {resolveHiringFrom(detail.countryGroups, detail.countryName)}
           </p>
 
+          <AdTop />
+
           <article class="prose prose-sm mt-5 max-w-none" set:html={formatDescriptionHtml(detail.description)} />
 
           {
@@ -445,6 +449,7 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
         {
           !isOwner && relatedJobs.length > 0 ? (
             <section class="mt-6">
+              <AdMiddle />
               <h2 class="text-2xl font-semibold tracking-tight">Similar jobs</h2>
               <div class="mt-4 space-y-4">
                 {
