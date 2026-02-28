@@ -16,7 +16,7 @@ export const prerender = false;
 
 const db = getRequestDb(Astro.locals);
 
-const query = (Astro.url.searchParams.get("q") ?? "").trim();
+const query = (Astro.url.searchParams.get("position") ?? "").trim();
 const category = (Astro.url.searchParams.get("category") ?? "").trim();
 
 const recentJobRows = await db
@@ -166,7 +166,7 @@ const homepageJsonLd = {
       url: toAbsoluteUrl("/"),
       potentialAction: {
       "@type": "SearchAction",
-        target: `${toAbsoluteUrl("/jobs")}?q={search_term_string}`,
+        target: `${toAbsoluteUrl("/jobs")}?position={search_term_string}`,
         "query-input": "required name=search_term_string",
       },
     },
@@ -308,7 +308,7 @@ const homepageJsonLd = {
               </div>
             );
             return segment ? (
-              <a class="glass-panel rounded-2xl border p-4 transition-colors hover:bg-card/80" href={`/category/${segment}`}>
+              <a class="glass-panel rounded-2xl border p-4 transition-colors hover:bg-card/80" href={`/categories/${segment}`}>
                 {content}
               </a>
             ) : (

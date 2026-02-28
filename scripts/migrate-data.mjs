@@ -440,7 +440,8 @@ function normalizeRow(sourceTable, targetTable, row, columns) {
         continue;
       }
       if (column === "image") {
-        out.image = deriveImage(row);
+        const role = normalizeRole(row.role, row.type);
+        out.image = role === "admin" ? "/images/candidate.png" : deriveImage(row);
         continue;
       }
       if (column === "created_at") {

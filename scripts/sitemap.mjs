@@ -80,8 +80,7 @@ function buildSitemapXml(urlRows) {
   const body = urlRows
     .map((row) => {
       const lastmod = row.lastmod ? `\n    <lastmod>${escapeXml(row.lastmod)}</lastmod>` : "";
-      const changefreq = row.changefreq ? `\n    <changefreq>${escapeXml(row.changefreq)}</changefreq>` : "";
-      return `<url>\n    <loc>${escapeXml(row.loc)}</loc>${lastmod}${changefreq}\n</url>\n`;
+      return `<url>\n    <loc>${escapeXml(row.loc)}</loc>${lastmod}\n</url>\n`;
     })
     .join("");
   return `${header}${body}${footer}`;
@@ -158,25 +157,28 @@ async function getGoogleAccessTokenWebmasters() {
   return data.access_token;
 }
 
-async function pingSitemap(sitemapUrl, baseUrl) {
-  if (optionalBoolEnv("GOOGLE_SERVICE_ENABLED", false)) {
-    try {
-      const token = await getGoogleAccessTokenWebmasters();
-      const endpoint = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(`${baseUrl}/`)}/sitemaps/${encodeURIComponent(sitemapUrl)}`;
-      const response = await fetch(endpoint, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.info(`Google response: ${response.status}`);
-    } catch (error) {
-      console.info(`Google response: error (${error instanceof Error ? error.message : String(error)})`);
-    }
-  } else {
+async function pingSitemapGoogle(sitemapUrl, baseUrl) {
+  if (!optionalBoolEnv("GOOGLE_SERVICE_ENABLED", false)) {
     console.info("Google service is disabled");
+    return;
   }
 
+  try {
+    const token = await getGoogleAccessTokenWebmasters();
+    const endpoint = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(`${baseUrl}/`)}/sitemaps/${encodeURIComponent(sitemapUrl)}`;
+    const response = await fetch(endpoint, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.info(`Google response: ${response.status}`);
+  } catch (error) {
+    console.info(`Google response: error (${error instanceof Error ? error.message : String(error)})`);
+  }
+}
+
+async function pingSitemapBing(sitemapUrl, baseUrl) {
   const bingKey = optionalEnv("BING_API_KEY");
   if (bingKey) {
     try {
@@ -195,7 +197,21 @@ async function pingSitemap(sitemapUrl, baseUrl) {
     } catch (error) {
       console.info(`Bing response: error (${error instanceof Error ? error.message : String(error)})`);
     }
+    return;
   }
+
+  console.info("Bing API key is missing");
+}
+
+function toDateOnly(input = new Date()) {
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 async function main() {
@@ -211,11 +227,13 @@ async function main() {
   const databaseUrl = requiredEnv("DATABASE_URL");
   const baseUrl = resolveBaseUrl();
   const sitemapMain = optionalEnv("SITEMAP_MAIN", optionalEnv("SITEMAP_FILE", "sitemap.xml"));
+  const sitemapCore = optionalEnv("SITEMAP_CORE", "sitemap_core.xml");
   const sitemapCategories = optionalEnv("SITEMAP_CATEGORIES", "categories.xml");
   const jobsThreshold = optionalIntEnv("JOBS_THRESHOLD", 20);
 
   const publicDir = path.resolve(process.cwd(), "public");
   const sitemapMainPath = path.resolve(publicDir, sitemapMain);
+  const sitemapCorePath = path.resolve(publicDir, sitemapCore);
   const sitemapCategoriesPath = path.resolve(publicDir, sitemapCategories);
 
   const pool = mysql.createPool({
@@ -228,13 +246,16 @@ async function main() {
       "SELECT MAX(updated_at) AS last_update FROM jobs WHERE status = 1",
     );
     const lastUpdate = maxRows[0]?.last_update ? new Date(maxRows[0].last_update) : null;
+    const [createdRows] = await pool.execute(
+      "SELECT MAX(created_at) AS last_created FROM jobs WHERE status = 1",
+    );
+    const lastCreated = createdRows[0]?.last_created ? new Date(createdRows[0].last_created) : null;
 
     if (lastUpdate) {
       try {
         const fileStats = await stat(sitemapMainPath);
         if (fileStats.mtime >= lastUpdate) {
           console.info(`Sitemap ${sitemapMainPath} is up to date`);
-          return;
         }
       } catch {
         // file may not exist yet
@@ -242,13 +263,15 @@ async function main() {
     }
 
     const rootLastmod = toIso(lastUpdate ?? new Date()) ?? new Date().toISOString();
-    const mainRows = [
+    const coreLastmod = toIso(lastCreated ?? new Date()) ?? new Date().toISOString();
+    const coreRows = [
       {
         loc: `${baseUrl}/`,
-        lastmod: rootLastmod,
-        changefreq: "hourly",
+        lastmod: coreLastmod,
       },
     ];
+    await writeFile(sitemapCorePath, buildSitemapXml(coreRows), "utf8");
+    const mainRows = [];
 
     const [jobRows] = await pool.execute(
       `
@@ -268,25 +291,30 @@ async function main() {
       mainRows.push({
         loc: `${baseUrl}/jobs/${job.id}`,
         lastmod: lastmod ?? rootLastmod,
-        changefreq: "monthly",
       });
     }
 
     await writeFile(sitemapMainPath, buildSitemapXml(mainRows), "utf8");
     const mainUrl = `${baseUrl}/${sitemapMain}`;
     console.info(mainUrl);
-    await pingSitemap(mainUrl, baseUrl);
+    await pingSitemapGoogle(mainUrl, baseUrl);
+    await pingSitemapBing(mainUrl, baseUrl);
+    const coreUrl = `${baseUrl}/${sitemapCore}`;
+    console.info(coreUrl);
+    await pingSitemapGoogle(coreUrl, baseUrl);
+    await pingSitemapBing(coreUrl, baseUrl);
 
     const [categoryRows] = await pool.execute(
       `
       SELECT
         categories.title AS category_title,
         categories.slug AS category_slug,
+        categories.last_mod AS category_last_mod,
         MAX(jobs.updated_at) AS last_update,
         COUNT(jobs.id) AS jobs_count
       FROM categories
       JOIN jobs ON jobs.category_id = categories.id
-      GROUP BY categories.id, categories.title, categories.slug
+      GROUP BY categories.id, categories.title, categories.slug, categories.last_mod
       HAVING jobs_count > ?
       ORDER BY last_update DESC
       `,
@@ -296,18 +324,22 @@ async function main() {
     const categorySitemapRows = [];
     for (const category of categoryRows) {
       const slug = String(category.category_slug ?? "").trim() || slugify(category.category_title);
-      const lastmod = toIso(category.last_update);
+      let lastModDate = String(category.category_last_mod ?? "").trim();
+      if (!lastModDate) {
+        lastModDate = toDateOnly(new Date());
+        await pool.execute("UPDATE categories SET last_mod = ? WHERE id = ?", [lastModDate, category.id]);
+      }
+
       categorySitemapRows.push({
-        loc: `${baseUrl}/category/${encodeURIComponent(slug)}`,
-        lastmod: lastmod ?? rootLastmod,
-        changefreq: "hourly",
+        loc: `${baseUrl}/categories/${encodeURIComponent(slug)}`,
+        lastmod: lastModDate || rootLastmod,
       });
     }
 
     await writeFile(sitemapCategoriesPath, buildSitemapXml(categorySitemapRows), "utf8");
     const categoriesUrl = `${baseUrl}/${sitemapCategories}`;
     console.info(categoriesUrl);
-    await pingSitemap(categoriesUrl, baseUrl);
+    await pingSitemapBing(categoriesUrl, baseUrl);
   } finally {
     await pool.end();
   }

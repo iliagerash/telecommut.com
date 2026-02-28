@@ -27,7 +27,7 @@ if (viewerRole === "candidate") {
 
 const db = getRequestDb(Astro.locals);
 
-const position = (Astro.url.searchParams.get("position") ?? Astro.url.searchParams.get("q") ?? "").trim();
+const position = (Astro.url.searchParams.get("position") ?? "").trim();
 const categoryParam = (Astro.url.searchParams.get("category_id") ?? "").trim();
 const countryParam = (Astro.url.searchParams.get("country_id") ?? "").trim();
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 20);

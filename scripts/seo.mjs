@@ -89,7 +89,7 @@ function slugify(input) {
 
 function categoryUrl(slug, title, baseUrl) {
   const normalizedSlug = String(slug ?? "").trim() || slugify(title) || "";
-  return new URL(`/category/${encodeURIComponent(normalizedSlug)}`, `${baseUrl}/`).toString();
+  return new URL(`/categories/${encodeURIComponent(normalizedSlug)}`, `${baseUrl}/`).toString();
 }
 
 function toMysqlDatetime(input) {

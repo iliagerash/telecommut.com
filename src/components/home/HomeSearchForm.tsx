@@ -64,7 +64,7 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
       const selected = categoryOptions.find((row) => String(row.id) === category);
       const categorySegment = selected?.slug?.trim();
       if (categorySegment) {
-        window.location.href = `/category/${encodeURIComponent(categorySegment)}`;
+        window.location.href = `/categories/${encodeURIComponent(categorySegment)}`;
         return;
       }
     }
@@ -89,7 +89,7 @@ export default function HomeSearchForm({ initialQuery, initialCategory, category
           id="position"
           name="position"
           value={query}
-          placeholder="Position, skill, or company"
+          placeholder="Position"
           aria-label="Search position"
           autoComplete="off"
           className="h-11 w-full rounded-xl border bg-background px-3 text-sm"

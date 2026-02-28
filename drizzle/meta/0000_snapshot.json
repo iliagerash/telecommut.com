@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "2a8d54e8-3984-4ad3-8378-5a483a8c75e9",
+  "id": "54ba5633-2300-4108-86df-19cee1b881bc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "app_meta": {
@@ -557,6 +557,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "last_mod": {
+          "name": "last_mod",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "description": {
           "name": "description",
           "type": "text",
@@ -961,7 +968,7 @@
         },
         "traffic_date": {
           "name": "traffic_date",
-          "type": "varchar(32)",
+          "type": "date",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false

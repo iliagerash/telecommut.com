@@ -83,6 +83,7 @@ CREATE TABLE `categories` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`title` text NOT NULL,
 	`slug` varchar(191),
+	`last_mod` date,
 	`description` text NOT NULL DEFAULT (''),
 	`page_text` text NOT NULL DEFAULT (''),
 	`meta_title` text NOT NULL DEFAULT (''),
@@ -147,7 +148,7 @@ CREATE TABLE `country_groups` (
 --> statement-breakpoint
 CREATE TABLE `direct_traffic` (
 	`id` int AUTO_INCREMENT NOT NULL,
-	`traffic_date` varchar(32) NOT NULL,
+	`traffic_date` date NOT NULL,
 	`bypass_bots` text,
 	`false_positives` text,
 	`total_nginx_requests` int NOT NULL DEFAULT 0,

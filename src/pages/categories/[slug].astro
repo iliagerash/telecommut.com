@@ -79,7 +79,7 @@ const countLabel = new Intl.NumberFormat("en-US").format(totalResults);
 const isFirstPage = pagination.page === 1;
 
 function buildPageHref(page: number): string {
-  const url = new URL(`/category/${encodeURIComponent(categorySegment)}`, Astro.url);
+  const url = new URL(`/categories/${encodeURIComponent(categorySegment)}`, Astro.url);
   if (page > 1) {
     url.searchParams.set("page", String(page));
   }
@@ -176,6 +176,7 @@ function buildMetaDescription(): string {
 
 const metaTitle = buildMetaTitle();
 const metaDescription = buildMetaDescription();
+const robots = isFirstPage ? "index,follow" : "noindex,follow";
 const resultSummary = totalResults > 0
   ? `Results ${pagination.offset + 1}-${pagination.offset + items.length} of ${totalResults}`
   : "No jobs found";
@@ -191,6 +192,7 @@ const itemListElements = items.slice(0, 10).map((job, index) => ({
 <PublicLayout
   title={metaTitle}
   description={metaDescription}
+  robots={robots}
   canonicalPath={canonicalPath}
   prevPath={prevPage ? buildPageHref(prevPage) : undefined}
   nextPath={nextPage ? buildPageHref(nextPage) : undefined}
@@ -215,7 +217,7 @@ const itemListElements = items.slice(0, 10).map((job, index) => ({
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: toAbsoluteUrl("/") },
-          { "@type": "ListItem", position: 2, name: category.title, item: toAbsoluteUrl(`/category/${encodeURIComponent(categorySegment)}`) },
+          { "@type": "ListItem", position: 2, name: category.title, item: toAbsoluteUrl(`/categories/${encodeURIComponent(categorySegment)}`) },
         ],
       },
     ],

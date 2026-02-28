@@ -95,6 +95,7 @@ export const categories = mysqlTable("categories", {
   id: int("id").autoincrement().primaryKey(),
   title: text("title").notNull(),
   slug: varchar("slug", { length: 191 }),
+  lastMod: date("last_mod", { mode: "string" }),
   description: text("description").notNull().default(""),
   pageText: text("page_text").notNull().default(""),
   metaTitle: text("meta_title").notNull().default(""),

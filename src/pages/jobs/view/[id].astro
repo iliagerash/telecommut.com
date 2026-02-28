@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+const idRaw = (Astro.params.id ?? "").trim();
+const parsedId = Number.parseInt(idRaw, 10);
+if (!Number.isFinite(parsedId) || parsedId <= 0) {
+  throw new Response("Not found", { status: 404 });
+}
+
+const target = new URL(`/jobs/${parsedId}`, Astro.url);
+for (const [key, value] of Astro.url.searchParams.entries()) {
+  target.searchParams.set(key, value);
+}
+
+return Astro.redirect(`${target.pathname}${target.search}`, 301);
+---

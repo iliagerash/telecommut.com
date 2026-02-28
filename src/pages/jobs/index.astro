@@ -15,7 +15,7 @@ export const prerender = false;
 
 const db = getRequestDb(Astro.locals);
 
-const query = (Astro.url.searchParams.get("q") ?? Astro.url.searchParams.get("position") ?? "").trim();
+const query = (Astro.url.searchParams.get("position") ?? "").trim();
 const categoryParam = (Astro.url.searchParams.get("category") ?? Astro.url.searchParams.get("category_id") ?? "").trim();
 const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 20);
 
@@ -29,7 +29,7 @@ const countryGroupRows = countryGroupRowsRaw.map((row) => ({ id: row.id, name: r
 if (!query && categoryId !== null) {
   const categorySegment = categoryRowsRaw.find((row) => row.id === categoryId)?.slug?.trim();
   if (categorySegment) {
-    return Astro.redirect(`/category/${encodeURIComponent(categorySegment)}`, 307);
+    return Astro.redirect(`/categories/${encodeURIComponent(categorySegment)}`, 307);
   }
 }
 
@@ -98,7 +98,7 @@ const pageDescription = query
 function buildPageHref(page: number): string {
   const url = new URL("/jobs", Astro.url);
   if (query) {
-    url.searchParams.set("q", query);
+    url.searchParams.set("position", query);
   }
   if (categoryId !== null) {
     url.searchParams.set("category", String(categoryId));

@@ -1,0 +1,33 @@
+---
+import { eq } from "drizzle-orm";
+
+import { getRequestDb } from "@/db/request";
+import { categories } from "@/db/schema";
+
+export const prerender = false;
+
+const titleRaw = (Astro.params.title ?? "").trim();
+if (!titleRaw) {
+  throw new Response("Not found", { status: 404 });
+}
+
+const title = decodeURIComponent(titleRaw);
+const db = getRequestDb(Astro.locals);
+const category = (await db
+  .select({ slug: categories.slug })
+  .from(categories)
+  .where(eq(categories.title, title))
+  .limit(1))[0];
+
+const slug = String(category?.slug ?? "").trim();
+if (!slug) {
+  throw new Response("Not found", { status: 404 });
+}
+
+const target = new URL(`/categories/${encodeURIComponent(slug)}`, Astro.url);
+for (const [key, value] of Astro.url.searchParams.entries()) {
+  target.searchParams.set(key, value);
+}
+
+return Astro.redirect(`${target.pathname}${target.search}`, 301);
+---

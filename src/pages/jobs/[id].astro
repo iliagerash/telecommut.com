@@ -359,7 +359,7 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
             {
               detail.categoryTitle ? (
                 detail.categorySlug ? (
-                  <a class="hover:underline" href={`/category/${encodeURIComponent(detail.categorySlug)}`}>{detail.categoryTitle}</a>
+                  <a class="hover:underline" href={`/categories/${encodeURIComponent(detail.categorySlug)}`}>{detail.categoryTitle}</a>
                 ) : (
                   <span>{detail.categoryTitle}</span>
                 )

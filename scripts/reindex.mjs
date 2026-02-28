@@ -93,7 +93,7 @@ function toAbsoluteUrl(raw, baseUrl) {
 
 function categoryUrl(slug, title, baseUrl) {
   const normalizedSlug = String(slug ?? "").trim() || slugify(title) || "";
-  const relative = `/category/${encodeURIComponent(normalizedSlug)}`;
+  const relative = `/categories/${encodeURIComponent(normalizedSlug)}`;
   return baseUrl ? new URL(relative, baseUrl).toString() : relative;
 }
 
