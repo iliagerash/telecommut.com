@@ -307,6 +307,7 @@ async function main() {
     const [categoryRows] = await pool.execute(
       `
       SELECT
+        categories.id AS category_id,
         categories.title AS category_title,
         categories.slug AS category_slug,
         categories.last_mod AS category_last_mod,
@@ -327,7 +328,7 @@ async function main() {
       let lastModDate = String(category.category_last_mod ?? "").trim();
       if (!lastModDate) {
         lastModDate = toDateOnly(new Date());
-        await pool.execute("UPDATE categories SET last_mod = ? WHERE id = ?", [lastModDate, category.id]);
+        await pool.execute("UPDATE categories SET last_mod = ? WHERE id = ?", [lastModDate, category.category_id]);
       }
 
       categorySitemapRows.push({
