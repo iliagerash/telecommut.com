@@ -1,5 +1,5 @@
 ---
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import AdMiddle from "@/components/ads/AdMiddle.astro";
 import AdTop from "@/components/ads/AdTop.astro";
@@ -150,6 +150,30 @@ if (row.length === 0) {
   }
 } else {
   const job = row[0].jobs;
+  const userAgent = Astro.request.headers.get("user-agent") ?? "";
+  const ifModifiedSince = Astro.request.headers.get("if-modified-since") ?? "";
+  const isGooglebot = /googlebot/i.test(userAgent);
+  const isBingbot = /bingbot/i.test(userAgent);
+  const botCrawledAt = (() => {
+    if (isGooglebot && ifModifiedSince) {
+      const parsed = new Date(ifModifiedSince);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    return new Date();
+  })();
+
+  if (isGooglebot && Number(job.googleCrawled ?? 0) === 0) {
+    await db.execute(
+      sql`UPDATE jobs SET google_crawled = 1, google_crawled_at = ${botCrawledAt} WHERE id = ${job.id} AND google_crawled = 0`,
+    );
+  } else if (isBingbot && Number(job.bingCrawled ?? 0) === 0) {
+    await db.execute(
+      sql`UPDATE jobs SET bing_crawled = 1, bing_crawled_at = ${botCrawledAt} WHERE id = ${job.id} AND bing_crawled = 0`,
+    );
+  }
+
   detail = {
     id: job.id,
     position: job.position,
