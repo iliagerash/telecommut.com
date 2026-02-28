@@ -167,7 +167,6 @@ export async function submitGoogleIndexing(urls, options = {}) {
 
 export async function submitBingIndexNow(urls, baseUrl, options = {}) {
   const {
-    nodeEnv = String(process.env.NODE_ENV ?? "").trim(),
     bingApiKey = String(process.env.BING_API_KEY ?? "").trim(),
     logger = console,
   } = options;
@@ -181,8 +180,8 @@ export async function submitBingIndexNow(urls, baseUrl, options = {}) {
     return;
   }
 
-  if (nodeEnv !== "production" || !bingApiKey) {
-    logger.info("Bing IndexNow skipped (requires NODE_ENV=production and BING_API_KEY)");
+  if (!bingApiKey) {
+    logger.info("Bing IndexNow skipped (missing BING_API_KEY)");
     return;
   }
 
