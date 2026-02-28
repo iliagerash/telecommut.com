@@ -2,35 +2,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { authClient } from "@/auth/client";
 import {
-  normalizeHeaderUserType,
   shouldShowEmployerLinks,
   shouldShowPostResume,
   type HeaderUserType,
 } from "@/components/navigation/public-nav";
 import { resolveCandidateImage, resolveEmployerImage } from "@/lib/image-fallback";
 
-type AuthSessionUser = {
-  id?: string;
-  role?: string;
-  type?: string;
-  image?: string | null;
-  candidatePhoto?: string | null;
-  companyLogo?: string | null;
-};
-
-type AuthSessionPayload = {
-  user?: AuthSessionUser | null;
-};
-
 type PublicDesktopNavProps = {
   initialUserType?: HeaderUserType;
 };
 
 export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDesktopNavProps) {
-  const [userType, setUserType] = useState<HeaderUserType>(initialUserType);
-  const [isReady, setIsReady] = useState(initialUserType !== "guest");
+  const [userType] = useState<HeaderUserType>(initialUserType);
+  const [isReady] = useState(true);
   const [loginHref, setLoginHref] = useState("/auth/login");
-  const [accountImage, setAccountImage] = useState(
+  const [accountImage] = useState(
     initialUserType === "candidate"
       ? resolveCandidateImage("")
       : initialUserType === "employer"
@@ -38,64 +24,6 @@ export default function PublicDesktopNav({ initialUserType = "guest" }: PublicDe
         : "",
   );
   const profileMenuRef = useRef<HTMLDetailsElement | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSession() {
-      try {
-        const response = await fetch("/api/auth/get-session", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          if (!cancelled) {
-            setUserType(initialUserType);
-          }
-          return;
-        }
-
-        const payload = (await response.json()) as AuthSessionPayload;
-        if (!cancelled) {
-          const resolvedUserType = normalizeHeaderUserType(payload?.user ?? null);
-          setUserType(resolvedUserType);
-
-          const rolePhoto = resolvedUserType === "candidate"
-            ? (payload?.user?.candidatePhoto ?? "")
-            : resolvedUserType === "employer"
-              ? (payload?.user?.companyLogo ?? "")
-              : "";
-          const fallback = payload?.user?.image ?? "";
-          const merged = String(rolePhoto || fallback).trim();
-          const nextImage = resolvedUserType === "candidate"
-            ? resolveCandidateImage(merged)
-            : resolvedUserType === "employer"
-              ? resolveEmployerImage(merged)
-              : merged;
-          setAccountImage(nextImage);
-        }
-      } catch {
-        if (!cancelled) {
-          setUserType(initialUserType);
-          setAccountImage("");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsReady(true);
-        }
-      }
-    }
-
-    void loadSession();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialUserType]);
 
   useEffect(() => {
     const next = `${window.location.pathname}${window.location.search}`;

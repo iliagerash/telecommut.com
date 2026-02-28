@@ -4,68 +4,20 @@ import { MenuIcon } from "lucide-react";
 
 import { authClient } from "@/auth/client";
 import {
-  normalizeHeaderUserType,
   shouldShowEmployerLinks,
   shouldShowPostResume,
   type HeaderUserType,
 } from "@/components/navigation/public-nav";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
-type AuthSessionUser = {
-  id?: string;
-  role?: string;
-  type?: string;
-};
-
-type AuthSessionPayload = {
-  user?: AuthSessionUser | null;
-};
-
 type PublicMobileNavProps = {
   initialUserType?: HeaderUserType;
 };
 
 export default function PublicMobileNav({ initialUserType = "guest" }: PublicMobileNavProps) {
-  const [userType, setUserType] = useState<HeaderUserType>(initialUserType);
-  const [isReady, setIsReady] = useState(initialUserType !== "guest");
+  const [userType] = useState<HeaderUserType>(initialUserType);
+  const [isReady] = useState(true);
   const [loginHref, setLoginHref] = useState("/auth/login");
-
-  async function loadSession(settledInitialUserType: HeaderUserType) {
-    try {
-      const response = await fetch("/api/auth/get-session", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        setUserType(settledInitialUserType);
-        return;
-      }
-
-      const payload = (await response.json()) as AuthSessionPayload;
-      setUserType(normalizeHeaderUserType(payload?.user ?? null));
-    } catch {
-      setUserType(settledInitialUserType);
-    } finally {
-      setIsReady(true);
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      if (cancelled) return;
-      await loadSession(initialUserType);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialUserType]);
 
   useEffect(() => {
     const next = `${window.location.pathname}${window.location.search}`;
