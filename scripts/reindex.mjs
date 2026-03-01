@@ -181,8 +181,7 @@ async function handleBing(pool, baseUrl) {
     SELECT id, url, title, bing_crawled_at
     FROM seo_pages
     WHERE url IS NOT NULL
-      AND bing_crawled_at < ?
-      AND bing_crawled_at IS NOT NULL
+      AND (bing_crawled_at IS NULL OR bing_crawled_at < ?)
     `,
     [cutoff],
   );
@@ -204,8 +203,7 @@ async function handleBing(pool, baseUrl) {
       MAX(jobs.updated_at) AS last_update
     FROM categories
     JOIN jobs ON jobs.category_id = categories.id
-    WHERE categories.bing_crawled_at < ?
-      AND categories.bing_crawled_at IS NOT NULL
+    WHERE (categories.bing_crawled_at IS NULL OR categories.bing_crawled_at < ?)
     GROUP BY categories.id, categories.title, categories.slug, categories.bing_crawled_at
     HAVING jobs_count > ?
     ORDER BY last_update DESC
