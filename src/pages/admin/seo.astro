@@ -1,46 +1,150 @@
 ---
-import { desc } from "drizzle-orm";
+import { and, asc, ne, sql } from "drizzle-orm";
 
-import AdminDataTable from "@/components/admin/AdminDataTable.astro";
+import { categories, seoPages } from "@/db/schema";
 import { getRequestDb } from "@/db/request";
-import { seoPages } from "@/db/schema";
-import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/AdminLayout.astro";
 
 export const prerender = false;
 
-const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
-
 const db = getRequestDb(Astro.locals);
-const columns = [
-  { key: "id", label: "ID" },
-  { key: "path", label: "Path" },
-  { key: "status", label: "Status" },
-  { key: "updatedAt", label: "Updated" },
-];
 
-const rowsRaw = await db
-  .select()
-  .from(seoPages)
-  .orderBy(desc(seoPages.id))
-  .limit(pagination.pageSize + 1)
-  .offset(pagination.offset);
+const [seoRows, categoryRows] = await Promise.all([
+  db
+    .select()
+    .from(seoPages)
+    .where(and(ne(seoPages.coverageState, ""), ne(sql`TRIM(${seoPages.coverageState})`, "")))
+    .orderBy(asc(seoPages.title)),
+  db
+    .select()
+    .from(categories)
+    .where(and(ne(categories.coverageState, ""), ne(sql`TRIM(${categories.coverageState})`, "")))
+    .orderBy(asc(categories.title)),
+]);
 
-const hasNext = rowsRaw.length > pagination.pageSize;
-const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
-  id: row.id ?? "-",
-  path: row.url ?? "-",
-  status: row.coverageState || "pending",
-  updatedAt: row.submittedAt ?? "-",
-}));
+const coverageIndexed = "Submitted and indexed";
+const coverageCrawledNotIndexed = "Crawled - currently not indexed";
+const coverageUnknown = "URL is unknown to Google";
+const coverageInternalError = "Internal error occured";
 
-const prevHref = pagination.page > 1 ? `/admin/seo?page=${pagination.page - 1}` : undefined;
-const nextHref = hasNext ? `/admin/seo?page=${pagination.page + 1}` : undefined;
+const categoryStats = {
+  indexed: categoryRows.filter((row) => row.coverageState === coverageIndexed).length,
+  crawled: categoryRows.filter((row) => row.coverageState === coverageCrawledNotIndexed).length,
+  discovered: categoryRows.filter((row) => [coverageUnknown, coverageInternalError].includes(row.coverageState)).length,
+  total: categoryRows.length,
+};
+
+function statusClass(state: string): string {
+  if (state === coverageIndexed) {
+    return "";
+  }
+  if (state === coverageCrawledNotIndexed) {
+    return "text-emerald-700";
+  }
+  return "text-red-700";
+}
+
+function formatDate(value: Date | string | null): string {
+  if (!value) {
+    return "-";
+  }
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 19).replace("T", " ");
+  }
+  return String(value);
+}
 ---
 
-<AdminLayout title="SEO" description="Admin SEO module scaffold.">
+<AdminLayout title="SEO" description="Admin SEO coverage and inspection overview.">
   <section class="mb-5">
-    <h2 class="mt-2 text-3xl font-semibold tracking-tight">SEO Pages</h2>
+    <h2 class="mt-2 text-3xl font-semibold tracking-tight">SEO</h2>
   </section>
-  <AdminDataTable title="SEO Pages" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+
+  <section class="glass-panel rounded-2xl border p-4 shadow-sm md:p-5">
+    <h3 class="text-xl font-semibold tracking-tight">Search Coverage</h3>
+
+    <div class="mt-4 overflow-x-auto rounded-xl border bg-card">
+      <table class="min-w-full text-sm">
+        <thead class="bg-muted/40">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium">Title</th>
+            <th class="px-4 py-3 text-left font-medium">Status</th>
+            <th class="px-4 py-3 text-left font-medium">Crawled</th>
+            <th class="px-4 py-3 text-left font-medium">Inspect</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            seoRows.map((row) => (
+              <tr class="border-t hover:bg-muted/30">
+                <td class="px-4 py-3 align-top">
+                  <a class="underline" href={row.url} target="_blank" rel="noreferrer">
+                    {row.title}
+                  </a>
+                </td>
+                <td class:list={["px-4 py-3 align-top", statusClass(row.coverageState)]}>{row.coverageState || "-"}</td>
+                <td class="px-4 py-3 align-top whitespace-nowrap">{formatDate(row.crawledAt)}</td>
+                <td class="px-4 py-3 align-top">
+                  {row.inspectionUrl ? <a class="underline" href={row.inspectionUrl} target="_blank" rel="noreferrer">Inspect</a> : "-"}
+                </td>
+              </tr>
+            ))
+          }
+
+          {
+            seoRows.length > 0 && categoryRows.length > 0
+              ? (
+                <tr class="border-t">
+                  <td class="px-4 py-4">&nbsp;</td>
+                  <td class="px-4 py-4"></td>
+                  <td class="px-4 py-4"></td>
+                  <td class="px-4 py-4"></td>
+                </tr>
+                )
+              : null
+          }
+
+          {
+            categoryRows.map((row) => (
+              <tr class="border-t hover:bg-muted/30">
+                <td class="px-4 py-3 align-top">
+                  <a class="underline" href={row.slug ? `/categories/${row.slug}` : "#"} target="_blank" rel="noreferrer">
+                    {row.title}
+                  </a>
+                </td>
+                <td class:list={["px-4 py-3 align-top", statusClass(row.coverageState)]}>{row.coverageState || "-"}</td>
+                <td class="px-4 py-3 align-top whitespace-nowrap">{formatDate(row.crawledAt)}</td>
+                <td class="px-4 py-3 align-top">
+                  {row.inspectionUrl ? <a class="underline" href={row.inspectionUrl} target="_blank" rel="noreferrer">Inspect</a> : "-"}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-5 max-w-lg overflow-x-auto rounded-xl border bg-card">
+      <table class="min-w-full text-sm">
+        <tbody>
+          <tr class="border-t first:border-t-0">
+            <td class="px-4 py-3 font-semibold">Indexed</td>
+            <td class="px-4 py-3">{categoryStats.indexed}</td>
+          </tr>
+          <tr class="border-t">
+            <td class="px-4 py-3 font-semibold">Crawled</td>
+            <td class="px-4 py-3">{categoryStats.crawled}</td>
+          </tr>
+          <tr class="border-t">
+            <td class="px-4 py-3 font-semibold">Discovered</td>
+            <td class="px-4 py-3">{categoryStats.discovered}</td>
+          </tr>
+          <tr class="border-t">
+            <td class="px-4 py-3 font-semibold">Total</td>
+            <td class="px-4 py-3">{categoryStats.total}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </AdminLayout>

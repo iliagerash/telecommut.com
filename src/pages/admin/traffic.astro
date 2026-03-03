@@ -1,46 +1,191 @@
 ---
 import { desc } from "drizzle-orm";
 
-import AdminDataTable from "@/components/admin/AdminDataTable.astro";
 import { getRequestDb } from "@/db/request";
 import { directTraffic } from "@/db/schema";
-import { buildPaginationState } from "@/lib/pagination";
 import AdminLayout from "@/layouts/AdminLayout.astro";
 
 export const prerender = false;
 
-const pagination = buildPaginationState(Astro.url.searchParams.get("page"), 25);
+type BypassBotInfo = {
+  requests?: number;
+  geoip?: {
+    asn?: string;
+    org?: string;
+    country?: string;
+  };
+  reason?: string;
+  user_agents?: string[];
+};
+
+type FalsePositiveInfo = {
+  ip?: string;
+  asn?: string;
+  asn_description?: string;
+  country?: string;
+  total_events?: number;
+  blocks?: number;
+  user_agents?: string[];
+};
+
+function parseJsonObject<T>(value: string | null): T | null {
+  if (!value || !value.trim()) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(value) as T;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function formatNumber(value: number | null | undefined): string {
+  return new Intl.NumberFormat("en-US").format(value ?? 0);
+}
 
 const db = getRequestDb(Astro.locals);
-const columns = [
-  { key: "id", label: "ID" },
-  { key: "path", label: "Path" },
-  { key: "hits", label: "Hits" },
-  { key: "updatedAt", label: "Updated" },
-];
-
-const rowsRaw = await db
+const [latestTraffic] = await db
   .select()
   .from(directTraffic)
-  .orderBy(desc(directTraffic.id))
-  .limit(pagination.pageSize + 1)
-  .offset(pagination.offset);
+  .orderBy(desc(directTraffic.trafficDate))
+  .limit(1);
 
-const hasNext = rowsRaw.length > pagination.pageSize;
-const rows = rowsRaw.slice(0, pagination.pageSize).map((row) => ({
-  id: row.id ?? "-",
-  path: row.trafficDate ?? "-",
-  hits: row.totalNginxRequests ?? 0,
-  updatedAt: row.trafficDate ?? "-",
-}));
-
-const prevHref = pagination.page > 1 ? `/admin/traffic?page=${pagination.page - 1}` : undefined;
-const nextHref = hasNext ? `/admin/traffic?page=${pagination.page + 1}` : undefined;
+const bypassBotsRaw = parseJsonObject<{ ips?: Record<string, BypassBotInfo> }>(latestTraffic?.bypassBots ?? null);
+const falsePositivesRaw = parseJsonObject<FalsePositiveInfo[]>(latestTraffic?.falsePositives ?? null) ?? [];
+const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
 ---
 
-<AdminLayout title="Traffic" description="Admin traffic module scaffold.">
+<AdminLayout title="Traffic Analysis - Bot Detection" description="Traffic analysis and bot detection report.">
   <section class="mb-5">
-    <h2 class="mt-2 text-3xl font-semibold tracking-tight">Traffic</h2>
+    <h2 class="mt-2 text-3xl font-semibold tracking-tight">Traffic Analysis and Bot Detection</h2>
   </section>
-  <AdminDataTable title="Traffic" columns={columns} rows={rows} prevHref={prevHref} nextHref={nextHref} />
+
+  {
+    !latestTraffic
+      ? (
+        <section class="rounded-xl border border-sky-300 bg-sky-50 p-4 text-sm text-sky-800">
+          No traffic analysis data available yet. Run `node scripts/analyze.mjs` to generate data.
+        </section>
+        )
+      : (
+        <>
+          <section class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <article class="glass-panel rounded-2xl border p-4 text-center shadow-sm">
+              <h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Analysis Date</h3>
+              <p class="mt-2 text-xl font-semibold">{latestTraffic.trafficDate}</p>
+            </article>
+            <article class="glass-panel rounded-2xl border p-4 text-center shadow-sm">
+              <h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Nginx Requests</h3>
+              <p class="mt-2 text-xl font-semibold">{formatNumber(latestTraffic.totalNginxRequests)}</p>
+            </article>
+            <article class="glass-panel rounded-2xl border p-4 text-center shadow-sm">
+              <h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">CF Events</h3>
+              <p class="mt-2 text-xl font-semibold">{formatNumber(latestTraffic.totalCloudflareEvents)}</p>
+            </article>
+            <article class="glass-panel rounded-2xl border p-4 text-center shadow-sm">
+              <h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">CF Blocks</h3>
+              <p class="mt-2 text-xl font-semibold text-red-700">{formatNumber(latestTraffic.cloudflareBlocks)}</p>
+            </article>
+            <article class="glass-panel rounded-2xl border p-4 text-center shadow-sm">
+              <h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">CF Challenges</h3>
+              <p class="mt-2 text-xl font-semibold text-amber-700">{formatNumber(latestTraffic.cloudflareChallenges)}</p>
+            </article>
+          </section>
+
+          {
+            bypassBotIps.length > 0
+              ? (
+                <section class="glass-panel mb-4 rounded-2xl border p-4 shadow-sm md:p-5">
+                  <h3 class="mb-3 text-lg font-semibold tracking-tight">Bots Bypassing Cloudflare ({bypassBotIps.length})</h3>
+                  <div class="overflow-x-auto rounded-xl border bg-card">
+                    <table class="min-w-full text-sm">
+                      <thead class="bg-muted/40">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-medium">IP Address</th>
+                          <th class="px-4 py-3 text-left font-medium">Requests</th>
+                          <th class="px-4 py-3 text-left font-medium">ASN</th>
+                          <th class="px-4 py-3 text-left font-medium">Country</th>
+                          <th class="px-4 py-3 text-left font-medium">Reason</th>
+                          <th class="px-4 py-3 text-left font-medium">User Agents</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {
+                          bypassBotIps.map(([ip, info]) => (
+                            <tr class="border-t hover:bg-muted/30">
+                              <td class="px-4 py-3 align-top">
+                                <a class="underline" href={`https://whatismyipaddress.com/ip/${ip}`} target="_blank" rel="noreferrer">{ip}</a>
+                              </td>
+                              <td class="px-4 py-3 align-top whitespace-nowrap">{formatNumber(info.requests)}</td>
+                              <td class="px-4 py-3 align-top">
+                                {info.geoip?.asn ? <code>{info.geoip.asn}</code> : "—"}
+                                {info.geoip?.org ? <p class="text-xs text-muted-foreground">{info.geoip.org}</p> : null}
+                              </td>
+                              <td class="px-4 py-3 align-top">{info.geoip?.country ?? "—"}</td>
+                              <td class="px-4 py-3 align-top">{info.reason ?? "—"}</td>
+                              <td class="px-4 py-3 align-top">
+                                {info.user_agents?.length ? info.user_agents.slice(0, 2).join(", ") : "—"}
+                                {
+                                  (info.user_agents?.length ?? 0) > 2
+                                    ? <span class="ml-1 text-xs text-muted-foreground">(+{(info.user_agents?.length ?? 0) - 2} more)</span>
+                                    : null
+                                }
+                              </td>
+                            </tr>
+                          ))
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+                )
+              : null
+          }
+
+          {
+            falsePositivesRaw.length > 0
+              ? (
+                <section class="glass-panel rounded-2xl border p-4 shadow-sm md:p-5">
+                  <h3 class="mb-3 text-lg font-semibold tracking-tight">Potential False Positives ({falsePositivesRaw.length})</h3>
+                  <div class="overflow-x-auto rounded-xl border bg-card">
+                    <table class="min-w-full text-sm">
+                      <thead class="bg-muted/40">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-medium">IP</th>
+                          <th class="px-4 py-3 text-left font-medium">ASN</th>
+                          <th class="px-4 py-3 text-left font-medium">Country</th>
+                          <th class="px-4 py-3 text-left font-medium">Total Events</th>
+                          <th class="px-4 py-3 text-left font-medium">Blocks</th>
+                          <th class="px-4 py-3 text-left font-medium">User Agents</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {
+                          falsePositivesRaw.map((item) => (
+                            <tr class="border-t hover:bg-muted/30">
+                              <td class="px-4 py-3 align-top">
+                                {item.ip ? <a class="underline" href={`https://whatismyipaddress.com/ip/${item.ip}`} target="_blank" rel="noreferrer">{item.ip}</a> : "—"}
+                              </td>
+                              <td class="px-4 py-3 align-top">
+                                {item.asn ? <code>{item.asn}</code> : "N/A"}
+                                {item.asn_description ? <p class="text-xs text-muted-foreground">{item.asn_description}</p> : null}
+                              </td>
+                              <td class="px-4 py-3 align-top">{item.country ?? "—"}</td>
+                              <td class="px-4 py-3 align-top whitespace-nowrap">{formatNumber(item.total_events)}</td>
+                              <td class="px-4 py-3 align-top whitespace-nowrap font-semibold text-amber-700">{formatNumber(item.blocks)}</td>
+                              <td class="px-4 py-3 align-top">{item.user_agents?.length ? item.user_agents.slice(0, 1).join(", ") : "—"}</td>
+                            </tr>
+                          ))
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+                )
+              : null
+          }
+        </>
+        )
+  }
 </AdminLayout>
