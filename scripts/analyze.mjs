@@ -9,7 +9,7 @@ import mysql from "mysql2/promise";
 dotenv.config({ path: path.resolve(process.cwd(), ".env"), quiet: true });
 
 const GOOD_BOTS = ["Googlebot", "Bingbot", "DuckDuckBot", "facebookexternalhit", "TwitterBot"];
-const WHITELISTED_BOTS = ["Jooblebot", "IndeedBot", "GPTBot", "Mediapartners-Google"];
+const WHITELISTED_BOTS = ["Jooblebot", "IndeedBot", "GPTBot", "Mediapartners-Google", "BeBee"];
 
 function usage() {
   console.log("Usage: node scripts/analyze.mjs [--log-file=/var/log/nginx/<host>-access.log.1]");
