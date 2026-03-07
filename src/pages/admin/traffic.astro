@@ -102,25 +102,50 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
                     <table class="min-w-full text-sm">
                       <thead class="bg-muted/40">
                         <tr>
-                          <th class="px-4 py-3 text-left font-medium">IP Address</th>
-                          <th class="px-4 py-3 text-left font-medium">Requests</th>
-                          <th class="px-4 py-3 text-left font-medium">ASN</th>
-                          <th class="px-4 py-3 text-left font-medium">Country</th>
-                          <th class="px-4 py-3 text-left font-medium">Reason</th>
-                          <th class="px-4 py-3 text-left font-medium">User Agents</th>
+                          <th class="px-4 py-3 text-left font-medium align-top">IP Address</th>
+                          <th class="px-4 py-3 text-left font-medium align-top">Requests</th>
+                          <th class="px-4 py-3 text-left font-medium align-top">ASN</th>
+                          <th class="px-4 py-3 text-left font-medium align-top">Country</th>
+                          <th class="px-4 py-3 text-left font-medium align-top">Reason</th>
+                          <th class="px-4 py-3 text-left font-medium align-top">User Agents</th>
                         </tr>
                       </thead>
                       <tbody>
                         {
                           bypassBotIps.map(([ip, info]) => (
-                            <tr class="border-t hover:bg-muted/30">
+                            <tr class="border-t hover:bg-muted/30 align-top">
                               <td class="px-4 py-3 align-top">
-                                <a class="underline" href={`https://whatismyipaddress.com/ip/${ip}`} target="_blank" rel="noreferrer">{ip}</a>
+                                <a class="underline ip-nowrap" href={`https://whatismyipaddress.com/ip/${ip}`} target="_blank" rel="noreferrer">{ip}</a>
+                                <div class="ip-action-row mt-3 flex items-center gap-2">
+                                  <button type="button" class="traffic-icon-btn js-copy-cidr" data-ip={ip} title="Copy /24 CIDR">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                                      <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h9v14z" />
+                                    </svg>
+                                  </button>
+                                  <button type="button" class="traffic-icon-btn js-open-logs" data-ip={ip} title="Show yesterday logs">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                                      <path d="M12 8a1 1 0 0 1 1 1v3.38l2.45 1.4a1 1 0 0 1-1 1.74l-2.95-1.69A1 1 0 0 1 11 13V9a1 1 0 0 1 1-1zm0-6a10 10 0 1 0 10 10A10 10 0 0 0 12 2z" />
+                                    </svg>
+                                  </button>
+                                  <button type="button" class="traffic-icon-btn js-open-logs" data-ip={ip} data-today="1" title="Show today logs">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                                      <path d="M6.76 4.84 5.34 3.42 3.92 4.84l1.42 1.42 1.42-1.42zm10.5 0 1.42 1.42 1.42-1.42-1.42-1.42-1.42 1.42zM12 5a7 7 0 1 0 7 7 7 7 0 0 0-7-7zm0-5h-1v3h2V0zM0 11v2h3v-2zm21 0v2h3v-2zM4.22 19.78l1.42 1.42 1.42-1.42-1.42-1.42zm13.02 0 1.42 1.42 1.42-1.42-1.42-1.42z" />
+                                    </svg>
+                                  </button>
+                                </div>
                               </td>
                               <td class="px-4 py-3 align-top whitespace-nowrap">{formatNumber(info.requests)}</td>
                               <td class="px-4 py-3 align-top">
-                                {info.geoip?.asn ? <code>{info.geoip.asn}</code> : "—"}
-                                {info.geoip?.org ? <p class="text-xs text-muted-foreground">{info.geoip.org}</p> : null}
+                                {
+                                  info.geoip?.asn
+                                    ? (
+                                      <button type="button" class="asn-copy-value js-copy-asn" data-asn={info.geoip.asn} title="Copy ASN">
+                                        {info.geoip.asn}
+                                      </button>
+                                      )
+                                    : "—"
+                                }
+                                {info.geoip?.org ? <p class="text-xs text-muted-foreground asn-org">{info.geoip.org}</p> : null}
                               </td>
                               <td class="px-4 py-3 align-top">{info.geoip?.country ?? "—"}</td>
                               <td class="px-4 py-3 align-top">{info.reason ?? "—"}</td>
@@ -165,7 +190,7 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
                           falsePositivesRaw.map((item) => (
                             <tr class="border-t hover:bg-muted/30">
                               <td class="px-4 py-3 align-top">
-                                {item.ip ? <a class="underline" href={`https://whatismyipaddress.com/ip/${item.ip}`} target="_blank" rel="noreferrer">{item.ip}</a> : "—"}
+                                {item.ip ? <a class="underline ip-nowrap" href={`https://whatismyipaddress.com/ip/${item.ip}`} target="_blank" rel="noreferrer">{item.ip}</a> : "—"}
                               </td>
                               <td class="px-4 py-3 align-top">
                                 {item.asn ? <code>{item.asn}</code> : "N/A"}
@@ -185,6 +210,225 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
                 )
               : null
           }
+
+          <div id="trafficLogsModal" class="traffic-logs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="trafficLogsModalTitle">
+            <div class="traffic-logs-backdrop js-close-logs"></div>
+            <div class="traffic-logs-panel">
+              <div class="traffic-logs-header">
+                <h3 id="trafficLogsModalTitle" class="traffic-logs-title">Nginx logs</h3>
+                <button type="button" class="traffic-logs-close js-close-logs" aria-label="Close logs">Close</button>
+              </div>
+              <pre id="trafficLogsContent" class="traffic-logs-content">Loading...</pre>
+            </div>
+          </div>
+
+          <script>
+            const modal = document.getElementById("trafficLogsModal");
+            const logsContent = document.getElementById("trafficLogsContent");
+            const logsTitle = document.getElementById("trafficLogsModalTitle");
+
+            function ipTo24(ip: string): string {
+              const parts = String(ip || "").trim().split(".");
+              if (parts.length !== 4) return "";
+              return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+            }
+
+            async function copyText(text: string): Promise<void> {
+              if (!text) return;
+              try {
+                await navigator.clipboard.writeText(text);
+              } catch {
+                // Clipboard API may fail if browser denies permission; ignore silently in that case.
+              }
+            }
+
+            function openModal() {
+              if (!modal) return;
+              modal.classList.remove("hidden");
+              document.body.style.overflow = "hidden";
+            }
+
+            function closeModal() {
+              if (!modal) return;
+              modal.classList.add("hidden");
+              document.body.style.overflow = "";
+            }
+
+            async function openLogs(ip: string, today: boolean): Promise<void> {
+              if (!logsContent) return;
+              openModal();
+              logsContent.textContent = "Loading...";
+
+              const params = new URLSearchParams({ ip });
+              if (today) params.set("today", "1");
+
+              if (logsTitle) {
+                logsTitle.textContent = `Nginx logs: ${ip} (${today ? "today" : "yesterday"})`;
+              }
+
+              try {
+                const response = await fetch(`/admin/traffic/logs?${params.toString()}`, {
+                  headers: { Accept: "application/json" },
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                  throw new Error(payload?.error || "Unable to load logs");
+                }
+                logsContent.textContent = payload?.content || "No records found.";
+              } catch (error) {
+                logsContent.textContent = `Error loading logs: ${error instanceof Error ? error.message : String(error)}`;
+              }
+            }
+
+            document.addEventListener("click", (event) => {
+              const target = event.target;
+              if (!(target instanceof Element)) return;
+
+              const copyButton = target.closest(".js-copy-cidr");
+              if (copyButton instanceof HTMLElement) {
+                copyText(ipTo24(copyButton.dataset.ip || ""));
+                return;
+              }
+
+              const copyAsnButton = target.closest(".js-copy-asn");
+              if (copyAsnButton instanceof HTMLElement) {
+                copyText(copyAsnButton.dataset.asn || "");
+                return;
+              }
+
+              const logsButton = target.closest(".js-open-logs");
+              if (logsButton instanceof HTMLElement) {
+                const ip = String(logsButton.dataset.ip || "").trim();
+                if (!ip) return;
+                openLogs(ip, logsButton.dataset.today === "1");
+                return;
+              }
+
+              if (target.closest(".js-close-logs")) {
+                closeModal();
+              }
+            });
+
+            document.addEventListener("keydown", (event) => {
+              if (event.key === "Escape") {
+                closeModal();
+              }
+            });
+          </script>
+
+          <style>
+            .ip-nowrap {
+              white-space: nowrap;
+            }
+
+            .traffic-icon-btn {
+              color: #2563eb;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 20px;
+              height: 20px;
+              background: transparent;
+              border: 0;
+              padding: 0;
+              opacity: 0.95;
+            }
+
+            .traffic-icon-btn:hover {
+              color: #2563eb;
+              opacity: 1;
+            }
+
+            .traffic-icon-btn svg {
+              width: 16px;
+              height: 16px;
+            }
+
+            .asn-copy-value {
+              color: #2563eb;
+              display: inline;
+              border: 0;
+              background: transparent;
+              padding: 0;
+              font: inherit;
+              line-height: 1.2;
+            }
+
+            .asn-copy-value:hover {
+              color: #2563eb;
+            }
+
+            .asn-org {
+              margin-top: 2px;
+              line-height: 1.2;
+            }
+
+            .traffic-logs-modal {
+              position: fixed;
+              inset: 0;
+              z-index: 60;
+            }
+
+            .traffic-logs-backdrop {
+              position: absolute;
+              inset: 0;
+              background: rgba(0, 0, 0, 0.7);
+            }
+
+            .traffic-logs-panel {
+              position: relative;
+              margin: 2vh auto;
+              width: min(98vw, 1700px);
+              height: 96vh;
+              display: flex;
+              flex-direction: column;
+              border: 1px solid #1f2937;
+              border-radius: 8px;
+              overflow: hidden;
+              background: #000;
+              color: #fff;
+            }
+
+            .traffic-logs-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              padding: 10px 14px;
+              border-bottom: 1px solid #1f2937;
+            }
+
+            .traffic-logs-title {
+              margin: 0;
+              font-size: 0.95rem;
+              font-weight: 600;
+            }
+
+            .traffic-logs-close {
+              color: #fff;
+              background: transparent;
+              border: 1px solid #374151;
+              border-radius: 4px;
+              padding: 4px 10px;
+              line-height: 1.2;
+            }
+
+            .traffic-logs-content {
+              flex: 1;
+              margin: 0;
+              padding: 12px 14px;
+              overflow-y: auto;
+              white-space: pre-wrap;
+              word-break: break-word;
+              font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+              font-size: 12px;
+              line-height: 1.45;
+            }
+
+            .hidden {
+              display: none;
+            }
+          </style>
         </>
         )
   }
