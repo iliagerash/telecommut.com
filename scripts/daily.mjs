@@ -98,6 +98,25 @@ async function main() {
       console.info(url);
     }
 
+    console.info(`Deleting Cloudflare events older than 3 days ${nowClock()}`);
+    const [deleteCloudflareEventsResult] = await pool.execute(
+      `
+      DELETE FROM cloudflare_events
+      WHERE created_at < DATE_SUB(CURDATE(), INTERVAL 3 DAY)
+      `,
+    );
+    console.info(`Deleted ${deleteCloudflareEventsResult.affectedRows} cloudflare_events records`);
+
+    console.info(`Deleting outdated direct_traffic rows ${nowClock()}`);
+    const [deleteDirectTrafficResult] = await pool.execute(
+      `
+      DELETE FROM direct_traffic
+      WHERE traffic_date < DATE_SUB(CURDATE(), INTERVAL 3 DAY)
+         OR traffic_date >= CURDATE()
+      `,
+    );
+    console.info(`Deleted ${deleteDirectTrafficResult.affectedRows} direct_traffic records`);
+
     console.info(`Done ${nowClock()}`);
 
     if (urls.length > 0) {
