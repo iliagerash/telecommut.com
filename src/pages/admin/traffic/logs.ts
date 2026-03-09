@@ -19,11 +19,36 @@ function isValidIpv4(value: string): boolean {
   });
 }
 
-function resolveLogFile(today: boolean): string {
-  const domain = String(process.env.MAIN_DOMAIN ?? "").trim();
-  if (!domain) {
-    throw new Error("MAIN_DOMAIN env var is required");
+function normalizeDomainCandidate(value: string | null | undefined): string {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) {
+    return "";
   }
+  const host = raw.split(",")[0]?.trim().split(":")[0]?.trim().replace(/\.+$/, "") ?? "";
+  if (!host) {
+    return "";
+  }
+  if (!/^[a-z0-9.-]+$/.test(host)) {
+    return "";
+  }
+  return host;
+}
+
+function resolveMainDomain(): string {
+  const fromProcess = normalizeDomainCandidate(process.env.MAIN_DOMAIN);
+  if (fromProcess) {
+    return fromProcess;
+  }
+
+  const fromImportMeta = normalizeDomainCandidate((import.meta.env as Record<string, unknown>).MAIN_DOMAIN as string | undefined);
+  if (fromImportMeta) {
+    return fromImportMeta;
+  }
+
+  throw new Error("MAIN_DOMAIN env var is required");
+}
+
+function resolveLogFile(today: boolean, domain: string): string {
   return today ? `/var/log/nginx/${domain}-access.log` : `/var/log/nginx/${domain}-access.log.1`;
 }
 
@@ -85,7 +110,8 @@ export const GET: APIRoute = async ({ request, locals, url }) => {
   }
 
   try {
-    const logFile = resolveLogFile(today);
+    const domain = resolveMainDomain();
+    const logFile = resolveLogFile(today, domain);
     await access(logFile);
     const content = await extractLinesByIp(logFile, ip);
 
