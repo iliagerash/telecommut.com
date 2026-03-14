@@ -139,13 +139,27 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
                                 {
                                   info.geoip?.asn
                                     ? (
-                                      <button type="button" class="asn-copy-value js-copy-asn" data-asn={info.geoip.asn} title="Copy ASN">
-                                        {info.geoip.asn}
-                                      </button>
+                                      <>
+                                        <button type="button" class="asn-copy-value js-copy-asn" data-asn={info.geoip.asn} title="Copy ASN">
+                                          {info.geoip.asn}
+                                        </button>
+                                        {info.geoip?.org ? <p class="text-xs text-muted-foreground asn-org">{info.geoip.org}</p> : null}
+                                        <div class="ip-action-row mt-3 flex items-center gap-2">
+                                          <button type="button" class="traffic-icon-btn js-open-asn-logs" data-asn={info.geoip.asn} title="Show yesterday logs for ASN">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                                              <path d="M12 8a1 1 0 0 1 1 1v3.38l2.45 1.4a1 1 0 0 1-1 1.74l-2.95-1.69A1 1 0 0 1 11 13V9a1 1 0 0 1 1-1zm0-6a10 10 0 1 0 10 10A10 10 0 0 0 12 2z" />
+                                            </svg>
+                                          </button>
+                                          <button type="button" class="traffic-icon-btn js-open-asn-logs" data-asn={info.geoip.asn} data-today="1" title="Show today logs for ASN">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                                              <path d="M6.76 4.84 5.34 3.42 3.92 4.84l1.42 1.42 1.42-1.42zm10.5 0 1.42 1.42 1.42-1.42-1.42-1.42-1.42 1.42zM12 5a7 7 0 1 0 7 7 7 7 0 0 0-7-7zm0-5h-1v3h2V0zM0 11v2h3v-2zm21 0v2h3v-2zM4.22 19.78l1.42 1.42 1.42-1.42-1.42-1.42zm13.02 0 1.42 1.42 1.42-1.42-1.42-1.42z" />
+                                            </svg>
+                                          </button>
+                                        </div>
+                                      </>
                                       )
                                     : "—"
                                 }
-                                {info.geoip?.org ? <p class="text-xs text-muted-foreground asn-org">{info.geoip.org}</p> : null}
                               </td>
                               <td class="px-4 py-3 align-top">{info.geoip?.country ?? "—"}</td>
                               <td class="px-4 py-3 align-top">{info.reason ?? "—"}</td>
@@ -227,8 +241,22 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
             const logsContent = document.getElementById("trafficLogsContent");
             const logsTitle = document.getElementById("trafficLogsModalTitle");
 
-            function ipTo24(ip: string): string {
-              const parts = String(ip || "").trim().split(".");
+            function ipToCidr(ip: string): string {
+              const trimmed = String(ip || "").trim();
+              if (trimmed.includes(":")) {
+                // IPv6: expand and produce /64 prefix
+                const halves = trimmed.split("::");
+                if (halves.length > 2) return trimmed + "/64";
+                const left = halves[0] ? halves[0].split(":") : [];
+                const right = halves[1] ? halves[1].split(":") : [];
+                const missing = 8 - left.length - right.length;
+                if (missing < 0) return trimmed + "/64";
+                const full = [...left, ...Array(missing).fill("0000"), ...right];
+                if (full.length !== 8) return trimmed + "/64";
+                const expanded = full.map((g) => g.padStart(4, "0"));
+                return expanded.slice(0, 4).join(":") + "::/64";
+              }
+              const parts = trimmed.split(".");
               if (parts.length !== 4) return "";
               return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
             }
@@ -280,13 +308,39 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
               }
             }
 
+            async function openAsnLogs(asn: string, today: boolean): Promise<void> {
+              if (!logsContent) return;
+              openModal();
+              logsContent.textContent = "Loading...";
+
+              const params = new URLSearchParams({ asn });
+              if (today) params.set("today", "1");
+
+              if (logsTitle) {
+                logsTitle.textContent = `Nginx logs: ASN ${asn} (${today ? "today" : "yesterday"})`;
+              }
+
+              try {
+                const response = await fetch(`/admin/traffic/logs-asn?${params.toString()}`, {
+                  headers: { Accept: "application/json" },
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                  throw new Error(payload?.error || "Unable to load logs");
+                }
+                logsContent.textContent = payload?.content || "No records found.";
+              } catch (error) {
+                logsContent.textContent = `Error loading logs: ${error instanceof Error ? error.message : String(error)}`;
+              }
+            }
+
             document.addEventListener("click", (event) => {
               const target = event.target;
               if (!(target instanceof Element)) return;
 
               const copyButton = target.closest(".js-copy-cidr");
               if (copyButton instanceof HTMLElement) {
-                copyText(ipTo24(copyButton.dataset.ip || ""));
+                copyText(ipToCidr(copyButton.dataset.ip || ""));
                 return;
               }
 
@@ -301,6 +355,14 @@ const bypassBotIps = Object.entries(bypassBotsRaw?.ips ?? {}).slice(0, 20);
                 const ip = String(logsButton.dataset.ip || "").trim();
                 if (!ip) return;
                 openLogs(ip, logsButton.dataset.today === "1");
+                return;
+              }
+
+              const asnLogsButton = target.closest(".js-open-asn-logs");
+              if (asnLogsButton instanceof HTMLElement) {
+                const asn = String(asnLogsButton.dataset.asn || "").trim();
+                if (!asn) return;
+                openAsnLogs(asn, asnLogsButton.dataset.today === "1");
                 return;
               }
 

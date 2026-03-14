@@ -113,7 +113,7 @@ function parseNginxDate(input) {
 }
 
 function parseLogLine(line) {
-  const match = line.match(/^([\d.]+)\s.+?\s\[(.+?)\]\s"(.+?)"\s(\d+)\s.+?\s".+?"\s"(.+?)"/);
+  const match = line.match(/^([0-9a-fA-F.:]+)\s.+?\s\[(.+?)\]\s"(.+?)"\s(\d+)\s.+?\s".+?"\s"(.+?)"/);
   if (!match) return null;
   return {
     ip: match[1],
@@ -137,8 +137,51 @@ function ipToLong(ip) {
   return ((parts[0] << 24) >>> 0) + ((parts[1] << 16) >>> 0) + ((parts[2] << 8) >>> 0) + parts[3];
 }
 
+function ipv6InCidr(ip, cidr) {
+  const [subnet, bitsRaw] = String(cidr).split("/");
+  const bits = Number.parseInt(bitsRaw ?? "128", 10);
+  if (!Number.isFinite(bits) || bits < 0 || bits > 128) return false;
+
+  function expandIPv6Bytes(addr) {
+    const halves = String(addr).split("::");
+    if (halves.length > 2) return null;
+    const left = halves[0] ? halves[0].split(":") : [];
+    const right = halves[1] ? halves[1].split(":") : [];
+    const missing = 8 - left.length - right.length;
+    if (missing < 0) return null;
+    const full = [...left, ...Array(missing).fill("0"), ...right];
+    if (full.length !== 8) return null;
+    const bytes = [];
+    for (const group of full) {
+      const val = Number.parseInt(group, 16);
+      if (!Number.isFinite(val) || val < 0 || val > 0xffff) return null;
+      bytes.push((val >> 8) & 0xff);
+      bytes.push(val & 0xff);
+    }
+    return bytes;
+  }
+
+  const ipBytes = expandIPv6Bytes(ip);
+  const subnetBytes = expandIPv6Bytes(subnet);
+  if (!ipBytes || !subnetBytes) return false;
+
+  const fullBytes = Math.floor(bits / 8);
+  const remainBits = bits % 8;
+
+  for (let i = 0; i < fullBytes; i++) {
+    if (ipBytes[i] !== subnetBytes[i]) return false;
+  }
+  if (remainBits > 0 && fullBytes < 16) {
+    const mask = 0xff & (0xff << (8 - remainBits));
+    if ((ipBytes[fullBytes] & mask) !== (subnetBytes[fullBytes] & mask)) return false;
+  }
+  return true;
+}
+
 function ipInCidr(ip, cidr) {
-  if (cidr.includes(":")) return false;
+  if (String(ip).includes(":") || String(cidr).includes(":")) {
+    return ipv6InCidr(ip, cidr);
+  }
   const [subnet, bitsRaw] = String(cidr).split("/");
   const bits = Number.parseInt(bitsRaw ?? "32", 10);
   if (!Number.isFinite(bits) || bits < 0 || bits > 32) return false;

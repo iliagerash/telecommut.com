@@ -9,21 +9,6 @@ import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapt
 
 export const prerender = false;
 
-function isValidIp(value: string): boolean {
-  // IPv6: must contain a colon and consist only of hex digits, colons, and at most one "::"
-  if (value.includes(":")) {
-    return /^[0-9a-fA-F:]+$/.test(value) && value.split("::").length <= 2;
-  }
-  // IPv4
-  const parts = value.split(".");
-  if (parts.length !== 4) return false;
-  return parts.every((part) => {
-    if (!/^\d+$/.test(part)) return false;
-    const num = Number.parseInt(part, 10);
-    return Number.isFinite(num) && num >= 0 && num <= 255;
-  });
-}
-
 function normalizeDomainCandidate(value: string | null | undefined): string {
   const raw = String(value ?? "").trim().toLowerCase();
   if (!raw) {
@@ -57,7 +42,10 @@ function resolveLogFile(today: boolean, domain: string): string {
   return today ? `/var/log/nginx/${domain}-access.log` : `/var/log/nginx/${domain}-access.log.1`;
 }
 
-async function extractLinesByIp(logFile: string, ip: string): Promise<string> {
+async function extractLinesByAsn(logFile: string, asn: string): Promise<string> {
+  // ASN is the 3rd-to-last space-separated field: ... $http_cf_ipcountry $http_x_client_asn $http_cf_ray
+  const asnPattern = new RegExp(`\\s${asn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s[^\\s]+$`);
+
   const stream = createReadStream(logFile, { encoding: "utf8" });
   const rl = readline.createInterface({
     input: stream,
@@ -65,11 +53,10 @@ async function extractLinesByIp(logFile: string, ip: string): Promise<string> {
   });
 
   const lines: string[] = [];
-  const prefix = `${ip} `;
 
   try {
     for await (const line of rl) {
-      if (line.startsWith(prefix)) {
+      if (asnPattern.test(line)) {
         lines.push(line);
       }
     }
@@ -97,18 +84,18 @@ export const GET: APIRoute = async ({ request, locals, url }) => {
     });
   }
 
-  const ip = String(url.searchParams.get("ip") ?? "").trim();
+  const asn = String(url.searchParams.get("asn") ?? "").trim();
   const today = url.searchParams.has("today");
 
-  if (!ip) {
-    return new Response(JSON.stringify({ error: "Query parameter 'ip' is required" }), {
+  if (!asn) {
+    return new Response(JSON.stringify({ error: "Query parameter 'asn' is required" }), {
       status: 422,
       headers: { "content-type": "application/json" },
     });
   }
 
-  if (!isValidIp(ip)) {
-    return new Response(JSON.stringify({ error: "Invalid IP address" }), {
+  if (!/^\d+$/.test(asn)) {
+    return new Response(JSON.stringify({ error: "Invalid ASN parameter" }), {
       status: 422,
       headers: { "content-type": "application/json" },
     });
@@ -118,14 +105,14 @@ export const GET: APIRoute = async ({ request, locals, url }) => {
     const domain = resolveMainDomain();
     const logFile = resolveLogFile(today, domain);
     await access(logFile);
-    const content = await extractLinesByIp(logFile, ip);
+    const content = await extractLinesByAsn(logFile, asn);
 
     return new Response(
       JSON.stringify({
-        ip,
+        asn,
         period: today ? "today" : "yesterday",
         logFile,
-        content,
+        content: content || "No matching log lines found.",
       }),
       {
         status: 200,
