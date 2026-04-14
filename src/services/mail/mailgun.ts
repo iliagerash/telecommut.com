@@ -16,20 +16,37 @@ export type SendMailInput = {
   replyTo?: string;
 };
 
+function normalizeEnvValue(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (
+    normalized === "" ||
+    normalized.toLowerCase() === "undefined" ||
+    normalized.toLowerCase() === "null"
+  ) {
+    return undefined;
+  }
+
+  return normalized;
+}
+
 function readEnv(name: string, runtimeEnv?: RuntimeEnv): string | undefined {
-  const runtimeValue = runtimeEnv?.[name];
-  if (typeof runtimeValue === "string" && runtimeValue.trim() !== "") {
-    return runtimeValue.trim();
+  const runtimeValue = normalizeEnvValue(runtimeEnv?.[name]);
+  if (runtimeValue) {
+    return runtimeValue;
   }
 
-  const importMetaValue = import.meta.env[name];
-  if (typeof importMetaValue === "string" && importMetaValue.trim() !== "") {
-    return importMetaValue.trim();
+  const importMetaValue = normalizeEnvValue(import.meta.env[name]);
+  if (importMetaValue) {
+    return importMetaValue;
   }
 
-  const processValue = process.env[name];
-  if (typeof processValue === "string" && processValue.trim() !== "") {
-    return processValue.trim();
+  const processValue = normalizeEnvValue(process.env[name]);
+  if (processValue) {
+    return processValue;
   }
 
   return undefined;
