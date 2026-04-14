@@ -4,10 +4,32 @@ import { eq } from "drizzle-orm";
 import { getAuth } from "@/auth";
 import { getRequestDb } from "@/db/request";
 import { contracts, resumes } from "@/db/schema";
+import { logWarn } from "@/services/observability/logger";
 import { appendNotice, parseResumeForm, resolveRelativeReturnTo, resumeNow } from "@/services/resumes/form";
 import { resolveNormalizedUserRoleFromRecord } from "@/services/users/role-adapter";
 
 export const prerender = false;
+
+export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
+  const headers = request.headers;
+
+  logWarn("api.resumes.create.invalid_method", {
+    method: "GET",
+    path: url.pathname,
+    userAgent: headers.get("user-agent") ?? "",
+    xForwardedFor: headers.get("x-forwarded-for") ?? "",
+    xRealIp: headers.get("x-real-ip") ?? "",
+    referer: headers.get("referer") ?? "",
+  });
+
+  return new Response(null, {
+    status: 405,
+    headers: {
+      Allow: "POST",
+    },
+  });
+};
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const session = await getAuth(locals).api.getSession({ headers: request.headers });
