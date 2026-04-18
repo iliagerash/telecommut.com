@@ -252,6 +252,7 @@ async function main() {
           SELECT
             job.id,
             job.site_id,
+            job.external_id,
             job.url,
             job.category,
             job.position,
@@ -297,6 +298,34 @@ async function main() {
           if (dryRun) {
             console.info(`[dry-run] would import: ${row.position} (${country.database} source job id ${row.id})`);
             totalImported += 1;
+            continue;
+          }
+
+          const [existingRows] = await localPool.execute(
+            `
+            SELECT id
+            FROM jobs
+            WHERE category_id = ?
+              AND position = ?
+              AND company_name = ?
+            LIMIT 1
+            `,
+            [categoryId, row.position ?? "", row.company_name ?? ""],
+          );
+
+          const existingJob = existingRows[0];
+          if (existingJob) {
+            console.info(
+              `Job already exists: ${row.position ?? ""} at ${row.company_name ?? ""} in category ${categoryId}`,
+            );
+            await aggPool.execute("DELETE FROM job WHERE id = ?", [row.id]);
+            await aggPool.execute(
+              `
+              INSERT INTO job_exclude (site_id, external_id, reason, dt)
+              VALUES (?, ?, ?, NOW())
+              `,
+              [row.site_id, row.external_id ?? null, "Job is duplicate"],
+            );
             continue;
           }
 
