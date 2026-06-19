@@ -38,12 +38,6 @@ function optionalIntEnv(name, fallback) {
   return parsed;
 }
 
-function optionalBoolEnv(name, fallback = false) {
-  const raw = (process.env[name] ?? "").trim().toLowerCase();
-  if (!raw) return fallback;
-  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
-}
-
 function escapeXml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -158,8 +152,8 @@ async function getGoogleAccessTokenWebmasters() {
 }
 
 async function pingSitemapGoogle(sitemapUrl, baseUrl) {
-  if (!optionalBoolEnv("GOOGLE_SERVICE_ENABLED", false)) {
-    console.info("Google service is disabled");
+  if (process.env.NODE_ENV === "development") {
+    console.info("Skipping sitemap ping in development");
     return;
   }
 
