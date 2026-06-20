@@ -17,11 +17,59 @@ async function getSession(request: Request, locals: App.Locals) {
   }
 }
 
+const JOB_AGGREGATOR_BOTS = [
+  "Jobrapido",
+  "Jooble",
+  "Indeed",
+  "Careerjet",
+  "Adzuna",
+  "Jora",
+  "BeBee",
+];
+
+const ALLOWED_BOTS = ["Mediapartners-Google"];
+
+const DISABLED_AD_PATHS = [/^\/jobs\//, /^\/categories\//];
+
+const DISABLED_AD_ASNS = [32934, 16509];
+
+function shouldShowAds(request: Request, pathname: string): boolean {
+  const adsEnabled = ["1", "true", "yes", "on"].includes(
+    String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
+  );
+  if (!adsEnabled) return false;
+
+  const ua = request.headers.get("user-agent") ?? "";
+
+  for (const bot of JOB_AGGREGATOR_BOTS) {
+    if (ua.toLowerCase().includes(bot.toLowerCase())) return false;
+  }
+
+  const asn = Number(request.headers.get("x-client-asn"));
+  if (DISABLED_AD_ASNS.includes(asn)) return false;
+
+  const isAllowedBot = ALLOWED_BOTS.some((bot) =>
+    ua.toLowerCase().includes(bot.toLowerCase()),
+  );
+
+  if (
+    !isAllowedBot &&
+    DISABLED_AD_PATHS.some((pattern) => pattern.test(pathname)) &&
+    !request.headers.get("referer") &&
+    !new URL(request.url).searchParams.has("utm_source")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const start = Date.now();
   const requestId = randomUUID();
 
   context.locals.requestId = requestId;
+  context.locals.showAds = shouldShowAds(context.request, context.url.pathname);
 
   try {
     const allowedRoles = getAllowedRolesForPath(context.url.pathname);

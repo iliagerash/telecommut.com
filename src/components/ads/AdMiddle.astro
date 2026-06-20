@@ -1,7 +1,5 @@
 ---
-const showAds = ["1", "true", "yes", "on"].includes(
-  String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
-);
+const showAds = Astro.locals.showAds;
 const adSnippet = `<!-- telecommut.com middle -->
 <ins class="adsbygoogle"
      style="display:block"

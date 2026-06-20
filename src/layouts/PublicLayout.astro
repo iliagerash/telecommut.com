@@ -40,9 +40,7 @@ const prevHref = prevPath ? toAbsoluteUrl(prevPath) : null;
 const nextHref = nextPath ? toAbsoluteUrl(nextPath) : null;
 const jsonLdString = serializeJsonLd(jsonLd);
 const socialImageHref = toAbsoluteUrl(socialImagePath);
-const showAds = ["1", "true", "yes", "on"].includes(
-  String(import.meta.env.SHOW_ADS ?? "").trim().toLowerCase(),
-);
+const showAds = Astro.locals.showAds;
 const gaMeasurementId =
   String(import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? "").trim() || "G-XMPKNZB4FX";
 const gaBootstrapScript = `window.dataLayer = window.dataLayer || [];
