@@ -9,7 +9,7 @@ import mysql from "mysql2/promise";
 dotenv.config({ path: path.resolve(process.cwd(), ".env"), quiet: true });
 
 const GOOD_BOTS = ["Googlebot", "Bingbot", "DuckDuckBot", "facebookexternalhit", "TwitterBot"];
-const WHITELISTED_BOTS = ["Jooblebot", "IndeedBot", "GPTBot", "Mediapartners-Google", "BeBee", "ClaudeBot", "Claude-SearchBot", "Applebot"];
+const WHITELISTED_BOTS = ["Jooblebot", "IndeedBot", "GPTBot", "Mediapartners-Google", "BeBee", "ClaudeBot", "Claude-SearchBot", "Applebot", "ChatGPT-User", "OAI-SearchBot"];
 
 function usage() {
   console.log("Usage: node scripts/analyze.mjs [--log-file=/var/log/nginx/<host>-access.log.1]");
@@ -298,6 +298,60 @@ async function enrichGeoIpBypassIps(bypassIps) {
   }
 }
 
+function buildSubnetGroups(nginxIps) {
+  const groups = {};
+  for (const [ip, data] of Object.entries(nginxIps)) {
+    let subnet;
+    if (ip.includes(":")) {
+      const halves = ip.split("::");
+      if (halves.length > 2) continue;
+      const left = halves[0] ? halves[0].split(":") : [];
+      const right = halves.length > 1 && halves[1] ? halves[1].split(":") : [];
+      const missing = 8 - left.length - right.length;
+      if (missing < 0) continue;
+      const full = [...left, ...Array(missing).fill("0"), ...right];
+      if (full.length !== 8) continue;
+      subnet = full.map((g) => g.padStart(4, "0")).slice(0, 4).join(":") + "::/64";
+    } else {
+      const parts = ip.split(".");
+      if (parts.length !== 4) continue;
+      subnet = `${parts[0]}.${parts[1]}.${parts[2]}`;
+    }
+    if (!groups[subnet]) {
+      groups[subnet] = { count: 0, ips: {}, sampleIp: ip, userAgents: {}, hasUtmSource: false, hasRealUserPath: false };
+    }
+    groups[subnet].count += data.count;
+    groups[subnet].ips[ip] = data.count;
+    for (const [ua, cnt] of Object.entries(data.userAgents ?? {})) {
+      groups[subnet].userAgents[ua] = (groups[subnet].userAgents[ua] ?? 0) + cnt;
+    }
+    if (data.hasUtmSource) groups[subnet].hasUtmSource = true;
+    if (data.hasRealUserPath) groups[subnet].hasRealUserPath = true;
+  }
+  return groups;
+}
+
+async function enrichGeoIpBypassSubnets(bypassSubnets) {
+  const endpoint = optionalEnv("GEOIP_ENDPOINT");
+  if (!endpoint) return;
+  const base = endpoint.replace(/\/+$/, "");
+  for (const [subnet, info] of Object.entries(bypassSubnets)) {
+    const sampleIp = info.sample_ip;
+    if (!sampleIp) continue;
+    try {
+      const response = await fetch(`${base}/?ip=${encodeURIComponent(sampleIp)}`);
+      if (!response.ok) continue;
+      const json = await response.json();
+      bypassSubnets[subnet].asn = json?.asn ?? null;
+      bypassSubnets[subnet].asn_description = json?.org ?? null;
+      bypassSubnets[subnet].country = json?.country ?? null;
+    } catch {
+      // ignore
+    }
+    delete bypassSubnets[subnet].sample_ip;
+  }
+}
+
 function matchesCloudflareRules(ip, data, rules) {
   const asn = data.asn == null ? null : String(data.asn);
   const country = data.country ?? null;
@@ -323,7 +377,7 @@ function matchesCloudflareRules(ip, data, rules) {
 }
 
 function detectBypassingBots(nginxIps, cfByIp) {
-  const output = { ips: {}, summary: {} };
+  const output = { ips: {}, subnets: {}, summary: {} };
   for (const [ip, data] of Object.entries(nginxIps)) {
     if (data.hasUtmSource) continue;
     if (data.hasRealUserPath) continue;
@@ -353,9 +407,30 @@ function detectBypassingBots(nginxIps, cfByIp) {
 
   const sorted = Object.entries(output.ips).sort(([, a], [, b]) => (b.requests ?? 0) - (a.requests ?? 0)).slice(0, 50);
   output.ips = Object.fromEntries(sorted);
+
+  const subnetGroups = buildSubnetGroups(nginxIps);
+  for (const [subnet, data] of Object.entries(subnetGroups)) {
+    if (data.hasUtmSource) continue;
+    if (data.hasRealUserPath) continue;
+    if (data.count < 20) continue;
+    if (isKnownGoodBot(data.userAgents)) continue;
+    const subnetKey = subnet.includes(":") ? subnet : `${subnet}.0/24`;
+    output.subnets[subnetKey] = {
+      requests: data.count,
+      unique_ips: Object.keys(data.ips).length,
+      sample_ip: data.sampleIp,
+      user_agents: Object.keys(data.userAgents),
+      reason: "Direct no referer",
+    };
+  }
+  const sortedSubnets = Object.entries(output.subnets).sort(([, a], [, b]) => (b.requests ?? 0) - (a.requests ?? 0)).slice(0, 50);
+  output.subnets = Object.fromEntries(sortedSubnets);
+
   output.summary = {
     total_bypassing_ips: Object.keys(output.ips).length,
     total_bypass_requests: Object.values(output.ips).reduce((sum, row) => sum + Number(row.requests ?? 0), 0),
+    total_bypassing_subnets: Object.keys(output.subnets).length,
+    total_subnet_requests: Object.values(output.subnets).reduce((sum, row) => sum + Number(row.requests ?? 0), 0),
   };
   return output;
 }
@@ -617,10 +692,35 @@ async function main() {
     const cfRules = await fetchCloudflareRules();
     const bypassBots = detectBypassingBots(nginxIps, cfByIp);
     await enrichGeoIpBypassIps(bypassBots.ips);
+    await enrichGeoIpBypassSubnets(bypassBots.subnets);
+
+    const excludeAsns = optionalEnv("BYPASS_BOTS_EXCLUDE_ASNS").split(",").map((s) => s.trim()).filter(Boolean);
+    if (excludeAsns.length > 0) {
+      for (const ip of Object.keys(bypassBots.ips)) {
+        const asn = bypassBots.ips[ip]?.geoip?.asn;
+        if (asn != null && excludeAsns.includes(String(asn))) {
+          delete bypassBots.ips[ip];
+        }
+      }
+      for (const subnet of Object.keys(bypassBots.subnets)) {
+        const asn = bypassBots.subnets[subnet]?.asn;
+        if (asn != null && excludeAsns.includes(String(asn))) {
+          delete bypassBots.subnets[subnet];
+        }
+      }
+      bypassBots.summary = {
+        total_bypassing_ips: Object.keys(bypassBots.ips).length,
+        total_bypass_requests: Object.values(bypassBots.ips).reduce((sum, row) => sum + Number(row.requests ?? 0), 0),
+        total_bypassing_subnets: Object.keys(bypassBots.subnets).length,
+        total_subnet_requests: Object.values(bypassBots.subnets).reduce((sum, row) => sum + Number(row.requests ?? 0), 0),
+      };
+    }
+
     const falsePositives = detectFalsePositives(cfByIp, cfRules);
 
     console.info("\n--- Bot Detection Summary ---");
-    console.info(`Bots bypassing Cloudflare: ${Object.keys(bypassBots.ips).length}`);
+    console.info(`Bots bypassing Cloudflare (subnets): ${Object.keys(bypassBots.subnets).length}`);
+    console.info(`Bots bypassing Cloudflare (IPs): ${Object.keys(bypassBots.ips).length}`);
     console.info(`Potential false positives: ${falsePositives.length}`);
 
     await pool.execute(
