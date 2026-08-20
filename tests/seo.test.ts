@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { serializeJsonLd, toAbsoluteUrl } from "../src/lib/seo";
+import {
+  buildApplicantLocationRequirements,
+  serializeJsonLd,
+  toAbsoluteUrl,
+  WORLDWIDE_APPLICANT_COUNTRY_CODES,
+} from "../src/lib/seo";
 
 describe("seo helpers", () => {
   afterEach(() => {
@@ -19,5 +24,22 @@ describe("seo helpers", () => {
   it("serializes JSON-LD payloads", () => {
     expect(serializeJsonLd(undefined)).toBeNull();
     expect(serializeJsonLd({ "@type": "WebSite" })).toBe("{\"@type\":\"WebSite\"}");
+  });
+
+  it("uses the job country for applicantLocationRequirements", () => {
+    expect(
+      buildApplicantLocationRequirements({
+        countryId: 12,
+        countryCode: "de",
+        countryName: "Germany",
+      }),
+    ).toEqual([{ "@type": "Country", name: "DE" }]);
+  });
+
+  it("uses a hardcoded country list for worldwide jobs", () => {
+    expect(buildApplicantLocationRequirements({ countryId: 0 })).toEqual(
+      WORLDWIDE_APPLICANT_COUNTRY_CODES.map((name) => ({ "@type": "Country", name })),
+    );
+    expect(WORLDWIDE_APPLICANT_COUNTRY_CODES).toEqual(["US", "CA", "GB", "AU", "NZ", "SG", "ZA"]);
   });
 });

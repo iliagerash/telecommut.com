@@ -8,7 +8,7 @@ import { getRequestDb } from "@/db/request";
 import { authUsers, categories, contracts, countries, countryGroups, jobRemovals, jobs } from "@/db/schema";
 import PublicLayout from "@/layouts/PublicLayout.astro";
 import { formatDescriptionHtml } from "@/lib/description";
-import { toAbsoluteUrl } from "@/lib/seo";
+import { buildApplicantLocationRequirements, toAbsoluteUrl } from "@/lib/seo";
 import { resolveEmployerImage } from "@/lib/image-fallback";
 import { evaluateJobHttpSemantics, type JobState } from "@/services/crawler/http-semantics";
 import { Badge } from "@/components/ui/badge";
@@ -133,7 +133,9 @@ let detail:
       contractCode: string | null;
       categoryTitle: string | null;
       categorySlug: string | null;
+      countryId: number;
       countryName: string | null;
+      countryCode: string | null;
       companyLogo: string | null;
       ownerImage: string | null;
     ownerEmail: string | null;
@@ -194,7 +196,9 @@ if (row.length === 0) {
     contractCode: job.contractCode ?? null,
     categoryTitle: row[0].categories?.title ?? null,
     categorySlug: row[0].categories?.slug ?? null,
+    countryId: job.countryId,
     countryName: row[0].countries?.name ?? null,
+    countryCode: row[0].countries?.code ?? null,
     companyLogo: (job.companyLogo ?? "").trim() || null,
     ownerImage: (row[0].auth_users?.image ?? "").trim() || null,
     ownerEmail: row[0].auth_users?.email ?? null,
@@ -317,6 +321,11 @@ const jsonLd = detail && canViewDetail && !canViewPendingAsOwner
       validThrough: parseDate(detail.expires).toISOString(),
       employmentType: (detail.contractCode ?? "").toUpperCase(),
       jobLocationType: "TELECOMMUTE",
+      applicantLocationRequirements: buildApplicantLocationRequirements({
+        countryId: detail.countryId,
+        countryCode: detail.countryCode,
+        countryName: detail.countryName,
+      }),
       hiringOrganization: {
         "@type": "Organization",
         name: detail.companyName,

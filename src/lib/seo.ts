@@ -1,5 +1,36 @@
 type JsonLd = Record<string, unknown> | Array<Record<string, unknown>>;
 
+export const WORLDWIDE_APPLICANT_COUNTRY_CODES = ["US", "CA", "GB", "AU", "NZ", "SG", "ZA"] as const;
+
+export type JsonLdCountry = {
+  "@type": "Country";
+  name: string;
+};
+
+function toCountryRequirement(name: string): JsonLdCountry {
+  return { "@type": "Country", name };
+}
+
+export function buildApplicantLocationRequirements(input: {
+  countryId?: number | null;
+  countryCode?: string | null;
+  countryName?: string | null;
+}): JsonLdCountry[] {
+  if ((input.countryId ?? 0) > 0) {
+    const code = (input.countryCode ?? "").trim().toUpperCase();
+    if (code) {
+      return [toCountryRequirement(code)];
+    }
+
+    const name = (input.countryName ?? "").trim();
+    if (name) {
+      return [toCountryRequirement(name)];
+    }
+  }
+
+  return WORLDWIDE_APPLICANT_COUNTRY_CODES.map((code) => toCountryRequirement(code));
+}
+
 function getSiteOrigin(): string {
   const fromPublic = import.meta.env.PUBLIC_APP_URL;
   if (fromPublic && fromPublic.trim() !== "") {
