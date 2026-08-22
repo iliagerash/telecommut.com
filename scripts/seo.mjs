@@ -238,13 +238,28 @@ async function getBingUrlInfo(url, siteUrl, apiKey) {
   endpoint.searchParams.set("siteUrl", siteUrl);
   endpoint.searchParams.set("url", url);
 
-  try {
-    const response = await fetch(endpoint, { method: "GET" });
-    if (!response.ok) return null;
-    return await response.json().catch(() => null);
-  } catch {
-    return null;
+  const retryWaits = [60000]; // 1 retry after first 400
+  const maxAttempts = 1 + retryWaits.length;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(endpoint, { method: "GET" });
+      if (response.ok) {
+        return await response.json().catch(() => null);
+      }
+      if (response.status === 400 && attempt <= retryWaits.length) {
+        const wait = retryWaits[attempt - 1];
+        console.warn(`Bing HTTP 400 for ${url}, waiting ${wait / 1000}s then retry...`);
+        await sleep(wait);
+        continue;
+      }
+      console.warn(`Bing HTTP ${response.status} for ${url}`);
+      return null;
+    } catch (error) {
+      console.warn(`Bing exception for ${url}: ${error instanceof Error ? error.message : String(error)}`);
+      return null;
+    }
   }
+  return null;
 }
 
 async function handleGoogle(pool, baseUrl) {
@@ -365,10 +380,15 @@ async function handleBing(pool, baseUrl) {
   for (const page of seoPages) {
     const url = toAbsoluteUrl(page.url, baseUrl);
     const data = await getBingUrlInfo(url, baseUrl, apiKey);
+    if (data === null) {
+      console.info(`${url} - (API failed, skipped update)`);
+      await sleep(1000);
+      continue;
+    }
     const crawledAt = parseMicrosoftDate(data?.d?.LastCrawledDate ?? null);
     await pool.execute("UPDATE seo_pages SET bing_crawled_at = ? WHERE id = ?", [crawledAt, page.id]);
     console.info(`${url} - ${crawledAt}`);
-    await sleep(200);
+    await sleep(1000);
   }
 
   if (seoPages.length === 0) {
@@ -403,11 +423,16 @@ async function handleBing(pool, baseUrl) {
     total += 1;
     const url = categoryUrl(category.category_slug, category.category_title, baseUrl);
     const data = await getBingUrlInfo(url, baseUrl, apiKey);
+    if (data === null) {
+      console.info(`${url} - (API failed, skipped update)`);
+      await sleep(1000);
+      continue;
+    }
     const crawledAt = parseMicrosoftDate(data?.d?.LastCrawledDate ?? null);
     if (crawledAt) crawled += 1;
     await pool.execute("UPDATE categories SET bing_crawled_at = ? WHERE id = ?", [crawledAt, category.id]);
     console.info(`${url} - ${crawledAt}`);
-    await sleep(200);
+    await sleep(1000);
   }
 
   if (categories.length > 0) {
