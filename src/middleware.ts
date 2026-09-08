@@ -76,10 +76,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (allowedRoles) {
       const session = await getSession(context.request, context.locals);
       if (!session?.session?.id) {
-        const redirectUrl = new URL("/auth/login", context.url);
-        redirectUrl.searchParams.set("next", context.url.pathname);
-
-        return context.redirect(redirectUrl.toString(), 302);
+        const next = encodeURIComponent(context.url.pathname);
+        return context.redirect(`/auth/login?next=${next}`, 302);
       }
 
       const userRecord = session.user as Record<string, unknown>;
