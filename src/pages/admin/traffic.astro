@@ -15,6 +15,7 @@ type BypassSubnetInfo = {
   country?: string | null;
   reason?: string;
   user_agents?: string[];
+  user_agent_count?: number;
 };
 
 function parseJsonObject<T>(value: string | null): T | null {
@@ -162,8 +163,8 @@ const bypassBotSubnets = Object.entries(bypassBotsRaw?.subnets ?? {}).slice(0, 3
                                 <td class="px-4 py-3 align-top">
                                   {info.user_agents?.length ? info.user_agents.slice(0, 2).join(", ") : "—"}
                                   {
-                                    (info.user_agents?.length ?? 0) > 2
-                                      ? <span class="ml-1 text-xs text-muted-foreground">(+{(info.user_agents?.length ?? 0) - 2} more)</span>
+                                    (info.user_agent_count ?? info.user_agents?.length ?? 0) > 2
+                                      ? <span class="ml-1 text-xs text-muted-foreground">(+{(info.user_agent_count ?? info.user_agents?.length ?? 0) - 2} more)</span>
                                       : null
                                   }
                                 </td>

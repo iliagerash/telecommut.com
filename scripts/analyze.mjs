@@ -192,6 +192,14 @@ function ipInCidr(ip, cidr) {
   return (ipLong & mask) === (subnetLong & mask);
 }
 
+// Keeps direct_traffic rows small: bots rotating user agents can send hundreds per subnet
+const MAX_STORED_USER_AGENTS = 20;
+
+function topUserAgents(userAgents) {
+  const sorted = Object.entries(userAgents).sort(([, a], [, b]) => b - a).map(([ua]) => ua);
+  return { user_agents: sorted.slice(0, MAX_STORED_USER_AGENTS), user_agent_count: sorted.length };
+}
+
 function isKnownGoodBot(userAgents) {
   const allBots = GOOD_BOTS.concat(WHITELISTED_BOTS);
   for (const ua of Object.keys(userAgents ?? {})) {
@@ -387,7 +395,7 @@ function detectBypassingBots(nginxIps, cfByIp) {
     if (!cfByIp[ip]) {
       output.ips[ip] = {
         requests: data.count,
-        user_agents: Object.keys(data.userAgents),
+        ...topUserAgents(data.userAgents),
         reason: "Not seen",
       };
       continue;
@@ -399,7 +407,7 @@ function detectBypassingBots(nginxIps, cfByIp) {
       output.ips[ip] = {
         requests: data.count,
         cf_blocks_challenges: blockedOrChallenged,
-        user_agents: Object.keys(data.userAgents),
+        ...topUserAgents(data.userAgents),
         reason: "Bypassed",
       };
     }
@@ -419,7 +427,7 @@ function detectBypassingBots(nginxIps, cfByIp) {
       requests: data.count,
       unique_ips: Object.keys(data.ips).length,
       sample_ip: data.sampleIp,
-      user_agents: Object.keys(data.userAgents),
+      ...topUserAgents(data.userAgents),
       reason: "Direct no referer",
     };
   }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, date, double, int, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { boolean, date, double, int, mediumtext, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 export const appMeta = mysqlTable("app_meta", {
   id: int("id").autoincrement().primaryKey(),
@@ -232,8 +232,8 @@ export const directTraffic = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     trafficDate: date("traffic_date", { mode: "string" }).notNull(),
-    bypassBots: text("bypass_bots"),
-    falsePositives: text("false_positives"),
+    bypassBots: mediumtext("bypass_bots"),
+    falsePositives: mediumtext("false_positives"),
     totalNginxRequests: int("total_nginx_requests").notNull().default(0),
     totalCloudflareEvents: int("total_cloudflare_events").notNull().default(0),
     cloudflareBlocks: int("cloudflare_blocks").notNull().default(0),
